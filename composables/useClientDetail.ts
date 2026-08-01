@@ -4,7 +4,12 @@ export const useClientDetail = () => {
 	const deviceId = useRoute().params.id;
 
 	const clientStore = useClientStore();
-	const { currentClient: device, currentMetrics: metrics } = storeToRefs(clientStore);
+	const {
+		currentClient: device,
+		currentMetrics: metrics,
+		currentDisks: disks,
+		currentDiskHistory: diskHistory,
+	} = storeToRefs(clientStore);
 
 	onMounted(async () => {
 		await clientStore.loadClients();
@@ -15,5 +20,7 @@ export const useClientDetail = () => {
 		clientStore,
 		device,
 		metrics,
+		disks,
+		diskHistory,
 	};
 };

@@ -438,7 +438,7 @@
 <script setup lang="ts">
 import { useClientDetail } from '~/composables/useClientDetail';
 import type { Client } from '~/types';
-import { LoadingSpinner } from '~/components/custom/loading-spinner';
+import LoadingSpinner from '~/components/custom/loading-spinner/LoadingSpinner.vue';
 
 const { $api } = useNuxtApp();
 const props = defineProps({

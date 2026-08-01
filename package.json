@@ -56,6 +56,7 @@
     "@vueform/multiselect": "^2.6.7",
     "@vueuse/core": "^10.11.0",
     "axios": "^1.6.7",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "codemirror": "^6.0.1",
@@ -67,6 +68,7 @@
     "sass": "^1.69.5",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
+    "vue-chartjs": "^5.3.4",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2"
   },

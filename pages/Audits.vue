@@ -89,72 +89,12 @@
 										</div>
 										<div>
 											<div>
-												<div class="relative mt-1 flex w-full flex-col">
-													<select
-														id="0P59e94FP9"
-														class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													>
-														<option
-															disabled=""
-															hidden=""
-															value=""
-														/>
-														<option value="auth.user">
-															Auth user
-														</option>
-														<option value="auth.user.me">
-															Auth user me
-														</option>
-														<option value="auth.user.me.token">
-															Auth user me token
-														</option>
-														<option value="auth.user.totp">
-															Auth user totp
-														</option>
-														<option value="auth.user.group">
-															Auth user group
-														</option>
-														<option value="client">
-															Client
-														</option>
-														<option value="client.acl">
-															Client ACL
-														</option>
-														<option value="client.auth">
-															Client auth
-														</option>
-														<option value="client.group">
-															Client group
-														</option>
-														<option value="client.tunnel">
-															Client tunnel
-														</option>
-														<option value="client.command">
-															Client command
-														</option>
-														<option value="client.script">
-															Client script
-														</option>
-														<option value="library.command">
-															Library command
-														</option>
-														<option value="library.script">
-															Library script
-														</option>
-														<option value="vault">
-															Vault
-														</option>
-														<option value="schedule">
-															Schedule
-														</option>
-														<option value="uploads">
-															Uploads
-														</option>
-													</select><label
-														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-														for="0P59e94FP9"
-													>Application</label>
-												</div><!----><!---->
+												<CustomThemedSelect
+													id="0P59e94FP9"
+													label="Application"
+													placeholder="Select..."
+													:options="applicationOptions"
+												/>
 											</div>
 										</div>
 									</div>
@@ -395,7 +335,28 @@
 	</new-page-wrapper>
 </template>
 
-<script>
+<script setup lang="ts">
+const applicationOptions = [
+	{ value: 'auth.user', label: 'Auth user' },
+	{ value: 'auth.user.me', label: 'Auth user me' },
+	{ value: 'auth.user.me.token', label: 'Auth user me token' },
+	{ value: 'auth.user.totp', label: 'Auth user totp' },
+	{ value: 'auth.user.group', label: 'Auth user group' },
+	{ value: 'client', label: 'Client' },
+	{ value: 'client.acl', label: 'Client ACL' },
+	{ value: 'client.auth', label: 'Client auth' },
+	{ value: 'client.group', label: 'Client group' },
+	{ value: 'client.tunnel', label: 'Client tunnel' },
+	{ value: 'client.command', label: 'Client command' },
+	{ value: 'client.script', label: 'Client script' },
+	{ value: 'library.command', label: 'Library command' },
+	{ value: 'library.script', label: 'Library script' },
+	{ value: 'vault', label: 'Vault' },
+	{ value: 'schedule', label: 'Schedule' },
+	{ value: 'uploads', label: 'Uploads' },
+];
+</script>
+<script lang="ts">
 export default {
 	// Lógica de la página
 };

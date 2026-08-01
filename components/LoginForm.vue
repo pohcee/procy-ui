@@ -22,7 +22,7 @@
 					>
 					<label
 						for="username"
-						class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-blue text-sm font-normal"
+						class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
 					>Username</label>
 				</div>
 			</div>
@@ -44,40 +44,16 @@
 				</div>
 			</div>
 			<div class="mt-2">
-				<div class="relative mt-1 flex w-full flex-col">
-					<select
-						id="rememberMe"
-						v-model="user.remember_me"
-						name="rememberMe"
-						class="primary p-2.5 focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-					>
-						<option value="" />
-						<option :value="3600">
-							1 hour
-						</option>
-						<option :value="3600 * 24">
-							24 hours
-						</option>
-						<option :value="3600 * 24 * 7">
-							7 days
-						</option>
-						<option :value="3600 * 24 * 14">
-							14 days
-						</option>
-						<option :value="3600 * 24 * 30">
-							30 days
-						</option>
-					</select>
-					<label
-						for="rememberMe"
-						class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary-800 order-1 text-sm font-medium"
-					>Remember
-						me for</label>
-				</div>
+				<CustomThemedSelect
+					id="rememberMe"
+					v-model="user.remember_me"
+					label="Remember me for"
+					:options="rememberMeOptions"
+				/>
 			</div>
 			<div
 				v-show="errors.length > 0"
-				class="mt-1 rounded p-2.5 bg-red-50"
+				class="mt-1 rounded p-2.5 bg-red-50 dark:bg-red-950/40"
 			>
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
@@ -97,7 +73,7 @@
 						</svg>
 					</div>
 					<div class="ml-3 mt-1 flex-grow">
-						<p class="text-sm font-medium text-red-800">
+						<p class="text-sm font-medium text-red-800 dark:text-red-300">
 							unauthorized
 						</p>
 					</div>
@@ -165,6 +141,13 @@ const user = ref<ILoginInput>({
 	password: '',
 	remember_me: '3600',
 });
+const rememberMeOptions = [
+	{ value: '3600', label: '1 hour' },
+	{ value: String(3600 * 24), label: '24 hours' },
+	{ value: String(3600 * 24 * 7), label: '7 days' },
+	{ value: String(3600 * 24 * 14), label: '14 days' },
+	{ value: String(3600 * 24 * 30), label: '30 days' },
+];
 const emit = defineEmits(['login']);
 const login = async () => {
 	const credentials: ILoginInput = {

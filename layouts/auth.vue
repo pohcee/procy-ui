@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="absolute bottom-4 left-4 right-4 top-4 flex justify-between overflow-hidden rounded-xl bg-white shadow-lg shadow-gray-400"
+		class="absolute bottom-4 left-4 right-4 top-4 flex justify-between overflow-hidden rounded-xl bg-background shadow-lg shadow-gray-400 dark:shadow-black/50"
 	>
 		<div class="flex h-full w-2/5 items-center justify-center px-8">
 			<slot />

@@ -200,6 +200,7 @@
 												<DeviceInventoryTab
 													:device="device"
 													:metrics="metrics"
+													:disks="disks"
 												/>
 											</TabsContent>
 											<TabsContent value="tunnels">
@@ -221,7 +222,11 @@
 												<DeviceScriptsTab :id="device.id" />
 											</TabsContent>
 											<TabsContent value="monitoring">
-												<DeviceMonitoringTab />
+												<DeviceMonitoringTab
+													:device="device"
+													:metrics="metrics"
+													:disk-history="diskHistory"
+												/>
 											</TabsContent>
 											<TabsContent value="files">
 												<DeviceFilesTab />
@@ -365,7 +370,7 @@ const selectedTab = ref('inventory');
 
 const { isAddingTunnel } = storeToRefs(tunnelStore);
 
-const { device, metrics } = useClientDetail();
+const { device, metrics, disks, diskHistory } = useClientDetail();
 const {
 	translateX,
 	tabsListRef,

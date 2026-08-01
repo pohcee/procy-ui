@@ -15,85 +15,34 @@
 								>
 									<div class="grid-cols-3 grid gap-2">
 										<div class="col-span-2">
-											<div class="relative mt-1 flex w-full flex-col">
-												<select
-													v-model="formState.service"
-													class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-												>
-													<option
-														disabled=""
-														hidden=""
-														value=""
-													/>
-													<option
-														v-for="option in TUNNEL_OPTIONS"
-														:key="option.id"
-														:value="option.id"
-													>
-														{{ option.label }}
-													</option>
-												</select><label
-													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-medium"
-												>Select a service</label>
-											</div><!----><!---->
+											<CustomThemedSelect
+												v-model="formState.service"
+												label="Select a service"
+												placeholder="Select..."
+												:options="tunnelServiceOptions"
+											/>
 										</div>
 										<div
 											class="grid gap-2"
 											:class="formState.service === 'other' || formState.service === 'forwarding' ? 'grid-cols-2' : 'grid-cols-1'"
 										>
 											<div v-if="formState.service === 'other'">
-												<div class="relative mt-1 flex w-full flex-col">
-													<select
-														id="Kz5gjthDsT"
-														v-model="formState.protocol"
-														class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													>
-														<option
-															disabled=""
-															hidden=""
-															value=""
-														/>
-														<option value="tcp">
-															TCP
-														</option>
-														<option value="udp">
-															UDP
-														</option>
-														<option value="tcp+udp">
-															TCP + UDP
-														</option>
-													</select>
-													<label
-														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-														for="Kz5gjthDsT"
-													>Protocol</label>
-												</div><!----><!---->
+												<CustomThemedSelect
+													id="Kz5gjthDsT"
+													v-model="formState.protocol"
+													label="Protocol"
+													placeholder="Select..."
+													:options="protocolOptions"
+												/>
 											</div>
 											<div v-if="formState.service === 'forwarding'">
-												<div class="relative mt-1 flex w-full flex-col">
-													<select
-														id="GnYHBlJMkN"
-														v-model="formState.forwardingService"
-														class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													>
-														<option
-															disabled=""
-															hidden=""
-															value=""
-														/>
-														<option
-															v-for="option in TUNNEL_OPTIONS.filter((item) => item.id !== 'forwarding')"
-															:key="option.id"
-															:value="option.id"
-														>
-															{{ option.label }}
-														</option>
-													</select>
-													<label
-														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-														for="GnYHBlJMkN"
-													>Select a service</label>
-												</div><!----><!---->
+												<CustomThemedSelect
+													id="GnYHBlJMkN"
+													v-model="formState.forwardingService"
+													label="Select a service"
+													placeholder="Select..."
+													:options="forwardingServiceOptions"
+												/>
 											</div>
 											<div class="flex flex-col">
 												<div class="relative mt-1 flex w-full flex-col">
@@ -311,28 +260,13 @@
 								>
 									<div class="grid grid-cols-3 gap-2">
 										<div class="col-span-2">
-											<div class="relative mt-1 flex w-full flex-col">
-												<select
-													id="j98xCvnmDA"
-													v-model="formState.lport_random"
-													class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-												>
-													<option
-														disabled=""
-														hidden=""
-														value=""
-													/>
-													<option value="random">
-														Random free port
-													</option>
-													<option value="specify">
-														Specific port
-													</option>
-												</select><label
-													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-													for="j98xCvnmDA"
-												>Select a port</label>
-											</div>
+											<CustomThemedSelect
+												id="j98xCvnmDA"
+												v-model="formState.lport_random"
+												label="Select a port"
+												placeholder="Select..."
+												:options="lportRandomOptions"
+											/>
 											<p
 												v-if="formState.lport_random === 'specify'"
 												class="mt-1 pl-1 text-sm text-gray-500"
@@ -376,32 +310,13 @@
 								>
 									<div class="grid grid-cols-3 gap-2">
 										<div class="col-span-2">
-											<div class="relative mt-1 flex w-full flex-col">
-												<select
-													id="DQwQIB4Yu3"
-													v-model="formState.acl_model"
-													class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-												>
-													<option
-														disabled=""
-														hidden=""
-														value=""
-													/>
-													<option value="current">
-														Only my current IP address
-													</option>
-													<option value="specific">
-														Specific network range
-													</option>
-													<option value="anyone">
-														No restrictions (anyone can access)
-													</option>
-												</select>
-												<label
-													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-													for="DQwQIB4Yu3"
-												>Select an ACL</label>
-											</div><!----><!---->
+											<CustomThemedSelect
+												id="DQwQIB4Yu3"
+												v-model="formState.acl_model"
+												label="Select an ACL"
+												placeholder="Select..."
+												:options="aclModelOptions"
+											/>
 										</div>
 										<div
 											v-if="formState.acl_model === 'current'"
@@ -640,4 +555,23 @@ const {
 	isLoading,
 	handleSubmit,
 } = useTunnelForm(props.device);
+
+const tunnelServiceOptions = computed(() => TUNNEL_OPTIONS.map((option) => ({ value: option.id, label: option.label })));
+const forwardingServiceOptions = computed(() => TUNNEL_OPTIONS
+	.filter((option) => option.id !== 'forwarding')
+	.map((option) => ({ value: option.id, label: option.label })));
+const protocolOptions = [
+	{ value: 'tcp', label: 'TCP' },
+	{ value: 'udp', label: 'UDP' },
+	{ value: 'tcp+udp', label: 'TCP + UDP' },
+];
+const lportRandomOptions = [
+	{ value: 'random', label: 'Random free port' },
+	{ value: 'specify', label: 'Specific port' },
+];
+const aclModelOptions = [
+	{ value: 'current', label: 'Only my current IP address' },
+	{ value: 'specific', label: 'Specific network range' },
+	{ value: 'anyone', label: 'No restrictions (anyone can access)' },
+];
 </script>

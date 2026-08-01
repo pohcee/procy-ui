@@ -12,6 +12,7 @@
 			<DeviceBenchmarkCard
 				:device="device"
 				:metrics="metrics"
+				:disks="disks"
 			/>
 			<DeviceIPAddresses
 				:ipv4="device?.ipv4"
@@ -31,7 +32,11 @@ const props = defineProps({
 	},
 	metrics: {
 		type: Array,
-		default: [],
+		default: () => [],
+	},
+	disks: {
+		type: Array,
+		default: () => [],
 	},
 });
 </script>

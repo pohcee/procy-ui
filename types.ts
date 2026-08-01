@@ -16,6 +16,11 @@ export interface UpdatesStatus {
 	update_summaries: UpdateSummary[];
 	reboot_pending: boolean;
 }
+export interface VaultStatus {
+	init: 'uninitialized' | 'setup-completed';
+	status: 'locked' | 'unlocked' | '';
+}
+
 export interface ClientAuth {
 	id: string;
 	password: string;
@@ -68,8 +73,15 @@ export interface ClientMetric {
 }
 
 export interface ClientMountpoint {
-	mountpoints: any;
+	mountpoints: Record<string, number>;
 	timestamp: string;
+}
+
+export interface DiskUsage {
+	mount: string;
+	free: number;
+	total: number;
+	usedPercent: number;
 }
 export interface Meta {
 	count: number;
@@ -83,7 +95,7 @@ export interface ClientMetricsResponse {
 	meta: Meta;
 }
 export interface ClientMountpointsResponse {
-	data: ClientMountpoint;
+	data: ClientMountpoint[];
 	meta: Meta;
 }
 export interface ClientGroup {

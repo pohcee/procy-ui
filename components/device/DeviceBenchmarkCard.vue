@@ -138,6 +138,15 @@
 						</tbody>
 						<!---->
 					</table>
+					<div
+						v-if="disks.length > 0"
+						class="mt-4"
+					>
+						<h4 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-50">
+							Disks
+						</h4>
+						<DeviceDiskUsageList :disks="disks" />
+					</div>
 				</div>
 			</div>
 		</div>
@@ -155,7 +164,11 @@ const props = defineProps({
 	},
 	metrics: {
 		type: Array,
-		default: [],
+		default: () => [],
+	},
+	disks: {
+		type: Array,
+		default: () => [],
 	},
 });
 const memory_usage_percent = computed(() => {

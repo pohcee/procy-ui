@@ -120,22 +120,12 @@
 						class="w-1/2"
 					>
 						<div>
-							<div class="relative mt-1 flex w-full flex-col">
-								<select
-									v-model="selectedConnectUrl"
-									class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-								>
-									<option
-										v-for="connect in status.connect_url"
-										:key="connect"
-										:value="connect"
-									>
-										{{ connect }}
-									</option>
-								</select><label
-									class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-								>Connect URL</label>
-							</div><!----><!---->
+							<CustomThemedSelect
+								v-model="selectedConnectUrl"
+								label="Connect URL"
+								placeholder="Select..."
+								:options="connectUrlOptions"
+							/>
 						</div>
 					</div>
 				</div>
@@ -210,6 +200,7 @@ const selectedConnectUrl = ref('');
 const { isLoading, error, installers, fetchInstaller } = useInstaller();
 
 const selectedOptions = ref({});
+const connectUrlOptions = computed(() => (status.value?.connect_url ?? []).map((connect: string) => ({ value: connect, label: connect })));
 const emit = defineEmits(['close', 'save']);
 
 const close = () => {

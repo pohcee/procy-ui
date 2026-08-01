@@ -35,28 +35,12 @@
 					</div><!----><!---->
 				</div>
 				<div class="mt-1 text-white">
-					<div class="relative mt-1 flex w-full flex-col">
-						<select
-							id="KQvbzK4XzJ"
-							class="border-white focus:border-white focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						>
-							<option
-								disabled=""
-								hidden=""
-								value=""
-							/>
-							<option value="shOrShebang">
-								/bin/sh or shebang
-							</option>
-							<option value="tacoscript">
-								Tacoscript (Experimental)
-							</option>
-						</select>
-						<label
-							class="order-1 flex pb-1 pl-1 text-white peer-focus:text-white order-1 text-sm font-medium"
-							for="KQvbzK4XzJ"
-						>Interpreter</label>
-					</div><!----><!---->
+					<CustomThemedSelect
+						id="KQvbzK4XzJ"
+						label="Interpreter"
+						placeholder="Select..."
+						:options="interpreterOptions"
+					/>
 				</div><!----><!---->
 				<div class="flex flex-col mt-1">
 					<div class="relative mt-1 flex w-full flex-col">
@@ -180,7 +164,7 @@
 
 <script setup lang="ts">
 import ExecutionTags from '~/components/custom/ExecutionTags.vue';
-import { LoadingSpinner } from '~/components/custom/loading-spinner';
+import LoadingSpinner from '~/components/custom/loading-spinner/LoadingSpinner.vue';
 
 const emit = defineEmits(['script-data']);
 const props = defineProps({
@@ -195,6 +179,10 @@ const timeoutInSeconds = ref<number>(300);
 const scriptContent = ref<string>('');
 const workingDirectory = ref<string>('');
 const useSudo = ref<boolean>(false);
+const interpreterOptions = [
+	{ value: 'shOrShebang', label: '/bin/sh or shebang' },
+	{ value: 'tacoscript', label: 'Tacoscript (Experimental)' },
+];
 
 const emitScriptData = () => {
 	emit('script-data', {

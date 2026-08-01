@@ -17,6 +17,22 @@ module.exports = {
 		},
 		extend: {
 			colors: {
+				// Neutral scale re-tuned to a VS Code (Dark+/Light+) feel.
+				// This backs every existing `gray-*` / `dark:*-gray-*` utility already
+				// used throughout the app, so it re-themes the whole UI from one place.
+				'gray': {
+					50: '#f7f7f7',
+					100: '#ececec',
+					200: '#d8d8d8',
+					300: '#b3b3b3',
+					400: '#9d9d9d',
+					500: '#7a7a7a',
+					600: '#5a5a5a',
+					700: '#454545',
+					800: '#2d2d30',
+					900: '#1e1e1e',
+					950: '#141414',
+				},
 				'primary': {
 					DEFAULT: '#00528d',
 					50: '#eff8ff',

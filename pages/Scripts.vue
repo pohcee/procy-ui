@@ -72,34 +72,12 @@
 									</div>
 								</div>
 								<div class="mt-1 text-white">
-									<div class="relative mt-1 flex w-full flex-col">
-										<select
-											id="RQzIGFFCdQ"
-											class="border-white focus:border-white focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-										>
-											<option
-												disabled=""
-												hidden=""
-												value=""
-											/>
-											<option value="cmd">
-												cmd (Windows only)
-											</option>
-											<option value="powershell">
-												PowerShell (Windows only)
-											</option>
-											<option value="systemDefaultShell">
-												System default shell
-											</option>
-											<option value="tacoscript">
-												Tacoscript (Experimental)
-											</option>
-										</select>
-										<label
-											class="order-1 flex pb-1 pl-1 text-white peer-focus:text-white order-1 text-sm font-medium"
-											for="RQzIGFFCdQ"
-										>Interpreter</label>
-									</div>
+									<CustomThemedSelect
+										id="RQzIGFFCdQ"
+										label="Interpreter"
+										placeholder="Select..."
+										:options="interpreterOptions"
+									/>
 								</div>
 								<div class="flex flex-col mt-1">
 									<div class="relative mt-1 flex w-full flex-col">
@@ -324,28 +302,11 @@
 						</div>
 						<div class="relative z-10">
 							<div class="sm:hidden">
-								<label
-									class="sr-only"
-									for="tabs"
-								>Select an option</label>
-								<select
+								<CustomThemedSelect
 									id="tabs"
-									class="block w-full rounded-md border-gray-300 bg-theme focus:border-primary focus:ring-primary"
-									name="tabs"
-								>
-									<option class="text-theme-inverted">
-										Individual Clients
-									</option>
-									<option class="text-theme-inverted">
-										Client Groups
-									</option>
-									<option class="text-theme-inverted">
-										Clients Matching
-									</option>
-									<option class="text-theme-inverted">
-										Clients by tags
-									</option>
-								</select>
+									placeholder="Select an option"
+									:options="tabOptions"
+								/>
 							</div>
 							<div class="hidden sm:block">
 								<div class="border-b border-gray-200">
@@ -448,7 +409,21 @@
 	</new-page-wrapper>
 </template>
 
-<script>
+<script setup lang="ts">
+const interpreterOptions = [
+	{ value: 'cmd', label: 'cmd (Windows only)' },
+	{ value: 'powershell', label: 'PowerShell (Windows only)' },
+	{ value: 'systemDefaultShell', label: 'System default shell' },
+	{ value: 'tacoscript', label: 'Tacoscript (Experimental)' },
+];
+const tabOptions = [
+	{ value: 'individual-clients', label: 'Individual Clients' },
+	{ value: 'client-groups', label: 'Client Groups' },
+	{ value: 'clients-matching', label: 'Clients Matching' },
+	{ value: 'clients-by-tags', label: 'Clients by tags' },
+];
+</script>
+<script lang="ts">
 export default {
 
 };

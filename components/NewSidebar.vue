@@ -326,7 +326,7 @@
 									width="20px"
 									height="20px"
 									viewBox="0 0 24 24"
-									class="icon rotate-90 transition-all"
+									:class="['icon transition-all', isNavBarOpen ? 'rotate-90' : 'rotate-0']"
 								>
 									<path
 										fill="currentColor"

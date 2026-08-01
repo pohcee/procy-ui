@@ -1,6 +1,7 @@
 import { HttpFactory } from '~/repository/factory';
 import type {
 	ClientMetricsResponse,
+	ClientMountpointsResponse,
 	ClientResponse,
 	ClientsResponse,
 	Client,
@@ -55,10 +56,36 @@ class ClientsModule extends HttpFactory {
 		);
 	}
 
-	async metrics(id: string): Promise<ClientMetricsResponse> {
+	async metrics(id: string, since?: string, until?: string): Promise<ClientMetricsResponse> {
+		// page[limit] defaults to 1 on the server if omitted, so it must be passed
+		// explicitly to get a real time series (120 is the server's hard max).
+		let params = '?sort=-timestamp&page[limit]=120';
+		if (since) {
+			params += `&filter[timestamp][since]=${encodeURIComponent(since)}`;
+		}
+		if (until) {
+			params += `&filter[timestamp][until]=${encodeURIComponent(until)}`;
+		}
 		return this.call(
 			'GET',
-			`${this.RESOURCE}/${id}/metrics`,
+			`${this.RESOURCE}/${id}/metrics${params}`,
+			undefined,
+		);
+	}
+
+	async mountpoints(id: string, since?: string, until?: string): Promise<ClientMountpointsResponse> {
+		// page[limit] defaults to 1 on the server if omitted; 100 is the server's hard max
+		// for this endpoint (lower than metrics' 120 - exceeding it is a 400, not a clamp).
+		let params = '?sort=-timestamp&page[limit]=100';
+		if (since) {
+			params += `&filter[timestamp][since]=${encodeURIComponent(since)}`;
+		}
+		if (until) {
+			params += `&filter[timestamp][until]=${encodeURIComponent(until)}`;
+		}
+		return this.call(
+			'GET',
+			`${this.RESOURCE}/${id}/mountpoints${params}`,
 			undefined,
 		);
 	}

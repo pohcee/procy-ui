@@ -9,6 +9,7 @@ import ProfileModule from '~/repository/modules/profile';
 import ClientAuthModule from '~/repository/modules/client-auth';
 import StatusModule from '~/repository/modules/status';
 import TunnelsModule from '~/repository/modules/tunnels';
+import VaultModule from '~/repository/modules/vault';
 
 interface IApiInstance {
 	auth: AuthModule;
@@ -20,6 +21,7 @@ interface IApiInstance {
 	clientAuth: ClientAuthModule;
 	status: StatusModule;
 	tunnels: TunnelsModule;
+	vault: VaultModule;
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -33,7 +35,11 @@ export default defineNuxtPlugin((nuxtApp) => {
 		baseURL: config.public.apiUrl,
 		headers: {
 			Accept: 'application/json',
-			Authorization: `Bearer ${userAuth.value}`,
+		},
+		onRequest({ options }): void | Promise<void> {
+			const headers = new Headers(options.headers);
+			headers.set('Authorization', `Bearer ${userAuth.value}`);
+			options.headers = headers;
 		},
 		onRequestError({ request, options, error }): void | Promise<void> {
 			console.log('[fetch request error]', request, error);
@@ -58,6 +64,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 		clientAuth: new ClientAuthModule(apiFetcher),
 		status: new StatusModule(apiFetcher),
 		tunnels: new TunnelsModule(apiFetcher),
+		vault: new VaultModule(apiFetcher),
 	};
 
 	return {

@@ -247,27 +247,11 @@
 						</div>
 						<div class="relative z-10">
 							<div class="sm:hidden">
-								<label
-									class="sr-only"
-									for="tabs"
-								>Select an option</label><select
+								<CustomThemedSelect
 									id="tabs"
-									class="block w-full rounded-md border-gray-300 bg-theme focus:border-primary focus:ring-primary"
-									name="tabs"
-								>
-									<option class="text-theme-inverted">
-										Individual Clients
-									</option>
-									<option class="text-theme-inverted">
-										Client Groups
-									</option>
-									<option class="text-theme-inverted">
-										Clients Matching
-									</option>
-									<option class="text-theme-inverted">
-										Clients by tags
-									</option>
-								</select>
+									placeholder="Select an option"
+									:options="tabOptions"
+								/>
 							</div>
 							<div class="hidden sm:block">
 								<div class="border-b border-gray-200">
@@ -366,7 +350,15 @@
 	</new-page-wrapper>
 </template>
 
-<script>
+<script setup lang="ts">
+const tabOptions = [
+	{ value: 'individual-clients', label: 'Individual Clients' },
+	{ value: 'client-groups', label: 'Client Groups' },
+	{ value: 'clients-matching', label: 'Clients Matching' },
+	{ value: 'clients-by-tags', label: 'Clients by tags' },
+];
+</script>
+<script lang="ts">
 export default {
 
 };

@@ -91,7 +91,7 @@
 						</div>
 					</form>
 					<div class="mt-8 pb-8">
-						<form>
+						<form @submit.prevent="handleSaveSettings">
 							<div class="relative z-20 flex h-16 items-center justify-between">
 								<div class="">
 									<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
@@ -125,53 +125,22 @@
 									<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
 										<div class="h-full w-full">
 											<div class="mt-4">
-												<div class="relative mt-1 flex w-full flex-col">
-													<select
-														id="zKC0s1Gc1T"
-														class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													>
-														<option
-															disabled=""
-															hidden=""
-															value=""
-														/>
-														<option value="Light">
-															Light
-														</option>
-														<option value="Dark">
-															Dark
-														</option>
-													</select><label
-														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-														for="zKC0s1Gc1T"
-													>Selected theme</label>
-												</div><!----><!---->
+												<CustomThemedSelect
+													id="zKC0s1Gc1T"
+													v-model="colorMode"
+													label="Selected theme"
+													:options="themeOptions"
+												/>
 											</div>
 											<div>
 												<div class="mt-4">
-													<div class="relative mt-1 flex w-full flex-col">
-														<select
-															id="uDMB3DAEKQ"
-															class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-															disabled=""
-														>
-															<option
-																disabled=""
-																hidden=""
-																value=""
-															/>
-															<option value="true">
-																Yes
-															</option>
-															<option value="false">
-																No
-															</option>
-														</select><label
-															class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-															for="uDMB3DAEKQ"
-														>Use Secure Shell Extension for
-															Chrome</label>
-													</div><!----><!---->
+													<CustomThemedSelect
+														id="uDMB3DAEKQ"
+														disabled
+														label="Use Secure Shell Extension for Chrome"
+														placeholder="Select..."
+														:options="yesNoOptions"
+													/>
 												</div>
 												<div
 													class="flex items-center justify-between space-x-0.5 pl-1 pt-1 text-sm text-gray-500"
@@ -238,86 +207,26 @@
 									<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
 										<div class="h-full w-full">
 											<div class="mt-4">
-												<div class="relative mt-1 flex w-full flex-col">
-													<select
-														id="KXSJoJIuLz"
-														class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													>
-														<option
-															disabled=""
-															hidden=""
-															value=""
-														/>
-														<option value="microsoft_remote_desktop">
-															Microsoft Remote
-															Desktop via RDP file download (Win &amp; Mac)
-														</option>
-														<option value="schema_link">
-															Open a rdp:// schema link (Linux
-															&amp; FreeRDP, custom scripts)
-														</option>
-													</select><label
-														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-														for="KXSJoJIuLz"
-													>Open non-browser-based RDP connections
-														with</label>
-												</div><!----><!---->
+											<CustomThemedSelect
+												id="KXSJoJIuLz"
+												label="Open non-browser-based RDP connections with"
+												placeholder="Select..."
+												:options="rdpConnectionOptions"
+											/>
 											</div>
 											<div class="mt-4 grid grid-cols-2 gap-4">
-												<div modelmodifiers="[object Object]">
-													<div class="relative mt-1 flex w-full flex-col">
-														<select
-															id="LtPRgDEHkP"
-															class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-														>
-															<option
-																disabled=""
-																hidden=""
-																value=""
-															/>
-															<option value="960">
-																960
-															</option>
-															<option value="1024">
-																1024
-															</option>
-															<option value="1280">
-																1280
-															</option>
-														</select><label
-															class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-															for="LtPRgDEHkP"
-														>Preferred window width for RDP
-															connections</label>
-													</div><!----><!---->
-												</div>
-												<div modelmodifiers="[object Object]">
-													<div class="relative mt-1 flex w-full flex-col">
-														<select
-															id="mR1ssRdYGd"
-															class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-														>
-															<option
-																disabled=""
-																hidden=""
-																value=""
-															/>
-															<option value="720">
-																720
-															</option>
-															<option value="768">
-																768
-															</option>
-															<option value="960">
-																960
-															</option>
-														</select><label
-															class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-															for="mR1ssRdYGd"
-														>Preferred window height for RDP
-															connections</label>
-													</div><!----><!---->
-												</div>
+												<CustomThemedSelect
+													id="LtPRgDEHkP"
+													label="Preferred window width for RDP connections"
+													placeholder="Select..."
+													:options="rdpWidthOptions"
+												/>
+												<CustomThemedSelect
+													id="mR1ssRdYGd"
+													label="Preferred window height for RDP connections"
+													placeholder="Select..."
+													:options="rdpHeightOptions"
+												/>
 											</div>
 											<div class="flex flex-col mt-4">
 												<div class="relative mt-1 flex w-full flex-col">
@@ -335,67 +244,12 @@
 												<!----><!---->
 											</div>
 											<div class="mt-4">
-												<div class="relative mt-1 flex w-full flex-col">
-													<select
-														id="dvmVMJe2id"
-														class="primary focus:border-1 peer order-2 block h-10 w-full rounded border-theme-border bg-transparent shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													>
-														<option
-															disabled=""
-															hidden=""
-															value=""
-														/>
-														<option value="pt-br-qwerty">
-															Brazilian (Portuguese)
-														</option>
-														<option value="en-gb-qwerty">
-															English (UK)
-														</option>
-														<option value="en-us-qwerty">
-															English (US)
-														</option>
-														<option value="fr-fr-azerty">
-															French
-														</option>
-														<option value="fr-be-azerty">
-															French (Belgian)
-														</option>
-														<option value="fr-ch-qwertz">
-															French (Swiss)
-														</option>
-														<option value="de-de-qwertz">
-															German
-														</option>
-														<option value="de-ch-qwertz">
-															German (Swiss)
-														</option>
-														<option value="hu-hu-qwertz">
-															Hungarian
-														</option>
-														<option value="it-it-qwerty">
-															Italian
-														</option>
-														<option value="ja-jp-qwerty">
-															Japanese
-														</option>
-														<option value="no-no-qwerty">
-															Norwegian
-														</option>
-														<option value="es-es-qwerty">
-															Spanish
-														</option>
-														<option value="es-latam-qwerty">
-															Spanish (Latin American)
-														</option>
-														<option value="tr-tr-qwerty">
-															Turkish-Q
-														</option>
-													</select><label
-														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary order-1 text-sm font-medium"
-														for="dvmVMJe2id"
-													>Local keyboard layout for browser-based
-														RDP</label>
-												</div><!----><!---->
+												<CustomThemedSelect
+												id="dvmVMJe2id"
+												label="Local keyboard layout for browser-based RDP"
+												placeholder="Select..."
+												:options="keyboardLayoutOptions"
+											/>
 											</div>
 											<div class="mt-4">
 												<button
@@ -543,6 +397,56 @@ const store = useProfile();
 const authStore = useTokenStore();
 const { profile } = storeToRefs(store);
 const { two_fa } = storeToRefs(authStore);
+const { colorMode } = useTheme();
+const snackbar = useSnackbar();
+
+const themeOptions = [
+	{ value: 'auto', label: 'System' },
+	{ value: 'light', label: 'Light' },
+	{ value: 'dark', label: 'Dark' },
+];
+const yesNoOptions = [
+	{ value: 'true', label: 'Yes' },
+	{ value: 'false', label: 'No' },
+];
+const rdpConnectionOptions = [
+	{ value: 'microsoft_remote_desktop', label: 'Microsoft Remote Desktop via RDP file download (Win & Mac)' },
+	{ value: 'schema_link', label: 'Open a rdp:// schema link (Linux & FreeRDP, custom scripts)' },
+];
+const rdpWidthOptions = [
+	{ value: '960', label: '960' },
+	{ value: '1024', label: '1024' },
+	{ value: '1280', label: '1280' },
+];
+const rdpHeightOptions = [
+	{ value: '720', label: '720' },
+	{ value: '768', label: '768' },
+	{ value: '960', label: '960' },
+];
+const keyboardLayoutOptions = [
+	{ value: 'pt-br-qwerty', label: 'Brazilian (Portuguese)' },
+	{ value: 'en-gb-qwerty', label: 'English (UK)' },
+	{ value: 'en-us-qwerty', label: 'English (US)' },
+	{ value: 'fr-fr-azerty', label: 'French' },
+	{ value: 'fr-be-azerty', label: 'French (Belgian)' },
+	{ value: 'fr-ch-qwertz', label: 'French (Swiss)' },
+	{ value: 'de-de-qwertz', label: 'German' },
+	{ value: 'de-ch-qwertz', label: 'German (Swiss)' },
+	{ value: 'hu-hu-qwertz', label: 'Hungarian' },
+	{ value: 'it-it-qwerty', label: 'Italian' },
+	{ value: 'ja-jp-qwerty', label: 'Japanese' },
+	{ value: 'no-no-qwerty', label: 'Norwegian' },
+	{ value: 'es-es-qwerty', label: 'Spanish' },
+	{ value: 'es-latam-qwerty', label: 'Spanish (Latin American)' },
+	{ value: 'tr-tr-qwerty', label: 'Turkish-Q' },
+];
+
+const handleSaveSettings = () => {
+	snackbar.add({
+		type: 'success',
+		text: 'Settings saved',
+	});
+};
 
 console.log(two_fa);
 await store.fetchProfile();

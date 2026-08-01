@@ -10,10 +10,22 @@
 	min-height: calc(100vh - 100px);
 }
 
+/* Explicit selection colors -- without these, some browsers fall back to a
+   UA default that can render selected text white regardless of background,
+   making it invisible in light mode. */
+::selection {
+	background-color: rgba(2, 153, 245, 0.25);
+	color: #111827;
+}
+.dark ::selection {
+	background-color: rgba(55, 148, 255, 0.35);
+	color: #d4d4d4;
+}
+
 input.primary,select.primary {
     background-color: transparent;
     border-color: #e5e7eb;
-    color: #374151;
+    color: #111827;
 }
 
 
@@ -23,6 +35,36 @@ input.primary:focus,select.primary:focus {
 
 input.primary.error,input.primary.error:focus,select.primary.error,select.primary.error:focus {
     border-color: #ef4444;
+}
+
+.dark input.primary,.dark select.primary {
+    border-color: #454545;
+    color: #d4d4d4;
+}
+
+.dark input.primary:focus,.dark select.primary:focus {
+    border-color: #3794ff;
+}
+
+.dark input.primary.error,.dark input.primary.error:focus,.dark select.primary.error,.dark select.primary.error:focus {
+    border-color: #f14c4c;
+}
+
+/* Neutralize the browser's own autofill re-coloring, which otherwise overrides
+   the rules above with a washed-out color the page can't normally control. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #111827;
+    caret-color: #111827;
+    transition: background-color 600000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #d4d4d4;
+    caret-color: #d4d4d4;
 }
 
 
@@ -40,6 +82,15 @@ input.primary.error,input.primary.error:focus,select.primary.error,select.primar
     outline: 2px solid transparent;
     outline-offset: 2px
 }
+
+.dark [multiple]:focus,.dark [type=date]:focus,.dark [type=datetime-local]:focus,.dark [type=email]:focus,.dark [type=month]:focus,.dark [type=number]:focus,.dark [type=password]:focus,.dark [type=search]:focus,.dark [type=tel]:focus,.dark [type=text]:focus,.dark [type=time]:focus,.dark [type=url]:focus,.dark [type=week]:focus,.dark select:focus,.dark textarea:focus {
+    --tw-ring-offset-color: #1e1e1e;
+    --tw-ring-color: #3794ff;
+    border-color: #3794ff;
+    box-shadow: 0 0 #1e1e1e,0 0 0 1px #3794ff,var(--tw-shadow);
+    box-shadow: var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow);
+}
+
 input::-moz-placeholder,textarea::-moz-placeholder {
     color: #6b7280;
     opacity: 1
@@ -47,6 +98,16 @@ input::-moz-placeholder,textarea::-moz-placeholder {
 
 input::placeholder,textarea::placeholder {
     color: #6b7280;
+    opacity: 1
+}
+
+.dark input::-moz-placeholder,.dark textarea::-moz-placeholder {
+    color: #7a7a7a;
+    opacity: 1
+}
+
+.dark input::placeholder,.dark textarea::placeholder {
+    color: #7a7a7a;
     opacity: 1
 }
 
@@ -117,6 +178,18 @@ input::placeholder,textarea::placeholder {
     outline-offset: 2px
 }
 
+.dark [type=checkbox],.dark [type=radio] {
+    background-color: #2d2d2d;
+    border-color: #7a7a7a;
+}
+
+.dark [type=checkbox]:focus,.dark [type=radio]:focus {
+    --tw-ring-offset-color: #1e1e1e;
+    --tw-ring-color: #3794ff;
+    box-shadow: 0 0 0 2px #1e1e1e,0 0 0 4px #3794ff,var(--tw-shadow);
+    box-shadow: var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow);
+}
+
 [type=checkbox]:checked,[type=radio]:checked {
     background-color: currentColor;
     background-position: 50%;
@@ -167,7 +240,7 @@ input::placeholder,textarea::placeholder {
 
 .text-theme-inverted {
     --tw-text-opacity: 1;
-    color: #374151;
+    color: #111827;
 }
 .text-theme-inverted-light,.text-theme-inverted-lighter {
     --tw-text-opacity: 1;
@@ -176,6 +249,16 @@ input::placeholder,textarea::placeholder {
 .text-theme-label {
     --tw-text-opacity: 1;
     color: #6b7280;
+}
+
+.dark .text-theme-inverted {
+    color: #d4d4d4;
+}
+.dark .text-theme-inverted-light,.dark .text-theme-inverted-lighter {
+    color: #b3b3b3;
+}
+.dark .text-theme-label {
+    color: #9d9d9d;
 }
 
 .bg-theme {
@@ -195,6 +278,19 @@ input::placeholder,textarea::placeholder {
 }
 .bg-theme-backdrop\/75 {
     background-color: #6b7280bf;
+}
+
+.dark .bg-theme {
+    background-color: #1e1e1e;
+}
+.dark .bg-theme-light {
+    background-color: #252526;
+}
+.dark .bg-theme-lighter {
+    background-color: #2d2d2d;
+}
+.dark .bg-theme-backdrop\/75 {
+    background-color: #000000bf;
 }
 .bg-warning {
     background-color: #ef6c00;
@@ -236,6 +332,16 @@ button.error.plain {
     color: rgb(239, 68, 68)
 }
 
+.dark .primary-plain,.dark button.primary.plain {
+    background-color: rgba(45, 178, 255, .12);
+    color: #58b6ff;
+}
+
+.dark button.error.plain {
+    background-color: rgba(241, 76, 76, .15);
+    color: #f87171;
+}
+
 /*button.primary.plain:hover {*/
 /*    background-color: theme("colors.primary.plain-hover");*/
 /*    background-color: var(--primary-plain-hover)*/
@@ -250,6 +356,12 @@ button.error.plain:disabled,button.error:disabled,button.primary.plain:disabled,
     background-color: rgb(209, 213, 219);
     color: #fff;
 }
+
+.dark button.error.plain:disabled,.dark button.error:disabled,.dark button.primary.plain:disabled,.dark button.primary:disabled,.dark button.secondary:disabled {
+    background-color: #3c3c3c;
+    color: #8a8a8a;
+}
+
 select {
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
     background-position: right .5rem center;
@@ -258,6 +370,9 @@ select {
     padding-right: 2.5rem !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact
+}
+.dark select {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239d9d9d' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
 }
 [multiple],[type=date],[type=datetime-local],[type=email],[type=month],[type=number],[type=password],[type=search],[type=tel],[type=text],[type=time],[type=url],[type=week],select,textarea {
     --tw-shadow: 0 0 #0000;
@@ -271,4 +386,31 @@ select {
     font-size: 1rem;
     line-height: 1.5rem;
     padding: .5rem .75rem
+}
+.dark [multiple],.dark [type=date],.dark [type=datetime-local],.dark [type=email],.dark [type=month],.dark [type=number],.dark [type=password],.dark [type=search],.dark [type=tel],.dark [type=text],.dark [type=time],.dark [type=url],.dark [type=week],.dark select,.dark textarea {
+    background-color: #3c3c3c;
+    border-color: #454545;
+    color: #d4d4d4;
+}
+
+/* Styles the dropdown popup's option list where the browser allows it
+   (Chromium/Firefox on most desktop platforms respect this). On Linux,
+   Chromium can render the popup panel itself via native GTK widgets, which
+   page CSS cannot reach at all -- that's a browser/OS limitation, not
+   something fixable from here. */
+select option {
+    background-color: #fff;
+    color: #111827;
+}
+.dark select option {
+    background-color: #3c3c3c;
+    color: #d4d4d4;
+}
+select option:checked {
+    background-color: #dbeafe;
+    color: #111827;
+}
+.dark select option:checked {
+    background-color: #264f78;
+    color: #ffffff;
 }

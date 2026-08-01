@@ -53,7 +53,7 @@ export default defineNuxtConfig({
 
 			],
 			bodyAttrs: {
-				class: 'min-h-screen h-full bg-gray-50 dark:bg-gray-800',
+				class: 'min-h-screen h-full',
 			},
 		},
 	},
@@ -67,7 +67,7 @@ export default defineNuxtConfig({
 	},
 
 	routeRules: {
-		// '/': { redirect: '/dashboard' }
+		'/': { redirect: '/dashboard' },
 	},
 
 	router: {

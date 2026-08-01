@@ -2,7 +2,7 @@ import type { Updater } from '@tanstack/vue-table';
 import type { Ref } from 'vue';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { QueryParams, TunnelPayload } from '~/types';
+import type { DiskUsage, QueryParams, TunnelPayload } from '~/types';
 
 export function valueUpdater<T extends Updater<any>>(updaterOrValue: T, ref: Ref) {
 	ref.value
@@ -54,6 +54,41 @@ export function bytesToSize(bytes: number): string {
 	const i = parseInt(String(Math.floor(Math.log(bytes) / Math.log(1024))), 10);
 	if (i === 0) return `${bytes} ${sizes[i]})`;
 	return `${(bytes / (1024 ** i)).toFixed(1)} ${sizes[i]}`;
+}
+
+// The mountpoints monitoring payload is a flat map keyed as "<metric>.<mountName>",
+// e.g. { "free_b./": 123, "total_b./": 456 } - the agent only ever reports free_b/total_b.
+export function parseMountpoints(raw: Record<string, number> | undefined): DiskUsage[] {
+	if (!raw) return [];
+	const byMount = new Map<string, { free?: number; total?: number }>();
+	for (const [key, value] of Object.entries(raw)) {
+		let mount: string | undefined;
+		let field: 'free' | 'total' | undefined;
+		if (key.startsWith('free_b.')) {
+			mount = key.slice('free_b.'.length);
+			field = 'free';
+		}
+		else if (key.startsWith('total_b.')) {
+			mount = key.slice('total_b.'.length);
+			field = 'total';
+		}
+		if (!mount || !field) continue;
+		const entry = byMount.get(mount) ?? {};
+		entry[field] = value;
+		byMount.set(mount, entry);
+	}
+
+	const disks: DiskUsage[] = [];
+	for (const [mount, entry] of byMount) {
+		if (entry.free === undefined || entry.total === undefined) continue;
+		disks.push({
+			mount,
+			free: entry.free,
+			total: entry.total,
+			usedPercent: entry.total > 0 ? ((entry.total - entry.free) / entry.total) * 100 : 0,
+		});
+	}
+	return disks.sort((a, b) => a.mount.localeCompare(b.mount));
 }
 
 export function toQueryString(params: QueryParams | TunnelPayload): string {
