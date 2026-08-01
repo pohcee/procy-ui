@@ -32,3 +32,4 @@ jobs:
 
       - name: Build Ui
         run: yarn generate
+# trigger workflow registration
