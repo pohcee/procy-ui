@@ -1,5 +1,5 @@
 import { HttpFactory, HttpMethod } from '~/repository/factory';
-import type {APITokenPayload, APITokenResponse, APITokensResponse, IpResponse, Profile, ProfileResponse} from '~/types';
+import type { APITokenPayload, APITokenResponse, APITokensResponse, IpResponse, Profile, ProfileResponse, TotP } from '~/types';
 
 class ProfileModule extends HttpFactory {
 	private RESOURCE = 'api/v1/me';
@@ -11,6 +11,38 @@ class ProfileModule extends HttpFactory {
 			undefined,
 		);
 		return response.data;
+	}
+
+	async updateProfile(payload: { username?: string; two_fa_send_to?: string; password?: string; old_password?: string }): Promise<void> {
+		await this.call(
+			HttpMethod.PUT,
+			`${this.RESOURCE}`,
+			payload,
+		);
+	}
+
+	async getTotP(): Promise<TotP> {
+		return this.call<TotP>(
+			HttpMethod.GET,
+			`${this.RESOURCE}/totp-secret`,
+			undefined,
+		);
+	}
+
+	async createTotP(): Promise<TotP> {
+		return this.call<TotP>(
+			HttpMethod.POST,
+			`${this.RESOURCE}/totp-secret`,
+			undefined,
+		);
+	}
+
+	async deleteTotP(): Promise<void> {
+		await this.call(
+			HttpMethod.DELETE,
+			`${this.RESOURCE}/totp-secret`,
+			undefined,
+		);
 	}
 
 	async apiTokens(): Promise<APITokensResponse> {

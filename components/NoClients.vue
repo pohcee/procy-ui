@@ -141,126 +141,13 @@
 							</p>
 						</div>
 						<div class="pt-5">
-							<div class="border border-theme-light bg-theme sm:max-w-2xl">
-								<div class="flex h-[] items-center border-b border-theme-light bg-theme p-3">
-									<h3 class="mr-2 font-medium leading-6 text-theme-inverted">
-										Add Client Access
-									</h3>
-								</div>
-								<div class="p-4">
-									<div>
-										<div class="flex flex-col mt-4">
-											<div class="relative mt-1 flex w-full flex-col">
-												<input
-													id="PADA2ir9Mw"
-													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													placeholder=" "
-													type="text"
-													autocomplete="off"
-												><label
-													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
-													for="PADA2ir9Mw"
-												>ID</label>
-											</div><!---->
-											<div
-												class="caption mb-6 mt-1 px-3 text-[10.5px] tracking-[0.35px] text-theme-inverted text-opacity-80"
-											>
-												Use meaningful names as ID to organize your clients better or <a
-													href="#"
-													class="text-primary underline"
-												>generate a random ID</a>
-												instead.
-											</div>
-										</div>
-										<div class="flex flex-col mt-4">
-											<div class="relative mt-1 flex w-full flex-col">
-												<input
-													id="6TKCrg4tQn"
-													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-													placeholder=" "
-													type="text"
-													autocomplete="off"
-												><label
-													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
-													for="6TKCrg4tQn"
-												>Password</label>
-											</div><!---->
-											<div
-												class="mb-4 mt-2 px-3 text-right text-sm font-normal tracking-[0.35px] text-theme-inverted text-opacity-80"
-											>
-												0
-											</div>
-										</div>
-										<div
-											class="relative mt-1 flex px-4 py-2 text-sm font-normal text-primary-800 before:absolute before:inset-0 before:bg-primary-700 before:bg-opacity-10"
-										>
-											<div class="mr-4">
-												<svg
-													data-v-ca945699=""
-													xmlns="http://www.w3.org/2000/svg"
-													xmlns:xlink="http://www.w3.org/1999/xlink"
-													aria-hidden="true"
-													role="img"
-													class="icon relative z-20 h-5 w-5"
-													width="24px"
-													height="24px"
-													viewBox="0 0 24 24"
-												>
-													<path
-														fill="currentColor"
-														d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"
-													/>
-												</svg>
-											</div>
-											<div class="relative z-20">
-												The password must be at least 12 characters
-												long. Only Alphanumeric and the following special characters _ + - . :
-												are allowed.
-											</div>
-										</div>
-										<div
-											class="relative mt-1 flex px-4 py-2 text-sm font-normal text-primary-800 before:absolute before:inset-0 before:bg-primary-700 before:bg-opacity-10"
-										>
-											<div class="mr-4">
-												<svg
-													data-v-ca945699=""
-													xmlns="http://www.w3.org/2000/svg"
-													xmlns:xlink="http://www.w3.org/1999/xlink"
-													aria-hidden="true"
-													role="img"
-													class="icon relative z-20 h-5 w-5"
-													width="24px"
-													height="24px"
-													viewBox="0 0 24 24"
-												>
-													<path
-														fill="currentColor"
-														d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"
-													/>
-												</svg>
-											</div>
-											<div class="relative z-20">
-												The ID and the password are case-sensitive.
-											</div>
-										</div>
-									</div>
-								</div>
-								<div
-									class="flex items-center justify-end bg-theme-dark px-3 py-2 hover:bg-theme-dark/40"
-								>
-									<button
-										class="hover:opacity-80 px-4 py-2 text-sm text-primary-800 bg-gray-100 rounded inline-flex items-center duration-200 focus:outline-none primary plain"
-										type="button"
-									>
-										<!----> Cancel
-									</button><button
-										class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-primary-800 ml-2"
-										type="button"
-									>
-										<!----> Add Client Access
-									</button>
-								</div>
-							</div>
+							<button
+								class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-primary-800"
+								type="button"
+								@click="openAddClientModal"
+							>
+								Add Client Access
+							</button>
 						</div>
 					</div>
 					<div class="text-primary-800 dark:text-primary-400">
@@ -270,34 +157,25 @@
 			</div>
 		</div>
 	</div>
-	<!-- <div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-        <div class="dashboard-index flex items-center justify-center">
-            <div class="text-primary dark:text-primary-400">No client selected</div>
-        </div>
-    </div> -->
-	<!-- <div class="empty d-flex justify-content-center align-self-center vh-100">
-        <div class="empty-img">
-            <img src="/img/illustrations/undraw_printing_invoices_5r4r.svg" height="128" alt="">
-        </div>
-        <p class="empty-title">No clients found</p>
-        <p class="empty-subtitle text-muted">
-            Try adjusting your search or filter to find what you're looking for.
-        </p>
-        <div class="empty-action">
-            <a href="./." class="btn btn-primary">
-                <IconPlus stroke-width="1" size="20" />
-                Add your first client
-            </a>
-        </div>
-    </div> -->
+	<AddClientModal
+		ref="addClientModal"
+		@save="handleCreateClientAccess"
+	/>
 </template>
 
-<script>
-import { IconPlus } from '@tabler/icons-vue';
+<script setup lang="ts">
+import AddClientModal from '~/components/clients/AddClientModal.vue';
 
-export default {
-	components: {
-		IconPlus,
-	},
+const { createClientAccess } = useClientAccess();
+
+const addClientModal = ref<InstanceType<typeof AddClientModal> | null>(null);
+
+const openAddClientModal = () => {
+	addClientModal.value?.open();
+};
+
+const handleCreateClientAccess = async (data: { id: string; password: string }) => {
+	await createClientAccess(data);
+	addClientModal.value?.close();
 };
 </script>

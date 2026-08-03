@@ -10,18 +10,31 @@ export const useScriptExecution = () => {
 	const error = ref<string | null>(null);
 	const isLoading = ref(false);
 
-	const executeScript = (script: string, clientIds: string[], groupIds: string[], cwd: string, executeConcurrently: boolean, isSudo: boolean, timeoutInSecond: number) => {
+	const executeScript = (
+		script: string,
+		clientIds: string[],
+		groupIds: string[],
+		cwd: string,
+		executeConcurrently: boolean,
+		isSudo: boolean,
+		timeoutInSecond: number,
+		interpreter = '',
+		tags: { tags: string[]; operator: string } | null = null,
+		abortOnError = true,
+	) => {
 		ws = new WebSocket(wsUrl);
 		isLoading.value = true;
 		const requestPayload = {
 			script: btoa(script),
 			client_ids: clientIds,
 			group_ids: groupIds,
+			tags,
 			timeout_sec: timeoutInSecond,
 			cwd: cwd,
+			interpreter,
 			execute_concurrently: executeConcurrently,
 			is_sudo: isSudo,
-
+			abort_on_error: abortOnError,
 		};
 
 		ws.onopen = () => {

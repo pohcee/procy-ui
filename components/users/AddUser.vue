@@ -1,7 +1,7 @@
 <template>
 	<Modal
 		v-model="isOpen"
-		title="New User"
+		:title="action === 'edit' ? 'Edit User' : 'New User'"
 		ok-text="Save"
 		cancel-text="Cancel"
 		:show-cancel="true"
@@ -20,8 +20,8 @@
 					><label
 						class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
 					>Username</label>
-				</div><!----><!---->
-			</div><!----><!---->
+				</div>
+			</div>
 			<div
 				class="relative w-full text-left mt-4"
 			>
@@ -43,7 +43,7 @@
 				</div>
 			</div>
 			<div class="mt-4 pl-0.5 text-sm text-theme-inverted">
-				Password
+				Password{{ action === 'edit' ? ' (leave blank to keep unchanged)' : '' }}
 			</div>
 			<div class="flex items-center justify-between">
 				<div
@@ -60,7 +60,7 @@
 						<label
 							class="absolute left-1.5 top-1.5 z-10 origin-[0] -translate-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
 						>Password</label>
-					</div><!----><!---->
+					</div>
 				</div>
 				<button
 					class="mt-5 flex h-10 w-12 items-center justify-center hover:bg-theme-light"
@@ -90,8 +90,14 @@
 						class="absolute left-1.5 top-1.5 z-10 origin-[0] -translate-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
 						for="xBYKSlVe3g"
 					>Confirm password</label>
-				</div><!----><!---->
-			</div><!---->
+				</div>
+				<p
+					v-if="user.password !== user.confirmPassword"
+					class="mt-1 pl-1 text-sm text-red-500"
+				>
+					Passwords do not match
+				</p>
+			</div>
 		</div>
 	</Modal>
 </template>
@@ -100,34 +106,42 @@
 import Multiselect from '@vueform/multiselect';
 import Modal from '~/components/Modal.vue';
 import { randomPassword } from '@/lib/utils';
+import type { User } from '~/types';
 
 const isOpen = ref(false);
+const action = ref<'create' | 'edit'>('create');
+const originalUsername = ref('');
 
-const props = defineProps({
-	is_active: {
-		type: Boolean,
-		default: false,
-	},
-	action: {
-		type: String,
-		default: 'create',
-	},
+defineProps({
 	groups: {
 		type: Array,
-		default: [],
+		default: () => [],
 	},
 });
 const user = ref({
 	username: '',
-	groups: [],
+	groups: [] as string[],
 	password: '',
 	confirmPassword: '',
 });
 
 const emit = defineEmits(['close', 'save']);
+
 const open = () => {
+	action.value = 'create';
+	originalUsername.value = '';
+	user.value = { username: '', groups: [], password: '', confirmPassword: '' };
+	generatePassword();
 	isOpen.value = true;
 };
+
+const openForEdit = (existing: User) => {
+	action.value = 'edit';
+	originalUsername.value = existing.username;
+	user.value = { username: existing.username, groups: [...(existing.groups ?? [])], password: '', confirmPassword: '' };
+	isOpen.value = true;
+};
+
 const generatePassword = async () => {
 	const password = randomPassword(16);
 	user.value.password = password;
@@ -135,23 +149,20 @@ const generatePassword = async () => {
 };
 
 const save = () => {
-	const userpayload: UserPayload = {
+	if (user.value.password !== user.value.confirmPassword) return;
+	emit('save', {
 		username: user.value.username,
 		password: user.value.password,
 		groups: user.value.groups,
-	};
-	emit('save', userpayload);
+		originalUsername: originalUsername.value,
+		action: action.value,
+	});
 	close();
 };
 const close = () => {
 	isOpen.value = false;
 };
-onMounted(() => {
-	if (props.action === 'create') {
-		generatePassword();
-	}
-});
-defineExpose({ open });
+defineExpose({ open, openForEdit });
 </script>
 
 <style src="@vueform/multiselect/themes/default.css"></style>

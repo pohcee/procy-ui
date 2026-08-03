@@ -18,10 +18,11 @@
 							<button
 								class="bg-vtd-primary-500 hover:bg-vtd-primary-700 focus-visible:outline-vtdprimary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 								type="button"
+								@click="tokenModal?.openForCreate()"
 							>
-								<!----><!----><span
+								<span
 									class="flex items-center justify-center gap-x-2"
-								><!---->
+								>
 									Add API Token</span>
 							</button>
 							<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -199,7 +200,10 @@
 																	>
 																		<DropdownMenuContent class="absolute -right-8 -top-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
 																			<div class="px-1 py-1">
-																				<DropdownMenuItem class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400">
+																				<DropdownMenuItem
+																					class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
+																					@click="tokenModal?.openForEdit(token)"
+																				>
 																					<Pencil
 																						class="mr-2 h-4 w-4"
 																					/>
@@ -211,6 +215,7 @@
 																			<div class="px-1 py-1">
 																				<DropdownMenuItem
 																					class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
+																					@click="triggerDelete(token)"
 																				>
 																					<Trash2 class="mr-2 h-4 w-4" />
 																					<span>Delete</span>
@@ -250,6 +255,22 @@
 				</div>
 			</div>
 		</div>
+		<ApiTokenModal
+			ref="tokenModal"
+			@saved="refresh"
+		/>
+		<Modal
+			v-model="deleteConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDelete"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to delete this token?</div>
+			</div>
+		</Modal>
 	</new-page-wrapper>
 </template>
 
@@ -258,16 +279,22 @@ import { useDateFormat, useClipboard } from '@vueuse/core';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import type { APIToken } from '~/types';
 import { Pagination } from '~/components/ui/pagination';
+import ApiTokenModal from '~/components/custom/ApiTokenModal.vue';
 
 const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
 
-const { data: tokens, pending, refresh } = useLazyAsyncData('api-tokens', () => $api.profile.apiTokens());
+const { data: tokens, refresh } = useLazyAsyncData('api-tokens', () => $api.profile.apiTokens());
 const { copy, isSupported } = useClipboard();
 const lastCopiedPrefix = ref<string | null>(null);
 
+const tokenModal = ref<InstanceType<typeof ApiTokenModal> | null>(null);
+const deleteConfirmOpen = ref(false);
+const activeToken = ref<APIToken | null>(null);
+
 const copyToClipboard = (token: APIToken) => {
 	if (!isSupported) {
-		alert('Clipboard is not supported in your browser');
+		snackbar.add({ type: 'error', text: 'Clipboard is not supported in your browser' });
 		return;
 	}
 	copy(token.prefix);
@@ -275,5 +302,18 @@ const copyToClipboard = (token: APIToken) => {
 	setTimeout(() => {
 		lastCopiedPrefix.value = null;
 	}, 1000);
+};
+
+const triggerDelete = (token: APIToken) => {
+	activeToken.value = token;
+	deleteConfirmOpen.value = true;
+};
+
+const confirmDelete = async () => {
+	if (!activeToken.value) return;
+	await $api.profile.delete(activeToken.value.prefix);
+	snackbar.add({ type: 'success', text: 'Token deleted' });
+	deleteConfirmOpen.value = false;
+	await refresh();
 };
 </script>

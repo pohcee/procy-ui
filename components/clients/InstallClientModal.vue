@@ -81,7 +81,7 @@
 									data-v-298c7968=""
 									class="font-bold"
 								>Password</span>
-								<span data-v-298c7968="">{{ client.password }}8</span>
+								<span data-v-298c7968="">{{ client.password }}</span>
 							</div>
 						</div><div class="inline-flex w-max cursor-pointer ml-3">
 							<button

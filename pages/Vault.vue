@@ -184,7 +184,14 @@
 											The vault is unlocked.
 										</p>
 									</div>
-									<div class="flex-shrink-0">
+									<div class="flex-shrink-0 flex gap-2">
+										<button
+											class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 text-white cursor-pointer rounded-md px-3.5 py-2.5 text-sm relative font-semibold shadow-sm transition-all duration-300"
+											type="button"
+											@click="itemModal?.openForCreate()"
+										>
+											<span class="flex items-center justify-center gap-x-2">Add entry</span>
+										</button>
 										<button
 											class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-3.5 py-2.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-primary"
 											type="button"
@@ -196,18 +203,107 @@
 										</button>
 									</div>
 								</div>
+								<div class="overflow-hidden">
+									<div
+										v-if="itemsPending"
+										class="p-6 text-center text-sm text-gray-500"
+									>
+										Loading vault entries...
+									</div>
+									<div
+										v-else-if="vaultItems.length === 0"
+										class="p-6 text-center text-sm text-gray-500"
+									>
+										No entries yet.
+									</div>
+									<table
+										v-else
+										class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+									>
+										<thead class="bg-gray-50 dark:bg-gray-950">
+											<tr>
+												<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+													Key
+												</th>
+												<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+													Type
+												</th>
+												<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+													Client
+												</th>
+												<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+													Updated
+												</th>
+												<th class="px-4 py-3" />
+											</tr>
+										</thead>
+										<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+											<tr
+												v-for="item in vaultItems"
+												:key="item.id"
+											>
+												<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-800 dark:text-white">
+													{{ item.key }}
+												</td>
+												<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+													{{ item.type }}
+												</td>
+												<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+													{{ item.client_id || 'global' }}
+												</td>
+												<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+													{{ useDateFormat(item.updated_at, 'YYYY-MM-DD HH:mm').value }}
+												</td>
+												<td class="whitespace-nowrap px-4 py-3 text-right text-sm">
+													<button
+														class="text-primary-600 hover:underline"
+														type="button"
+														@click="itemModal?.openForEdit(item)"
+													>
+														Edit
+													</button>
+													<button
+														class="ml-3 text-red-600 hover:underline"
+														type="button"
+														@click="triggerDeleteItem(item)"
+													>
+														Delete
+													</button>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
 							</template>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+		<VaultItemModal
+			ref="itemModal"
+			@saved="refreshItems"
+		/>
+		<Modal
+			v-model="deleteItemConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDeleteItem"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to delete "{{ activeItem?.key }}"?</div>
+			</div>
+		</Modal>
 	</new-page-wrapper>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import type { VaultStatus } from '~/types';
+import { useDateFormat } from '@vueuse/core';
+import VaultItemModal from '~/components/vault/VaultItemModal.vue';
+import type { VaultItem, VaultStatus } from '~/types';
 import LoadingSpinner from '~/components/custom/loading-spinner/LoadingSpinner.vue';
 
 const MIN_PASS_LENGTH = 4;
@@ -354,4 +450,44 @@ const lockVault = async () => {
 onMounted(() => {
 	fetchStatus();
 });
+
+const itemModal = ref<InstanceType<typeof VaultItemModal> | null>(null);
+const vaultItems = ref<VaultItem[]>([]);
+const itemsPending = ref(false);
+const deleteItemConfirmOpen = ref(false);
+const activeItem = ref<VaultItem | null>(null);
+
+const refreshItems = async () => {
+	itemsPending.value = true;
+	try {
+		const response = await $api.vault.listItems();
+		vaultItems.value = response.data;
+	}
+	catch (error: any) {
+		snackbar.add({
+			type: 'error',
+			text: extractErrorMessage(error, 'Failed to fetch vault entries'),
+		});
+	}
+	finally {
+		itemsPending.value = false;
+	}
+};
+
+const triggerDeleteItem = (item: VaultItem) => {
+	activeItem.value = item;
+	deleteItemConfirmOpen.value = true;
+};
+
+const confirmDeleteItem = async () => {
+	if (!activeItem.value) return;
+	await $api.vault.deleteItem(activeItem.value.id);
+	snackbar.add({ type: 'success', text: 'Vault entry deleted' });
+	deleteItemConfirmOpen.value = false;
+	await refreshItems();
+};
+
+watch(isUnlocked, (value) => {
+	if (value) refreshItems();
+}, { immediate: true });
 </script>

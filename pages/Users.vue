@@ -138,6 +138,7 @@
 																					<div class="px-1 py-1">
 																						<DropdownMenuItem
 																							class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
+																							@click="addUserModal?.openForEdit(user)"
 																						>
 																							<Pencil
 																								class="mr-2 h-4 w-4"
@@ -213,15 +214,8 @@
 		<AddUser
 			ref="addUserModal"
 			:groups="userGroups"
-			@save="createUser"
+			@save="handleUserSave"
 		/>
-		<!-- <Confirm
-			:is_active="delConfirm"
-			@close="closeModal"
-			@save="deleteUser"
-		>
-			<div>Are you sure you want to delete the user {{ activeUser?.username }}?</div>
-		</Confirm> -->
 		<Modal
 			v-model="delConfirm"
 			title="Please confirm!"
@@ -236,8 +230,9 @@
 		</Modal>
 		<ManageSessionModal
 			ref="manageSessionModal"
-			:username="activeUser"
+			:username="activeUser?.username"
 			:user-sessions="userSessions"
+			@sessions-changed="refreshSessions"
 		/>
 	</new-page-wrapper>
 </template>
@@ -255,7 +250,7 @@ const { copy } = useClipboard();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 
-const { data: users, pending, refresh } = useLazyAsyncData('users', () => $api.users.getAll());
+const { data: users, refresh } = useLazyAsyncData('users', () => $api.users.getAll());
 const { data: userGroups } = useLazyAsyncData(('user-groups'), () => $api.userGroups.all());
 
 const delConfirm = ref(false);
@@ -272,40 +267,61 @@ const closeAddUserModal = () => {
 	addUserModal.value?.close();
 };
 
+const fetchSessionsForActiveUser = async () => {
+	if (!activeUser.value?.username) return;
+	const sessions = await $api.users.getSessions(activeUser.value.username);
+	userSessions.value = sessions.data as UserSession[];
+};
+
 const openManageSessionModal = async (active: UserPayload) => {
 	activeUser.value = active;
 	try {
-		const sessions = await $api.users.getSessions(active?.username as string);
-		userSessions.value = sessions.data as UserSession[];
+		await fetchSessionsForActiveUser();
 		manageSessionModal.value?.open();
 	}
-	catch (error) {
+	catch {
 		snackbar.add({
 			type: 'error',
 			text: 'Failed to fetch user sessions',
 		});
 	}
 };
-const createUser = async (data: UserPayload) => {
-	await $api.users.create(data);
+
+const refreshSessions = async () => {
 	try {
-		await refresh();
-		closeAddUserModal();
-		snackbar.add({
-			type: 'success',
-			text: 'User created successfully',
-		});
+		await fetchSessionsForActiveUser();
 	}
-	catch (e) {
+	catch {
 		snackbar.add({
 			type: 'error',
-			text: 'Failed to create user',
+			text: 'Failed to refresh user sessions',
 		});
 	}
 };
-
-const closeModal = async () => {
-	delConfirm.value = false;
+const handleUserSave = async (data: UserPayload & { originalUsername?: string; action?: 'create' | 'edit' }) => {
+	const { originalUsername, action, ...payload } = data;
+	try {
+		if (action === 'edit' && originalUsername) {
+			const updatePayload: Partial<UserPayload> = { username: payload.username, groups: payload.groups };
+			if (payload.password) {
+				updatePayload.password = payload.password;
+			}
+			await $api.users.update(updatePayload, originalUsername);
+			snackbar.add({ type: 'success', text: 'User updated successfully' });
+		}
+		else {
+			await $api.users.create(payload);
+			snackbar.add({ type: 'success', text: 'User created successfully' });
+		}
+		await refresh();
+		closeAddUserModal();
+	}
+	catch {
+		snackbar.add({
+			type: 'error',
+			text: action === 'edit' ? 'Failed to update user' : 'Failed to create user',
+		});
+	}
 };
 
 const triggerDelete = (user) => {
@@ -322,7 +338,7 @@ const deleteUser = async (activeUsername: string) => {
 			text: 'User deleted successfully',
 		});
 	}
-	catch (e) {
+	catch {
 		snackbar.add({
 			type: 'error',
 			text: 'Something went wrong user not deleted',

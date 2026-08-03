@@ -15,8 +15,9 @@
 					<button
 						class="bg-primary-800 hover:bg-primary-700 focus-visible:outline-blue-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 						type="button"
+						@click="refreshTunnels"
 					>
-						<!----><!----><span class="flex items-center justify-center gap-x-2"><!---->
+						<span class="flex items-center justify-center gap-x-2">
 							Reload</span>
 					</button>
 					<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -148,7 +149,6 @@
 											</tr>
 											<tr
 												v-for="tunnel in updatedTunnels"
-												v-if="updatedTunnels?.length !== undefined && updatedTunnels?.length > 0"
 												:key="tunnel.id"
 												class="cursor-pointer hover:bg-vtd-primary-600/30 border-t-1 group relative border-gray-200 transition-all duration-300"
 											>
@@ -166,7 +166,7 @@
 													{{ tunnel.lport }}
 												</td>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													<span class="bg-vtd-secondary-50 dark:bg-vtd-secondary-500/10 text-vtd-secondary-700 dark:text-vtd-secondary-400 ring-vtd-secondary-600/20 dark:ring-vtd-secondary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"><!----><span><!----> </span><span>Disabled</span><!----></span>
+													<span class="bg-vtd-secondary-50 dark:bg-vtd-secondary-500/10 text-vtd-secondary-700 dark:text-vtd-secondary-400 ring-vtd-secondary-600/20 dark:ring-vtd-secondary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset">{{ tunnel.http_proxy ? 'Enabled' : 'Disabled' }}</span>
 												</td>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
 													<span class="text-center">{{ tunnel.protocol }}<span>:{{ tunnel.scheme }}</span></span>
@@ -189,41 +189,36 @@
 													</div>
 												</td>
 												<td class="pr-1 sm:pr-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
-													<!--													<div -->
-													<!--														data-headlessui-state="" -->
-													<!--														class="text-blue-600 hover:text-blue-900" -->
-													<!--													> -->
-													<!--														<div> -->
-													<!--															<button -->
-													<!--																id="headlessui-menu-button-13" -->
-													<!--																type="button" -->
-													<!--																aria-haspopup="menu" -->
-													<!--																aria-expanded="false" -->
-													<!--																data-headlessui-state="" -->
-													<!--															> -->
-													<!--																<div class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-vtd-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:text-gray-300"> -->
-													<!--																	<svg -->
-													<!--																		data-v-ca945699="" -->
-													<!--																		xmlns="http://www.w3.org/2000/svg" -->
-													<!--																		width="20px" -->
-													<!--																		height="20px" -->
-													<!--																		viewBox="0 0 24 24" -->
-													<!--																		class="icon" -->
-													<!--																	><path -->
-													<!--																		fill="currentColor" -->
-													<!--																		d="M16 12a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2Z" -->
-													<!--																	/></svg> -->
-													<!--																</div> -->
-													<!--															</button> -->
-													<!--														</div><div class="z-20"> -->
-													<!--															<div -->
-													<!--																class="fixed z-30" -->
-													<!--																style="top: 208px;" -->
-													<!--															> -->
-													<!--																&lt;!&ndash;&ndash;&gt; -->
-													<!--															</div> -->
-													<!--														</div> -->
-													<!--													</div> -->
+													<DropdownMenu>
+														<DropdownMenuTrigger as-child>
+															<button type="button">
+																<div class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-vtd-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none">
+																	<svg
+																		xmlns="http://www.w3.org/2000/svg"
+																		width="20px"
+																		height="20px"
+																		viewBox="0 0 24 24"
+																		class="icon"
+																	>
+																		<path
+																			fill="currentColor"
+																			d="M16 12a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2Z"
+																		/>
+																	</svg>
+																</div>
+															</button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent class="w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
+															<div class="px-1 py-1">
+																<DropdownMenuItem
+																	class="focus:bg-vtd-primary-600 focus:text-white group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300"
+																	@click="triggerDeleteTunnel(tunnel)"
+																>
+																	<span>Delete</span>
+																</DropdownMenuItem>
+															</div>
+														</DropdownMenuContent>
+													</DropdownMenu>
 												</td>
 												<td class="pl-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
 													<span class="absolute inset-y-0 right-0 flex w-6 items-center justify-center pr-2"><svg
@@ -316,6 +311,18 @@
 				<div class="h-12 w-full" />
 			</div>
 		</div>
+		<Modal
+			v-model="deleteConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDeleteTunnel"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to close this tunnel?</div>
+			</div>
+		</Modal>
 	</new-page-wrapper>
 </template>
 
@@ -323,11 +330,11 @@
 import { useTimeAgo } from '@vueuse/core';
 
 const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
 
-const tunnels = ref([]);
 const clients = ref([]);
 
-const { data: fetchedTunnels } = useAsyncData('tunnels', () => $api.tunnels.index());
+const { data: fetchedTunnels, refresh: refreshTunnels } = useAsyncData('tunnels', () => $api.tunnels.index());
 const ids = computed(() => fetchedTunnels.value?.map(item => item.client_id));
 
 watchEffect(() => {
@@ -350,6 +357,22 @@ const updatedTunnels = computed(() => {
 	}
 	return fetchedTunnels.value;
 });
+
+const deleteConfirmOpen = ref(false);
+const activeTunnel = ref(null);
+
+const triggerDeleteTunnel = (tunnel) => {
+	activeTunnel.value = tunnel;
+	deleteConfirmOpen.value = true;
+};
+
+const confirmDeleteTunnel = async () => {
+	if (!activeTunnel.value) return;
+	await $api.clients.deleteTunnel(activeTunnel.value.client_id, activeTunnel.value.id);
+	snackbar.add({ type: 'success', text: 'Tunnel closed' });
+	deleteConfirmOpen.value = false;
+	await refreshTunnels();
+};
 </script>
 
 <style scoped>

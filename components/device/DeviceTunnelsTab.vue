@@ -113,6 +113,7 @@
 											</tr>
 											<tr
 												v-for="tunnel in tunnels?.tunnels"
+												:key="tunnel.id"
 												class="cursor-pointer hover:bg-vtd-primary-600/30 border-t-1 group relative border-gray-200 transition-all duration-300"
 											>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
@@ -144,18 +145,9 @@
 													</div>
 												</td>
 												<td class="pr-1 sm:pr-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
-													<div
-														data-headlessui-state=""
-														class="text-blue-600 hover:text-blue-900"
-													>
-														<div>
-															<button
-																id="headlessui-menu-button-4"
-																type="button"
-																aria-haspopup="menu"
-																aria-expanded="false"
-																data-headlessui-state=""
-															>
+													<DropdownMenu>
+														<DropdownMenuTrigger as-child>
+															<button type="button">
 																<div class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-vtd-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:text-gray-300">
 																	<svg
 																		xmlns="http://www.w3.org/2000/svg"
@@ -171,16 +163,29 @@
 																	</svg>
 																</div>
 															</button>
-														</div>
-														<div class="z-20">
+														</DropdownMenuTrigger>
+														<DropdownMenuContent class="w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
 															<div
-																class="fixed z-30"
-																style="top: 368px;"
+																v-if="tunnel.tunnel_url"
+																class="px-1 py-1"
 															>
-															<!---->
+																<DropdownMenuItem
+																	class="focus:bg-vtd-primary-600 focus:text-white group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300"
+																	@click="copy(tunnel.tunnel_url)"
+																>
+																	<span>Copy URL</span>
+																</DropdownMenuItem>
 															</div>
-														</div>
-													</div>
+															<div class="px-1 py-1">
+																<DropdownMenuItem
+																	class="focus:bg-vtd-primary-600 focus:text-white group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300"
+																	@click="triggerDeleteTunnel(tunnel)"
+																>
+																	<span>Delete</span>
+																</DropdownMenuItem>
+															</div>
+														</DropdownMenuContent>
+													</DropdownMenu>
 												</td>
 												<td class="pl-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
 													<span class="absolute inset-y-0 right-0 flex w-6 items-center justify-center pr-2">
@@ -313,16 +318,17 @@
 											</tr>
 											<tr
 												v-for="tun in storedTuns"
+												:key="tun.id"
 												class="cursor-pointer hover:bg-vtd-primary-600/30 border-t-1 group relative border-gray-200 transition-all duration-300"
 											>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													92.154.49.249
+													{{ tun.acl }}
 												</td>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
 													<span>{{ tun.scheme }}</span>
 												</td>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													localhost
+													{{ tun.remote_ip }}
 												</td>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
 													{{ tun.remote_port }}
@@ -335,21 +341,11 @@
 												</td>
 												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6" />
 												<td class="pr-1 sm:pr-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
-													<div
-														data-headlessui-state=""
-														class="text-blue-600 hover:text-blue-900"
-													>
-														<div>
-															<button
-																id="headlessui-menu-button-18"
-																type="button"
-																aria-haspopup="menu"
-																aria-expanded="false"
-																data-headlessui-state=""
-															>
+													<DropdownMenu>
+														<DropdownMenuTrigger as-child>
+															<button type="button">
 																<div class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-vtd-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:text-gray-300">
 																	<svg
-																		data-v-ca945699=""
 																		xmlns="http://www.w3.org/2000/svg"
 																		width="20px"
 																		height="20px"
@@ -363,16 +359,18 @@
 																	</svg>
 																</div>
 															</button>
-														</div>
-														<div class="z-20">
-															<div
-																class="fixed z-30"
-																style="top: 641px;"
-															>
-																<!---->
+														</DropdownMenuTrigger>
+														<DropdownMenuContent class="w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
+															<div class="px-1 py-1">
+																<DropdownMenuItem
+																	class="focus:bg-vtd-primary-600 focus:text-white group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300"
+																	@click="triggerDeleteStoredTunnel(tun)"
+																>
+																	<span>Delete</span>
+																</DropdownMenuItem>
 															</div>
-														</div>
-													</div>
+														</DropdownMenuContent>
+													</DropdownMenu>
 												</td>
 												<td class="pl-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
 													<span class="absolute inset-y-0 right-0 flex w-6 items-center justify-center pr-2">
@@ -408,11 +406,35 @@
 				<div class="h-12 w-full" />
 			</div>
 		</div>
+		<Modal
+			v-model="deleteTunnelConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDeleteTunnel"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to close this tunnel?</div>
+			</div>
+		</Modal>
+		<Modal
+			v-model="deleteStoredTunnelConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDeleteStoredTunnel"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to delete the stored tunnel "{{ activeStoredTunnel?.name }}"?</div>
+			</div>
+		</Modal>
 	</div>
 </template>
 
 <script setup>
-import { useTimeAgo } from '@vueuse/core';
+import { useTimeAgo, useClipboard } from '@vueuse/core';
 
 const props = defineProps({
 	id: {
@@ -423,7 +445,40 @@ const props = defineProps({
 
 defineEmits(['addtunnel']);
 const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
+const { copy } = useClipboard();
 
-const { data: tunnels } = useAsyncData(`tunnels_${props.id}`, () => $api.clients.tunnels(props.id));
-const { data: storedTuns } = useAsyncData(`stored_tunnels_${props.id}`, () => $api.clients.storedTunnels(props.id));
+const { data: tunnels, refresh: refreshTunnels } = useAsyncData(`tunnels_${props.id}`, () => $api.clients.tunnels(props.id));
+const { data: storedTuns, refresh: refreshStoredTunnels } = useAsyncData(`stored_tunnels_${props.id}`, () => $api.clients.storedTunnels(props.id));
+
+const deleteTunnelConfirmOpen = ref(false);
+const activeTunnel = ref(null);
+const deleteStoredTunnelConfirmOpen = ref(false);
+const activeStoredTunnel = ref(null);
+
+const triggerDeleteTunnel = (tunnel) => {
+	activeTunnel.value = tunnel;
+	deleteTunnelConfirmOpen.value = true;
+};
+
+const confirmDeleteTunnel = async () => {
+	if (!activeTunnel.value) return;
+	await $api.clients.deleteTunnel(props.id, activeTunnel.value.id);
+	snackbar.add({ type: 'success', text: 'Tunnel closed' });
+	deleteTunnelConfirmOpen.value = false;
+	await refreshTunnels();
+};
+
+const triggerDeleteStoredTunnel = (tun) => {
+	activeStoredTunnel.value = tun;
+	deleteStoredTunnelConfirmOpen.value = true;
+};
+
+const confirmDeleteStoredTunnel = async () => {
+	if (!activeStoredTunnel.value) return;
+	await $api.clients.deleteStoredTunnel(props.id, activeStoredTunnel.value.id);
+	snackbar.add({ type: 'success', text: 'Stored tunnel deleted' });
+	deleteStoredTunnelConfirmOpen.value = false;
+	await refreshStoredTunnels();
+};
 </script>

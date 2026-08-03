@@ -1,307 +1,164 @@
 <template>
 	<new-page-wrapper>
-		<div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-			<div>
-				<div class="relative z-20 flex h-16 items-center justify-between">
-					<div class="">
-						<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
-							Schedules
-						</h3>
-						<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-						</p>
-					</div>
-					<div class="flex-1" />
-					<div class="ml-2 flex-shrink-0">
-						<button
-							class="bg-primary hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-							type="button"
-						>
-							<!----><!----><span
-								class="flex items-center justify-center gap-x-2"
-							><!----><svg
-								data-v-ca945699=""
-								xmlns="http://www.w3.org/2000/svg"
-								width="16px"
-								height="16px"
-								viewBox="0 0 24 24"
-								class="icon"
-							>
-								<path
-									fill="currentColor"
-									d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 0 0-8 8a8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6a6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"
-								/>
-							</svg><span>Refresh</span></span>
-						</button>
-						<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-						</p>
-					</div>
-				</div><!---->
-				<div class="relative z-10 w-full">
-					<!---->
-					<div
-						class="flow-root overflow-hidden border border-gray-100 ring-1 ring-black ring-opacity-10 dark:border-gray-600 sm:rounded-lg"
-					>
-						<div class="overflow-auto relative z-10 -mb-2">
-							<div class="inline-block min-w-full align-middle">
-								<div class="sm:rounded-t-lg overflow-hidden">
-									<div>
-										<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-											<thead class="rounded-lg bg-gray-50 dark:bg-gray-950">
-												<tr>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<button
-															disabled=""
-														>
-															<span>Name</span><!---->
-														</button>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<button
-															disabled=""
-														>
-															<span>Type</span><!---->
-														</button>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<button
-															disabled=""
-														>
-															<span>Schedule</span><!---->
-														</button>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<button disabled="">
-															<span>Last execution
-																time</span><!---->
-														</button>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<button disabled="">
-															<span>Client
-																selection</span><!---->
-														</button>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<button disabled="">
-															<span>Last
-																Status</span><!---->
-														</button>
-													</th>
-													<th
-														class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-800 sm:pl-6"
-													/><!---->
-												</tr>
-											</thead>
-											<tbody
-												class="z-10 divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900"
-											>
-												<tr class="h-[210px] bg-white/10 backdrop-blur-sm dark:bg-black/10">
-													<td
-														colspan="8"
-														class="w-full flex-1 text-center text-gray-800 dark:text-gray-200"
-													>
-														No results
-													</td><!---->
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="relative z-0 -mx-4 mt-2 sm:-mx-6 lg:-mx-8">
-							<div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-								<div class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950">
-									<div>
-										<div
-											colspan="8"
-											class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-600 sm:pl-6"
-										>
-											<div class="flex w-full items-center justify-between">
-												<div class="flex items-center justify-between">
-													<span
-														class="text-xs text-gray-500"
-													> Showing <span
-														class="font-medium"
-													>1</span> to <span
-														class="font-medium"
-													>0</span> of <span
-														class="font-medium"
-													>0</span> results </span>
-												</div>
-												<div class="flex-1" />
-												<div class="flex w-full max-w-[90px] items-center justify-between">
-													<button
-														disabled=""
-														class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															viewBox="0 0 20 20"
-															fill="currentColor"
-															aria-hidden="true"
-															class="h-6 w-6"
-														>
-															<path
-																fill-rule="evenodd"
-																d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-																clip-rule="evenodd"
-															/>
-														</svg>
-													</button><button
-														disabled=""
-														class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															viewBox="0 0 20 20"
-															fill="currentColor"
-															aria-hidden="true"
-															class="h-6 w-6"
-														>
-															<path
-																fill-rule="evenodd"
-																d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-																clip-rule="evenodd"
-															/>
-														</svg>
-													</button>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="h-12 w-full" />
+		<div class="mx-auto h-screen max-h-screen max-w-7xl overflow-y-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+			<div class="relative z-20 flex h-16 items-center justify-between">
+				<div class="">
+					<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
+						Schedules
+					</h3>
+					<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+						Run commands and scripts automatically on a cron schedule.
+					</p>
 				</div>
-				<div>
-					<div
-						class="fixed inset-0 z-50 overflow-y-auto transition"
-						style="display: none;"
+				<div class="flex-1" />
+				<div class="ml-2 flex-shrink-0">
+					<button
+						class="bg-vtd-primary-500 hover:bg-vtd-primary-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold shadow-sm"
+						type="button"
+						@click="formModal?.openForCreate()"
 					>
-						<div class="fixed inset-0 bg-theme-backdrop/75 transition" />
-						<div
-							class="fixed inset-0 overflow-y-auto transition"
-							style="display: none;"
-						>
-							<div class="flex min-h-full items-center justify-center text-center">
-								<div
-									class="relative mx-4 transform overflow-hidden rounded bg-theme px-6 py-4 text-left shadow-xl sm:w-full sm:max-w-lg"
-								>
-									<div as="div">
-										<h3 class="mt-2 text-3xl font-medium leading-6 text-theme-inverted">
-											Are you
-											sure?
-										</h3>
-									</div>
-									<div class="pt-4 pb-2">
-										<div class="text-sm text-gray-700">
-											Are you sure you want to delete this
-											schedule?
-										</div>
-									</div>
-									<div class="mt-5 flex justify-end">
-										<button
-											class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none primary plain mr-2"
-											type="button"
-										>
-											<!----><!----> No
-										</button><button
-											class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none primary"
-											type="button"
-										>
-											<!----><!----> Yes
-										</button>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+						New schedule
+					</button>
 				</div>
 			</div>
+			<div class="mt-4 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+				<div
+					v-if="pending"
+					class="p-6 text-center text-sm text-gray-500"
+				>
+					Loading schedules...
+				</div>
+				<div
+					v-else-if="schedules.length === 0"
+					class="p-6 text-center text-sm text-gray-500"
+				>
+					No schedules configured yet.
+				</div>
+				<table
+					v-else
+					class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+				>
+					<thead class="bg-gray-50 dark:bg-gray-950">
+						<tr>
+							<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+								Name
+							</th>
+							<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+								Type
+							</th>
+							<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+								Cron
+							</th>
+							<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+								Targets
+							</th>
+							<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
+								Last run
+							</th>
+							<th class="px-4 py-3" />
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+						<tr
+							v-for="schedule in schedules"
+							:key="schedule.id"
+						>
+							<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-800 dark:text-white">
+								{{ schedule.name }}
+							</td>
+							<td class="whitespace-nowrap px-4 py-3 text-sm capitalize text-gray-600 dark:text-gray-300">
+								{{ schedule.type }}
+							</td>
+							<td class="whitespace-nowrap px-4 py-3 font-mono text-sm text-gray-600 dark:text-gray-300">
+								{{ schedule.schedule }}
+							</td>
+							<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+								{{ targetSummary(schedule) }}
+							</td>
+							<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+								<span
+									v-if="schedule.last_execution?.started_at"
+									class="rounded px-2 py-0.5 text-xs font-medium"
+									:class="schedule.last_execution.status === 'successful' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
+								>{{ useDateFormat(schedule.last_execution.started_at, 'YYYY-MM-DD HH:mm').value }}</span>
+								<span
+									v-else
+									class="text-gray-400"
+								>never</span>
+							</td>
+							<td class="whitespace-nowrap px-4 py-3 text-right text-sm">
+								<button
+									class="text-primary-600 hover:underline"
+									type="button"
+									@click="formModal?.openForEdit(schedule)"
+								>
+									Edit
+								</button>
+								<button
+									class="ml-3 text-red-600 hover:underline"
+									type="button"
+									@click="triggerDelete(schedule)"
+								>
+									Delete
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
-		<!-- <div class="container mt-4">
-            <page-header title="Schedules" hasAction="true" actionName="Refresh" />
-            <div class="card table-responsive">
-                <table class="table table-vcenter">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Schedule</th>
-                            <th>Last execution time</th>
-                            <th>Client selection</th>
-                            <th>Last Status</th>
-                            <th class="w-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>My raspberry</td>
-                            <td class="text-secondary">
-                                192.168.0.1
-                            </td>
-                            <td class="text-secondary">
-                                <a href="#" class="text-reset">27000</a>
-                            </td>
-                            <td class="text-secondary">
-                                <span class="badge">Disabled</span>
-                            </td>
-                            <td>tcp:ssh</td>
-                            <td>127.0.0.1</td>
-                            <td>
-                                <div class="dropdown">
-                                    <a href="#" class="btn dropdown-toggle border-0" data-bs-toggle="dropdown">...</a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="#">Copy</a>
-                                        <a class="dropdown-item" href="#">Launch</a>
-                                        <a class="dropdown-item" href="#">Terminate</a>
-                                    </div>
-                                </div>
-
-                            </td>
-                        </tr>
-                    </tbody>
-
-                </table>
-                <div class="row">
-                    <div class="col">
-                        <div class="p-2">Showing 1 to 0 of 0 results</div>
-                    </div>
-                </div>
-            </div>
-        </div> -->
+		<ScheduleFormModal
+			ref="formModal"
+			@saved="refresh"
+		/>
+		<Modal
+			v-model="deleteConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDelete"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to delete "{{ activeSchedule?.name }}"?</div>
+			</div>
+		</Modal>
 	</new-page-wrapper>
 </template>
 
-<script>
-export default {
-	// Lógica de la página
+<script setup lang="ts">
+import { useDateFormat } from '@vueuse/core';
+import ScheduleFormModal from '~/components/schedules/ScheduleFormModal.vue';
+import type { Schedule } from '~/types';
+
+const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
+
+const formModal = ref<InstanceType<typeof ScheduleFormModal> | null>(null);
+const deleteConfirmOpen = ref(false);
+const activeSchedule = ref<Schedule | null>(null);
+
+const { data: response, pending, refresh } = useLazyAsyncData('schedules', () => $api.schedules.list());
+const schedules = computed(() => response.value?.data ?? []);
+
+const targetSummary = (schedule: Schedule) => {
+	const parts = [];
+	if (schedule.client_ids?.length) parts.push(`${schedule.client_ids.length} client(s)`);
+	if (schedule.group_ids?.length) parts.push(`${schedule.group_ids.length} group(s)`);
+	if (schedule.tags?.tags?.length) parts.push(`tags: ${schedule.tags.tags.join(', ')}`);
+	return parts.join(', ') || '—';
+};
+
+const triggerDelete = (schedule: Schedule) => {
+	activeSchedule.value = schedule;
+	deleteConfirmOpen.value = true;
+};
+
+const confirmDelete = async () => {
+	if (!activeSchedule.value) return;
+	await $api.schedules.delete(activeSchedule.value.id);
+	snackbar.add({ type: 'success', text: 'Schedule deleted' });
+	deleteConfirmOpen.value = false;
+	await refresh();
 };
 </script>
-
-<style scoped>
-/* Estilos de la página (opcional) */
-</style>

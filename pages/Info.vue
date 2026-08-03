@@ -18,10 +18,10 @@
 							<button
 								class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 								type="button"
+								:disabled="pending"
+								@click="refresh"
 							>
-								<!----><!----><span
-									class="flex items-center justify-center gap-x-2"
-								><!----> Reload</span>
+								<span class="flex items-center justify-center gap-x-2">Reload</span>
 							</button>
 							<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
 &nbsp;
@@ -59,8 +59,7 @@
 													>
 														<span
 															class="bg-primary-50 dark:bg-primary-500/10 text-primary-800 dark:text-primary-400 ring-primary-600/20 dark:ring-primary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-														><!----><svg
-															data-v-ca945699=""
+														><svg
 															xmlns="http://www.w3.org/2000/svg"
 															width="16px"
 															height="16px"
@@ -71,19 +70,19 @@
 																fill="currentColor"
 																d="m19.3 8.925l-4.25-4.2l1.4-1.4q.575-.575 1.413-.575t1.412.575l1.4 1.4q.575.575.6 1.388t-.55 1.387L19.3 8.925ZM4 21q-.425 0-.713-.288T3 20v-2.825q0-.2.075-.388t.225-.337l10.3-10.3l4.25 4.25l-10.3 10.3q-.15.15-.337.225T6.825 21H4Z"
 															/>
-														</svg> Read Write<!----></span>
+														</svg> {{ serverStatus?.clients_auth_mode }}</span>
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
 													<dt
 														class="text-sm font-medium leading-6 text-gray-950 dark:text-white"
 													>
-														Clients Auth Mode
+														Clients Auth Source
 													</dt>
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														DB
+														{{ serverStatus?.clients_auth_source }}
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -95,7 +94,7 @@
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														0
+														{{ serverStatus?.clients_connected }}
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -107,7 +106,7 @@
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														0
+														{{ serverStatus?.clients_disconnected }}
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -121,8 +120,7 @@
 													>
 														<span
 															class="bg-primary-50 dark:bg-primary-500/10 text-primary-800 dark:text-primary-400 ring-primary-600/20 dark:ring-primary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-														><!----><span><!---->
-														</span><span>DB</span><!----></span>
+														>{{ serverStatus?.users_auth_source }}</span>
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -135,9 +133,9 @@
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
 														<span
+															v-if="serverStatus?.two_fa_enabled"
 															class="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 ring-green-600/20 dark:ring-green-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-														><!----><svg
-															data-v-ca945699=""
+														><svg
 															xmlns="http://www.w3.org/2000/svg"
 															width="18px"
 															height="18px"
@@ -152,7 +150,11 @@
 																	d="M15.707 9.293a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 1 1 1.414-1.414L11 12.586l3.293-3.293a1 1 0 0 1 1.414 0z"
 																/>
 															</g>
-														</svg><!----></span>
+														</svg> Enabled</span>
+														<span
+															v-else
+															class="bg-gray-50 dark:bg-gray-500/10 text-gray-700 dark:text-gray-400 ring-gray-600/20 dark:ring-gray-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
+														>Disabled</span>
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -164,7 +166,7 @@
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														script
+														{{ serverStatus?.two_fa_delivery_method || '—' }}
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -176,7 +178,7 @@
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														9b:5e:5b:6a:39:74:49:31:ac:1f:ff:ed:24:d1:e7:2d
+														{{ serverStatus?.fingerprint }}
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -188,7 +190,7 @@
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														0.9.14
+														{{ serverStatus?.version }}
 													</dd>
 												</div>
 											</dl>
@@ -225,7 +227,7 @@
 													<dd
 														class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0"
 													>
-														rport-frontend-0.9.12-17-build-1145
+														openrport-frontend-{{ appVersion }}
 													</dd>
 												</div>
 												<div class="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -256,103 +258,22 @@
 				</div>
 			</div>
 		</div>
-		<!-- <div class="container px-5 py-10">
-            <page-header title="Info" hasAction={true} actionName="Reload"/>
-            <div class="d-flex flex-column gap-3">
-              <div class="card table-responsive mb-3">
-                <div class="card-header">
-                  <h3 class="card-title">Server Api</h3>
-                </div>
-                <div class="card-body px-6">
-                  <div class="mt-1">
-                    <dl class="divide-y">
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Clients Auth Mode</dt>
-                        <dd class="col-8 ">
-                            <span class="tag bg-azure-lt border text-primary fw-medium">
-                              <IconPencil :size="18" />
-                              {{ serverStatus?.clients_auth_mode }}
-                            </span>
-                        </dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Clients Auth Mode</dt>
-                        <dd class="col-8 ">{{ serverStatus?.clients_auth_source }}</dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Clients connected</dt>
-                        <dd class="col-8 ">{{ serverStatus?.clients_connected }}</dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Clients disconnected</dt>
-                        <dd class="col-8 ">{{ serverStatus?.clients_disconnected }}</dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Users Auth Source</dt>
-                        <dd class="col-8 ">
-                            <span class="tag bg-azure-lt border text-primary fw-medium">
-                              {{ serverStatus?.users_auth_source }}
-                          </span>
-                        </dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Two-factor authentication enabled</dt>
-                        <dd class="col-8 ">
-                            <span v-if="serverStatus?.two_fa_enabled" class="tag bg-green-lt border text-primary fw-medium">
-                              <IconXboxX color="green" :size="18" />
-                          </span>
-                            <span v-else class="tag bg-red-lt border text-primary fw-medium">
-                              <IconXboxX color="red" :size="18" />
-                          </span>
-                        </dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Two-factor authentication delivery method</dt>
-                        <dd class="col-8 ">{{ serverStatus?.two_fa_delivery_method}}</dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Fingerprint</dt>
-                        <dd class="col-8 ">{{ serverStatus?.fingerprint }}</dd>
-                      </div>
-                      <div class="row gap-sm-4 py-4">
-                        <dt class="col px-0 fw-medium">Version</dt>
-                        <dd class="col-8 ">{{ serverStatus?.version }}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-header">Frontend</div>
-                <div class="card-body">
-                  <table class="table">
-                    <tbody>
-
-                    <tr>
-                      <td>Version</td>
-                      <td>0.0.0</td>
-                    </tr>
-                    <tr>
-                      <td>Download the latest version of VNC® Viewer</td>
-                      <td>go to downloads</td>
-                    </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-        </div> -->
 	</new-page-wrapper>
 </template>
 
 <script setup lang="ts">
-import { defineComponent } from 'vue';
-import { IconPencil, IconXboxX, IconCircleCheck } from '@tabler/icons-vue';
 import type { Status } from '~/types';
 
 const { $api } = useNuxtApp();
-const serverStatus = ref({} as Status);
-const { data: status, pending, error } = await $api.status.show();
+const config = useRuntimeConfig();
+const appVersion = config.public.appVersion;
 
-serverStatus.value = status.value.data as Status;
+const serverStatus = ref<Status | null>(null);
+const { data: status, pending, refresh } = await $api.status.show();
+
+serverStatus.value = status.value?.data as Status;
+
+watch(status, (value) => {
+	serverStatus.value = value?.data as Status;
+});
 </script>

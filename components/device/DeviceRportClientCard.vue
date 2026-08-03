@@ -3,7 +3,7 @@
 		class="flex flex-1 flex-col divide-y divide-gray-50 overflow-hidden rounded-lg bg-white shadow dark:divide-gray-700 dark:bg-gray-900"
 	>
 		<div class="px-4 py-4 sm:flex sm:items-center sm:px-6">
-			<div class="flex max-h-16 flex-1 content-center items-center">
+			<div class="flex h-16 flex-1 content-center items-center">
 				<h3 class="text-xl font-semibold leading-7 text-gray-900 dark:text-gray-50">
 					RPort Client
 				</h3>

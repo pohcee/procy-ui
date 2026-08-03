@@ -5,11 +5,12 @@
 				<div class="relative mb-4 rounded border border-theme-border">
 					<input
 						id="file"
+						ref="fileInputRef"
 						type="file"
 						class="h-15 w-full opacity-0"
 						placeholder=" "
+						@change="handleFileChange"
 					><svg
-						data-v-ca945699=""
 						xmlns="http://www.w3.org/2000/svg"
 						width="20px"
 						height="20px"
@@ -19,15 +20,16 @@
 						<path
 							fill="currentColor"
 							d="M9 16h6v-6h4l-7-7l-7 7h4v6zm3-10.17L14.17 8H13v6h-2V8H9.83L12 5.83zM5 18h14v2H5z"
-						/></svg><!----><label
+						/></svg><label
 						for="file"
 						class="absolute top-1/2 z-10 origin-[0] transform bg-theme py-0 px-1 text-sm font-normal text-theme-label duration-300 left-8 -trangray-y-1/2"
-					>Local file to be uploaded</label><!---->
+					>{{ selectedFile?.name || 'Local file to be uploaded' }}</label>
 				</div>
 				<div class="flex flex-col mb-4">
 					<div class="relative mt-1 flex w-full flex-col">
 						<input
 							id="RnW14XEFRT"
+							v-model="dest"
 							class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 							placeholder=" "
 							type="text"
@@ -38,13 +40,13 @@
 						>Remote path (folder + file name, e.g. /tmp/test.txt,
 							C:\Windows\temp\test.txt)</label>
 					</div>
-					<!----><!---->
 				</div>
 				<div
 					class="mb-4 mb-4 flex h-15 items-center justify-between rounded border border-theme-border px-4 text-sm font-normal text-theme-label text-theme-inverted"
 				>
 					<div>Force overwriting existing files (optional)</div>
 					<label class="relative inline-flex cursor-pointer items-center text-theme-label"><input
+							v-model="force"
 							type="checkbox"
 							class="peer sr-only"
 							value="1"
@@ -58,6 +60,7 @@
 				>
 					<div>Sync (optional)</div>
 					<label class="relative inline-flex cursor-pointer items-center text-theme-label"><input
+							v-model="sync"
 							type="checkbox"
 							class="peer sr-only"
 							value="1"
@@ -72,7 +75,6 @@
 				>
 					<div class="min-w-[22px]">
 						<svg
-							data-v-ca945699=""
 							xmlns="http://www.w3.org/2000/svg"
 							width="22px"
 							height="22px"
@@ -82,9 +84,9 @@
 							<g
 								fill="none"
 								stroke="currentColor"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
 							>
 								<circle
 									cx="12"
@@ -107,6 +109,7 @@
 						<div class="relative mt-1 flex w-full flex-col">
 							<input
 								id="2oGR1W3hIL"
+								v-model="mode"
 								class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 								placeholder=" "
 								type="text"
@@ -116,7 +119,6 @@
 								for="2oGR1W3hIL"
 							>Mode (optional)</label>
 						</div>
-						<!----><!---->
 					</div>
 					<div
 						class="mb-4 flex items-start items-center gap-2 rounded bg-primary-100 p-2 text-sm font-normal text-white md:gap-4 md:p-4"
@@ -124,7 +126,6 @@
 					>
 						<div class="min-w-[22px]">
 							<svg
-								data-v-ca945699=""
 								xmlns="http://www.w3.org/2000/svg"
 								width="22px"
 								height="22px"
@@ -134,9 +135,9 @@
 								<g
 									fill="none"
 									stroke="currentColor"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
 								>
 									<circle
 										cx="12"
@@ -156,6 +157,7 @@
 						<div class="relative mt-1 flex w-full flex-col">
 							<input
 								id="3cPWo0AEGh"
+								v-model="user"
 								class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 								placeholder=" "
 								type="text"
@@ -165,12 +167,12 @@
 								for="3cPWo0AEGh"
 							>User (optional)</label>
 						</div>
-						<!----><!---->
 					</div>
 					<div class="flex flex-col mb-4">
 						<div class="relative mt-1 flex w-full flex-col">
 							<input
 								id="zhW7rlIlkK"
+								v-model="group"
 								class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 								placeholder=" "
 								type="text"
@@ -180,7 +182,6 @@
 								for="zhW7rlIlkK"
 							>Group (optional)</label>
 						</div>
-						<!----><!---->
 					</div>
 					<div
 						class="mb-4 flex items-start items-center gap-2 rounded bg-primary-100 p-2 text-sm font-normal text-white md:gap-4 md:p-4"
@@ -188,7 +189,6 @@
 					>
 						<div class="min-w-[22px]">
 							<svg
-								data-v-ca945699=""
 								xmlns="http://www.w3.org/2000/svg"
 								width="22px"
 								height="22px"
@@ -198,9 +198,9 @@
 								<g
 									fill="none"
 									stroke="currentColor"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
 								>
 									<circle
 										cx="12"
@@ -219,15 +219,69 @@
 				</div>
 				<div class="flex items-center justify-center py-4">
 					<button
-						class="hover:opacity-80 px-6 py-3 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none mx-auto mt-2 bg-secondary text-sm font-bold uppercase text-black shadow-3xl"
+						class="hover:opacity-80 px-6 py-3 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none mx-auto mt-2 bg-secondary text-sm font-bold uppercase text-black shadow-3xl disabled:cursor-not-allowed disabled:opacity-50"
 						type="button"
+						:disabled="!selectedFile || !dest || isUploading"
+						@click="upload"
 					>
-						<!---->
-						Upload
+						{{ isUploading ? 'Uploading...' : 'Upload' }}
 					</button>
 				</div>
 			</div>
-			<!---->
 		</div>
 	</div>
 </template>
+
+<script setup lang="ts">
+const props = defineProps({
+	device: {
+		type: Object,
+		required: true,
+	},
+});
+
+const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
+
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const selectedFile = ref<File | null>(null);
+const dest = ref('');
+const force = ref(false);
+const sync = ref(false);
+const mode = ref('');
+const user = ref('');
+const group = ref('');
+const isUploading = ref(false);
+
+const handleFileChange = (event: Event) => {
+	const target = event.target as HTMLInputElement;
+	selectedFile.value = target.files?.[0] ?? null;
+};
+
+const upload = async () => {
+	if (!selectedFile.value || !dest.value) return;
+	isUploading.value = true;
+	try {
+		await $api.files.upload({
+			file: selectedFile.value,
+			clientIds: [props.device.id],
+			dest: dest.value,
+			mode: mode.value,
+			user: user.value,
+			group: group.value,
+			force: force.value,
+			sync: sync.value,
+		});
+		snackbar.add({ type: 'success', text: 'File upload started' });
+		selectedFile.value = null;
+		dest.value = '';
+		if (fileInputRef.value) fileInputRef.value.value = '';
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to upload file' });
+	}
+	finally {
+		isUploading.value = false;
+	}
+};
+</script>

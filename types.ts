@@ -294,6 +294,7 @@ export interface APIToken {
 	name: string;
 	created_at: Date;
 	expires_at: Date;
+	token?: string;
 }
 export interface APITokensResponse {
 	data: APIToken[];
@@ -499,4 +500,84 @@ export interface Result {
 	stdout: string;
 	stderr: string;
 	summary: string;
+}
+
+export interface JobClientTags {
+	tags: string[];
+	operator: 'AND' | 'OR';
+}
+
+export interface ScheduleDetails {
+	client_ids: string[];
+	group_ids: string[];
+	tags?: JobClientTags | null;
+	command?: string;
+	script?: string;
+	interpreter?: string;
+	cwd?: string;
+	is_sudo: boolean;
+	timeout_sec: number;
+	execute_concurrently: boolean;
+	abort_on_error?: boolean | null;
+	overlaps: boolean;
+}
+
+export interface ScheduleExecution {
+	started_at: Date | null;
+	client_count: number | null;
+	success_count: number | null;
+	status: string | null;
+	summary: string | null;
+}
+
+export interface Schedule extends ScheduleDetails {
+	id: string;
+	created_at: Date;
+	created_by: string;
+	name: string;
+	schedule: string;
+	type: 'command' | 'script';
+	last_execution?: ScheduleExecution | null;
+}
+
+export interface SchedulePayload extends ScheduleDetails {
+	name: string;
+	schedule: string;
+	type: 'command' | 'script';
+}
+
+export interface ScheduleResponse {
+	data: Schedule[];
+	meta: Meta;
+}
+
+export interface VaultItem {
+	id: number;
+	client_id: string;
+	required_group: string;
+	key: string;
+	value?: string;
+	type: 'text' | 'secret' | 'markdown' | 'string';
+	created_at: Date;
+	updated_at: Date;
+	created_by: string;
+	updated_by?: string | null;
+}
+
+export interface VaultItemPayload {
+	client_id: string;
+	required_group: string;
+	key: string;
+	value: string;
+	type: 'text' | 'secret' | 'markdown' | 'string';
+}
+
+export interface VaultItemResponse {
+	data: VaultItem[];
+	meta: Meta;
+}
+
+export interface TotP {
+	secret: string;
+	qr: string;
 }

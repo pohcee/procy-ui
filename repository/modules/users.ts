@@ -47,13 +47,12 @@ class UsersModule extends HttpFactory {
 		);
 	}
 
-	public async update(user: User, user_id: string, password?: string): Promise<User> {
+	public async update(user: Partial<UserPayload>, user_id: string): Promise<User> {
 		return this.call(
 			'PUT',
 			`${this.RESOURCE}/${user_id}`,
 			{
 				...user,
-				password,
 			},
 		);
 	}

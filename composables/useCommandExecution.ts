@@ -12,16 +12,27 @@ export const useCommandExecution = () => {
 	const error = ref<string | null>(null);
 	const isLoading = ref(false);
 
-	const executeCommand = (command: string, clientsIds: string[], groupIds: string[]) => {
+	const executeCommand = (
+		command: string,
+		clientsIds: string[],
+		groupIds: string[],
+		tags: { tags: string[]; operator: string } | null = null,
+		timeoutSec = 30,
+		isSudo = false,
+		abortOnError = true,
+		executeConcurrently = true,
+	) => {
 		ws = new WebSocket(wsUrl);
 		isLoading.value = true;
 		const requestPayload = {
 			command,
 			client_ids: clientsIds,
 			group_ids: groupIds,
-			timeout_sec: 30,
-			execute_concurrently: true,
-			is_sudo: false,
+			tags,
+			timeout_sec: timeoutSec,
+			execute_concurrently: executeConcurrently,
+			is_sudo: isSudo,
+			abort_on_error: abortOnError,
 		};
 		ws.onopen = () => {
 			results.value = [];

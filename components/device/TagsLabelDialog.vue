@@ -224,10 +224,14 @@
 						</button>
 					</div>
 					<div class="flex w-full flex-wrap gap-1 text-sm font-normal lg:gap-1.5">
-						<div class="flex h-8 w-full items-center justify-between space-x-2">
+						<div
+							v-for="[key, value] in Object.entries(modelValueClient?.labels ?? {})"
+							:key="key"
+							class="flex h-8 w-full items-center justify-between space-x-2"
+						>
 							<span
 								class="bg-vtd-primary-50 dark:bg-vtd-primary-500/10 text-vtd-primary-700 dark:text-vtd-primary-400 ring-vtd-primary-600/20 dark:ring-vtd-primary-400/30 pr-2 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-							><!----><span
+							><span
 								class="bg-vtd-primary-500 dark:bg-vtd-primary-500 text-vtd-primary-200 dark:text-vtd-primary-200 ring-vtd-primary-600/20 dark:ring-vtd-primary-400/30 px-2 py-1 rounded-l"
 							><svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -239,19 +243,20 @@
 								<g
 									fill="none"
 									stroke="currentColor"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
 								>
 									<path
 										d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607l-9.58-9.58A2.25 2.25 0 0 0 9.568 3Z"
 									/><path
 										d="M6 6h.008v.008H6V6Z"
-									/></g></svg> city</span><span>Lille</span><!----></span><span
+									/></g></svg> {{ key }}</span><span>{{ value }}</span></span><span
 								class="flex items-center space-x-1 text-primary"
 							><button
 									type="button"
 									class="inline-flex items-center duration-200 focus:outline-none rounded-full p-0"
+									@click="editLabel(key, value)"
 								>
 									<span
 										class="flex items-center justify-center"
@@ -263,17 +268,17 @@
 											height="16px"
 											viewBox="0 0 24 24"
 											class="icon cursor-pointer"
-										>
-											<path
-												fill="currentColor"
-												d="m19.3 8.925l-4.25-4.2l1.4-1.4q.575-.575 1.413-.575t1.412.575l1.4 1.4q.575.575.6 1.388t-.55 1.387L19.3 8.925ZM4 21q-.425 0-.713-.288T3 20v-2.825q0-.2.075-.388t.225-.337l10.3-10.3l4.25 4.25l-10.3 10.3q-.15.15-.337.225T6.825 21H4Z"
-											/>
+										><path
+											fill="currentColor"
+											d="m19.3 8.925l-4.25-4.2l1.4-1.4q.575-.575 1.413-.575t1.412.575l1.4 1.4q.575.575.6 1.388t-.55 1.387L19.3 8.925ZM4 21q-.425 0-.713-.288T3 20v-2.825q0-.2.075-.388t.225-.337l10.3-10.3l4.25 4.25l-10.3 10.3q-.15.15-.337.225T6.825 21H4Z"
+										/>
 										</svg>
 									</span>
 								</button>
 								<button
 									type="button"
 									class="inline-flex items-center duration-200 focus:outline-none rounded-full p-0"
+									@click="deleteLabel(key)"
 								>
 									<span
 										class="flex items-center justify-center"
@@ -298,66 +303,12 @@
 								</button>
 							</span>
 						</div>
-						<div class="flex h-8 w-full items-center justify-between space-x-2">
-							<span
-								class="bg-vtd-primary-50 dark:bg-vtd-primary-500/10 text-vtd-primary-700 dark:text-vtd-primary-400 ring-vtd-primary-600/20 dark:ring-vtd-primary-400/30 pr-2 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-							><!----><span
-								class="bg-vtd-primary-500 dark:bg-vtd-primary-500 text-vtd-primary-200 dark:text-vtd-primary-200 ring-vtd-primary-600/20 dark:ring-vtd-primary-400/30 px-2 py-1 rounded-l"
-							><svg
-								data-v-ca945699=""
-								xmlns="http://www.w3.org/2000/svg"
-								width="16px"
-								height="16px"
-								viewBox="0 0 24 24"
-								class="icon"
-							><g
-								fill="none"
-								stroke="currentColor"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="1.5"
-							><path
-								d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607l-9.58-9.58A2.25 2.25 0 0 0 9.568 3Z"
-							/><path
-								d="M6 6h.008v.008H6V6Z"
-							/></g></svg> country</span><span>France</span><!----></span><span
-								class="flex items-center space-x-1 text-primary"
-							><button
-								type="button"
-								class="inline-flex items-center duration-200 focus:outline-none rounded-full p-0"
-							><span
-								class="flex items-center justify-center"
-								style="width: 16px; height: 16px;"
-							><svg
-								data-v-ca945699=""
-								xmlns="http://www.w3.org/2000/svg"
-								width="16px"
-								height="16px"
-								viewBox="0 0 24 24"
-								class="icon cursor-pointer"
-							><path
-								fill="currentColor"
-								d="m19.3 8.925l-4.25-4.2l1.4-1.4q.575-.575 1.413-.575t1.412.575l1.4 1.4q.575.575.6 1.388t-.55 1.387L19.3 8.925ZM4 21q-.425 0-.713-.288T3 20v-2.825q0-.2.075-.388t.225-.337l10.3-10.3l4.25 4.25l-10.3 10.3q-.15.15-.337.225T6.825 21H4Z"
-							/></svg></span></button><button
-								type="button"
-								class="inline-flex items-center duration-200 focus:outline-none rounded-full p-0"
-							><span
-								class="flex items-center justify-center"
-								style="width: 16px; height: 16px;"
-							><svg
-								data-v-ca945699=""
-								xmlns="http://www.w3.org/2000/svg"
-								width="16px"
-								height="16px"
-								viewBox="0 0 24 24"
-								class="icon cursor-pointer"
-							><g fill="none"><path
-								d="M24 0v24H0V0h24ZM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018Zm.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01l-.184-.092Z"
-							/><path
-								fill="currentColor"
-								d="M14.28 2a2 2 0 0 1 1.897 1.368L16.72 5H20a1 1 0 1 1 0 2l-.003.071l-.867 12.143A3 3 0 0 1 16.138 22H7.862a3 3 0 0 1-2.992-2.786L4.003 7.07A1.01 1.01 0 0 1 4 7a1 1 0 0 1 0-2h3.28l.543-1.632A2 2 0 0 1 9.721 2h4.558Zm3.717 5H6.003l.862 12.071a1 1 0 0 0 .997.929h8.276a1 1 0 0 0 .997-.929L17.997 7ZM10 10a1 1 0 0 1 .993.883L11 11v5a1 1 0 0 1-1.993.117L9 16v-5a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Zm.28-6H9.72l-.333 1h5.226l-.334-1Z"
-							/></g></svg></span></button></span>
-						</div>
+						<p
+							v-if="!modelValueClient?.labels || Object.keys(modelValueClient.labels).length === 0"
+							class="text-xs text-gray-400"
+						>
+							No labels set
+						</p>
 					</div>
 				</div>
 			</div>
@@ -436,7 +387,6 @@
 </template>
 
 <script setup lang="ts">
-import { useClientDetail } from '~/composables/useClientDetail';
 import type { Client } from '~/types';
 import LoadingSpinner from '~/components/custom/loading-spinner/LoadingSpinner.vue';
 
@@ -579,10 +529,10 @@ const resetLabelForm = () => {
 };
 const updateClientData = async () => {
 	try {
-		const response = await $api.clients.updateTagsLabel(internalClient.value as Client);
+		await $api.clients.updateTagsLabel(internalClient.value as Client);
 	}
 	catch (e) {
-		console.log(e);
+		console.error(e);
 	}
 };
 

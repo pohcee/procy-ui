@@ -7,6 +7,8 @@
 		v-if="showTwoFa"
 		:send_to="store.two_fa?.send_to"
 		@code="handleTwoFa"
+		@resend="handleResend"
+		@cancel="handleCancel"
 	/>
 </template>
 
@@ -44,5 +46,13 @@ const handleTwoFa = async (two_fa: string) => {
 	if (authenticated) {
 		await router.push('/');
 	}
+};
+
+const handleResend = async () => {
+	await store.getLoginToken(credentialsRef.value);
+};
+
+const handleCancel = () => {
+	store.cancelTwoFa();
 };
 </script>

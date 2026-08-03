@@ -15,11 +15,15 @@
 						</div>
 						<div class="flex-1" />
 						<div class="ml-2 flex-shrink-0">
-							<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-							</p>
+							<button
+								class="bg-vtd-primary-500 hover:bg-vtd-primary-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold shadow-sm"
+								type="button"
+								@click="groupModal?.openForCreate()"
+							>
+								Add group
+							</button>
 						</div>
-					</div><!---->
+					</div>
 					<div class="relative z-10 w-full">
 						<!---->
 						<div
@@ -81,6 +85,7 @@
 																<template v-for="permission in Object.keys(group.permissions).map(id => [id, group.permissions[id]])">
 																	<span
 																		v-if="permission[1]"
+																		:key="permission[0]"
 																		class="bg-primary-50 dark:bg-primary-500/10 text-primary-800 dark:text-primary-400 ring-primary-600/20 dark:ring-primary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
 																	>
 																		<!---->
@@ -119,13 +124,16 @@
 																				class="fixed z-30"
 																				:style="{ top: 208 }"
 																			>
-																				<HeadlessMenuItem v-slot="{ active }">
-																					<div class="absolute -right-8 -top-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
+																				<div class="absolute -right-8 -top-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
+																					<HeadlessMenuItem v-slot="{ active }">
 																						<div
 																							class="px-1 py-1"
 																							role="none"
 																						>
-																							<button :class="[active ? 'bg-primary-600 text-white': 'text-gray-800 dark:text-gray-100', 'group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400']">
+																							<button
+																								:class="[active ? 'bg-primary-600 text-white': 'text-gray-800 dark:text-gray-100', 'group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400']"
+																								@click="groupModal?.openForEdit(group)"
+																							>
 																								<svg
 																									xmlns="http://www.w3.org/2000/svg"
 																									width="24px"
@@ -142,8 +150,22 @@
 																								<span>Edit</span>
 																							</button>
 																						</div>
-																					</div>
-																				</HeadlessMenuItem>
+																					</HeadlessMenuItem>
+																					<HeadlessMenuItem v-slot="{ active }">
+																						<div
+																							class="px-1 py-1"
+																							role="none"
+																						>
+																							<button
+																								:class="[active ? 'bg-primary-600 text-white': 'text-gray-800 dark:text-gray-100', 'group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400']"
+																								@click="triggerDelete(group)"
+																							>
+																								<Trash2 class="mr-2 h-4 w-4" />
+																								<span>Delete</span>
+																							</button>
+																						</div>
+																					</HeadlessMenuItem>
+																				</div>
 																			</div>
 																		</div>
 																	</HeadlessMenuItems>
@@ -225,9 +247,7 @@
 							</div>
 						</div>
 						<p class="mt-3 px-1.5 py-5 text-sm text-theme-inverted-light">
-							New user groups are created from
-							the
-							user administration. On conflicting permissions, authorization wins over the denial. <a
+							On conflicting permissions, authorization wins over the denial. <a
 								href="https://kb.openrport.io/manage-users-and-permissions"
 								rel="noopener noreferrer"
 								target="_blank"
@@ -239,76 +259,49 @@
 				</div>
 			</div>
 		</div>
-		<!-- <div class="container mt-4">
-            <page-header title="User groups" />
-            <div class="card table-responsive">
-
-                <table class="table table-vcenter">
-                    <thead class="rounded-circle bg-gray-50">
-                        <tr>
-                            <th class="py-3 ps-4 pe-4 text-sm-start fw-semibold">Name</th>
-                            <th class="py-3 ps-4 pe-4 text-sm-start fw-semibold">Permissions</th>
-                            <th class="w-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white">
-                        <tr v-for="(group, key) in userGroups" :key="key">
-                            <td class="text-left py-3 ps-4 pe-4 min-h-[42px] whitespace-nowrap">{{ group.name }}</td>
-                            <td class="text-left py-3 ps-4 pe-4 min-h-[42px] whitespace-nowrap">
-                              <div class="d-flex align-items-center space-x-0.5">
-                                <template  v-for="permission in Object.keys(group.permissions).map(id => [id, group.permissions[id]])">
-                                  <span v-if="permission[1]" class="tag bg-azure-lt border-azure">{{ permission[0]}}</span>
-                                </template>
-
-</div>
-</td>
-<td>
-    <a href="#">Edit</a>
-</td>
-</tr>
-
-</tbody>
-</table>
-<div class="row">
-    <div class="col">
-        <div class="bg-gray-50">
-            <div>
-                <div class="py-4 ps-4 pe-3 text-sm-start fw-semibold">
-                    <div class="d-flex w-100 align-items-center justify-content-between">
-                        <div class="d-flex text-xs align-items-center justify-content-between">Showing 1 to 0 of 0
-                            results</div>
-                        <div class="flex-1"></div>
-                        <div class="d-flex w-100 max-w-[90px] align-items-center justify-content-between">
-                            <button disabled class="btn-direction">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                    aria-hidden="true" width="24" height="24">
-                                    <path fill-rule="evenodd"
-                                        d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                            <button disabled class="btn-direction">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                    aria-hidden="true" width="24" height="24">
-                                    <path fill-rule="evenodd"
-                                        d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-</div> -->
+		<UserGroupModal
+			ref="groupModal"
+			@saved="refresh"
+		/>
+		<Modal
+			v-model="deleteConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDelete"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to delete the group "{{ activeGroup?.name }}"?</div>
+			</div>
+		</Modal>
 	</new-page-wrapper>
 </template>
 
 <script setup lang="ts">
-const { $api } = useNuxtApp();
+import { Trash2 } from 'lucide-vue-next';
+import UserGroupModal from '~/components/custom/UserGroupModal.vue';
+import type { UserGroup } from '~/types';
 
-const { data: userGroups } = useAsyncData(('user-groups'), () => $api.userGroups.all());
+const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
+
+const groupModal = ref<InstanceType<typeof UserGroupModal> | null>(null);
+const deleteConfirmOpen = ref(false);
+const activeGroup = ref<UserGroup | null>(null);
+
+const { data: userGroups, refresh } = useAsyncData('user-groups', () => $api.userGroups.all());
+
+const triggerDelete = (group: UserGroup) => {
+	activeGroup.value = group;
+	deleteConfirmOpen.value = true;
+};
+
+const confirmDelete = async () => {
+	if (!activeGroup.value) return;
+	await $api.userGroups.delete(activeGroup.value.name);
+	snackbar.add({ type: 'success', text: 'User group deleted' });
+	deleteConfirmOpen.value = false;
+	await refresh();
+};
 </script>

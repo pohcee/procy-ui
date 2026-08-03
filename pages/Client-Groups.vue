@@ -26,11 +26,11 @@
 								<button
 									class="bg-vtd-primary-500 hover:bg-vtd-primary-700 focus-visible:outline-vtd-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ml-4"
 									type="button"
+									@click="groupModal?.openForCreate()"
 								>
-									<!----><!---->
 									<span
 										class="flex items-center justify-center gap-x-2"
-									><!----> Add group
+									> Add group
 									</span>
 								</button>
 								<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -135,7 +135,7 @@
 																	</div>
 																</div>
 															</td>
-															<td class="text-center min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6"></td>
+															<td class="text-center min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6" />
 															<td class="pr-4 sm:pr-6 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
 																<DropdownMenu>
 																	<DropdownMenuTrigger as-child>
@@ -163,10 +163,13 @@
 																		>
 																			<DropdownMenuContent class="absolute -right-8 -top-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
 																				<div class="px-1 py-1">
-																					<DropdownMenuItem class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400">
-																							<Pencil
-																								class="mr-2 h-4 w-4"
-																							/>
+																					<DropdownMenuItem
+																						class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
+																						@click="groupModal?.openForEdit(group)"
+																					>
+																						<Pencil
+																							class="mr-2 h-4 w-4"
+																						/>
 																						<span>Edit</span>
 																					</DropdownMenuItem>
 																				</div>
@@ -175,7 +178,7 @@
 																				<div class="px-1 py-1">
 																					<DropdownMenuItem
 																						class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
-
+																						@click="triggerDelete(group)"
 																					>
 																						<Trash2 class="mr-2 h-4 w-4" />
 																						<span>Delete</span>
@@ -218,18 +221,41 @@
 				</div>
 			</div>
 		</div>
+		<ClientGroupModal
+			ref="groupModal"
+			@saved="refresh"
+		/>
+		<Modal
+			v-model="deleteConfirmOpen"
+			title="Please confirm!"
+			ok-text="Delete"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="confirmDelete"
+		>
+			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
+				<div>Do you want to delete the group "{{ activeGroup?.id }}"?</div>
+			</div>
+		</Modal>
 	</new-page-wrapper>
 </template>
 
 <script setup lang="ts">
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import { Pagination } from '~/components/ui/pagination';
+import ClientGroupModal from '~/components/custom/ClientGroupModal.vue';
+import type { ClientGroup } from '~/types';
 
 const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
 const ITEMS_PER_PAGE = 20;
 const page = ref<number>(0);
 
-const { data: response, pending, refresh } = useLazyAsyncData(`clients-group`, () => $api.groups.paginate(page.value, ITEMS_PER_PAGE), {
+const groupModal = ref<InstanceType<typeof ClientGroupModal> | null>(null);
+const deleteConfirmOpen = ref(false);
+const activeGroup = ref<ClientGroup | null>(null);
+
+const { data: response, refresh } = useLazyAsyncData(`clients-group`, () => $api.groups.paginate(page.value, ITEMS_PER_PAGE), {
 	watch: [page],
 });
 
@@ -242,6 +268,19 @@ const handlePrevious = async () => {
 
 const handleNext = async () => {
 	page.value++;
+	await refresh();
+};
+
+const triggerDelete = (group: ClientGroup) => {
+	activeGroup.value = group;
+	deleteConfirmOpen.value = true;
+};
+
+const confirmDelete = async () => {
+	if (!activeGroup.value) return;
+	await $api.groups.delete(activeGroup.value.id);
+	snackbar.add({ type: 'success', text: 'Client group deleted' });
+	deleteConfirmOpen.value = false;
 	await refresh();
 };
 </script>

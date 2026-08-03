@@ -13,45 +13,13 @@
 						<!-- Create tabs from here -->
 						<Tabs v-model="selectedTab">
 							<div class="relative z-20 text-center text-sm font-bold text-muted after:absolute after:-left-0 after:-right-0 after:bottom-0 after:h-px after:bg-theme-border after:content-['']">
-								<div class="flex items-center overflow-hidden">
-									<!--									<ScrollArea> -->
-									<button
-										type="button"
-										class="inline-flex items-center duration-200 focus:outline-none rounded-full p-3 flex h-14 w-6 items-center justify-center px-0 py-0 focus:border-0 focus:outline-none focus:ring-0"
-										:disabled="isAtStart"
-										@click="scrollLeft"
+								<div class="flex items-center">
+									<TabsList
+										class="relative flex w-full border-b border-mauve6"
 									>
-										<span
-											class="flex items-center justify-center"
-											style="
-														width: 24px;
-														height: 24px;
-													"
+										<ul
+											class="relative flex justify-start w-full gap-0 -mb-px transition flex-nowrap"
 										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24px"
-												height="24px"
-												viewBox="0 0 24 24"
-												class="icon"
-											>
-												<path
-													fill="#607a8c"
-													d="m13.3 17.3l-4.6-4.6q-.15-.15-.212-.325T8.425 12q0-.2.063-.375T8.7 11.3l4.6-4.6q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7L10.8 12l3.9 3.9q.275.275.275.7t-.275.7q-.275.275-.7.275t-.7-.275Z"
-												/>
-											</svg>
-										</span>
-									</button>
-									<div class="overflow-hidden">
-										<TabsList
-
-											class="relative shrink-0 flex border-b border-mauve6"
-										>
-											<ul
-												ref="tabsListRef"
-												class="relative flex justify-start w-full gap-0 -mb-px transition flex-nowrap"
-												:style="{ transform: `translateX(${translateX}px)` }"
-											>
 												<TabsTrigger
 													as="li"
 													value="inventory"
@@ -83,39 +51,6 @@
 														class="flex items-center justify-center w-full px-8 py-4 rounded-t-lg text-theme-inverted-lighter text-gray-600 hover:text-primary-600"
 													>
 														Meta-Data
-													</span>
-												</TabsTrigger>
-												<TabsTrigger
-													as="li"
-													value="documents"
-													class="w-1/10 min-w-min cursor-pointer whitespace-nowrap border-b-[3px] border-transparent"
-												>
-													<span
-														class="flex items-center justify-center w-full px-8 py-4 rounded-t-lg text-theme-inverted-lighter text-gray-600 hover:text-primary-600"
-													>
-														Documents
-													</span>
-												</TabsTrigger>
-												<TabsTrigger
-													as="li"
-													value="commands"
-													class="w-1/10 min-w-min cursor-pointer whitespace-nowrap border-b-[3px] border-transparent"
-												>
-													<span
-														class="flex items-center justify-center w-full px-8 py-4 rounded-t-lg text-theme-inverted-lighter text-gray-600 hover:text-primary-600"
-													>
-														Commands
-													</span>
-												</TabsTrigger>
-												<TabsTrigger
-													as="li"
-													value="scripts"
-													class="w-1/10 min-w-min cursor-pointer whitespace-nowrap border-b-[3px] border-transparent"
-												>
-													<span
-														class="flex items-center justify-center w-full px-8 py-4 rounded-t-lg text-theme-inverted-lighter text-gray-600 hover:text-primary-600"
-													>
-														Scripts
 													</span>
 												</TabsTrigger>
 												<TabsTrigger
@@ -163,33 +98,7 @@
 													</span>
 												</TabsTrigger>
 											</ul>
-										</TabsList>
-									</div>
-									<button
-										class="flex inline-flex items-center justify-center w-6 p-3 px-0 py-0 duration-200 rounded-full focus:outline-none h-14 focus:border-0 focus:ring-0"
-										:disabled="isAtEnd"
-										@click="scrollRight"
-									>
-										<span
-											class="flex items-center justify-center"
-											style="
-														width: 24px;
-														height: 24px;
-													"
-										><svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24px"
-											height="24px"
-											viewBox="0 0 24 24"
-											class="icon"
-										>
-											<path
-												fill="#607a8c"
-												d="M8.7 17.3q-.275-.275-.275-.7t.275-.7l3.9-3.9l-3.9-3.9q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275l4.6 4.6q.15.15.213.325t.062.375q0 .2-.063.375t-.212.325l-4.6 4.6q-.275.275-.7.275t-.7-.275Z"
-											/>
-										</svg>
-										</span>
-									</button>
+									</TabsList>
 								</div>
 							</div>
 							<div class="absolute inset-0 z-0 w-full pt-12 top-20">
@@ -212,15 +121,6 @@
 											<TabsContent value="meta-data">
 												<DeviceMetaDataTab />
 											</TabsContent>
-											<TabsContent value="documents">
-												<DeviceDocumentsTab />
-											</TabsContent>
-											<TabsContent value="commands">
-												<DeviceCommandsTab :id="device.id" />
-											</TabsContent>
-											<TabsContent value="scripts">
-												<DeviceScriptsTab :id="device.id" />
-											</TabsContent>
 											<TabsContent value="monitoring">
 												<DeviceMonitoringTab
 													:device="device"
@@ -229,13 +129,13 @@
 												/>
 											</TabsContent>
 											<TabsContent value="files">
-												<DeviceFilesTab />
+												<DeviceFilesTab :device="device" />
 											</TabsContent>
 											<TabsContent value="audit">
-												<DeviceAuditTab />
+												<DeviceAuditTab :id="device.id" />
 											</TabsContent>
 											<TabsContent value="schedules">
-												<DeviceSchedulesTab />
+												<DeviceSchedulesTab :id="device.id" />
 											</TabsContent>
 										</div>
 									</div>
@@ -362,7 +262,6 @@ import {
 	TabsTrigger,
 } from '@/components/ui/tabs';
 import DeviceHeader from '~/components/device/DeviceHeader.vue';
-import { useScrollableTabs } from '~/composables/useScrollableTabs';
 import { useClientDetail } from '~/composables/useClientDetail';
 
 const tunnelStore = useTunnelStore();
@@ -371,12 +270,4 @@ const selectedTab = ref('inventory');
 const { isAddingTunnel } = storeToRefs(tunnelStore);
 
 const { device, metrics, disks, diskHistory } = useClientDetail();
-const {
-	translateX,
-	tabsListRef,
-	isAtStart,
-	isAtEnd,
-	scrollLeft,
-	scrollRight,
-} = useScrollableTabs();
 </script>

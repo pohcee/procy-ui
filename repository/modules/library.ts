@@ -1,5 +1,5 @@
 import { HttpFactory } from '~/repository/factory';
-import type { Command, CommandPayload, CommandResponse } from '~/types';
+import type { Command, CommandPayload, CommandResponse, Script, ScriptPayload, ScriptResponse } from '~/types';
 
 class LibraryModule extends HttpFactory {
 	private RESOURCE = '/api/v1/library';
@@ -37,6 +37,42 @@ class LibraryModule extends HttpFactory {
 			'PUT',
 			`${this.RESOURCE}/commands/${id}`,
 			command,
+		);
+	}
+
+	async listScript(): Promise<ScriptResponse> {
+		return await this.call<ScriptResponse>(
+			'GET',
+			`${this.RESOURCE}/scripts`,
+			undefined,
+		);
+	}
+
+	async createScript(script: ScriptPayload): Promise<{ data: Script }> {
+		return await this.call<{ data: Script }>(
+			'POST',
+			`${this.RESOURCE}/scripts`,
+			script,
+		);
+	}
+
+	async deleteScript(id: string): Promise<any> {
+		return await this.call('DELETE', `${this.RESOURCE}/scripts/${id}`, undefined);
+	};
+
+	async showScript(id: string): Promise<{ data: Script }> {
+		return await this.call<{ data: Script }>(
+			'GET',
+			`${this.RESOURCE}/scripts/${id}`,
+			undefined,
+		);
+	}
+
+	async updateScript(id: string, script: ScriptPayload): Promise<{ data: Script }> {
+		return await this.call<{ data: Script }>(
+			'PUT',
+			`${this.RESOURCE}/scripts/${id}`,
+			script,
 		);
 	}
 }

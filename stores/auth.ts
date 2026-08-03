@@ -70,6 +70,12 @@ export const useTokenStore = defineStore('token', {
 		async getProvider() {
 
 		},
+		cancelTwoFa() {
+			this.showTwoFa = false;
+			this.two_fa = {} as TwoFa;
+			this.twoFaToken = null;
+			this.errors = [];
+		},
 		logOut() {
 			const token = useCookie('token');
 			const is_authenticated = useCookie<boolean>('is_authenticated');

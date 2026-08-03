@@ -4,14 +4,14 @@
 			<new-settings-sidebar />
 			<div class="scrollbar-hide max-h-screen flex-1 xl:overflow-y-auto">
 				<div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-					<form>
+					<form @submit.prevent="handleSaveProfile">
 						<div class="relative z-20 flex h-16 items-center justify-between">
 							<div class="">
 								<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
 									Profile
 								</h3>
 								<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
+									&nbsp;
 								</p>
 							</div>
 							<div class="flex-1" />
@@ -19,16 +19,14 @@
 								<button
 									class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 									type="button"
+									@click="store.fetchProfile()"
 								>
-									<!----><!----><span
+									<span
 										class="flex items-center justify-center gap-x-2"
-									><!----> Reload</span>
+									> Reload</span>
 								</button>
-								<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-								</p>
 							</div>
-						</div><!---->
+						</div>
 						<div class="flex flex-col gap-y-8">
 							<div
 								class="flex flex-1 flex-col divide-y divide-gray-50 overflow-hidden rounded-lg bg-white shadow dark:divide-gray-700 dark:bg-gray-900"
@@ -38,8 +36,7 @@
 										<h3 class="text-xl font-semibold leading-7 text-gray-900 dark:text-gray-50">
 											Update profile info
 										</h3>
-										<p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-500" />
-									</div><!---->
+									</div>
 								</div>
 								<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
 									<div class="h-full w-full">
@@ -47,6 +44,7 @@
 											<div class="relative mt-1 flex w-full flex-col">
 												<input
 													id="1dIVMpzYO6"
+													:value="profile.username"
 													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 													placeholder=" "
 													readonly=""
@@ -56,7 +54,7 @@
 													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
 													for="1dIVMpzYO6"
 												>Username</label>
-											</div><!---->
+											</div>
 											<p class="mt-1 pl-1 text-sm text-theme-inverted">
 												The username field is not
 												editable
@@ -66,6 +64,7 @@
 											<div class="relative mt-1 flex w-full flex-col">
 												<input
 													id="CSNl6oSWY5"
+													v-model="twoFaSendTo"
 													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 													placeholder=" "
 													type="text"
@@ -74,23 +73,146 @@
 													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
 													for="CSNl6oSWY5"
 												>Two-factor send to</label>
-											</div><!----><!---->
+											</div>
 										</div>
 										<div class="flex flex-col py-6">
 											<label
 												class="flex cursor-pointer select-none items-center justify-start text-sm text-theme-label"
 											><input
+												v-model="wantsPasswordChange"
 												type="checkbox"
 												class="mr-2 h-[16px] w-[16px] cursor-pointer rounded border-none bg-transparent ring-2 ring-gray-300 focus:ring-gray-300 focus:ring-offset-0 primary-text"
 											>Change
-												password</label><!---->
+												password</label>
+										</div>
+										<div
+											v-if="wantsPasswordChange"
+											class="flex flex-col gap-4"
+										>
+											<div class="relative flex w-full flex-col">
+												<input
+													id="oldPassword"
+													v-model="oldPassword"
+													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
+													placeholder=" "
+													type="password"
+													autocomplete="current-password"
+												><label
+													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
+													for="oldPassword"
+												>Current password</label>
+											</div>
+											<div class="relative flex w-full flex-col">
+												<input
+													id="newPassword"
+													v-model="newPassword"
+													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
+													placeholder=" "
+													type="password"
+													autocomplete="new-password"
+												><label
+													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
+													for="newPassword"
+												>New password</label>
+											</div>
+											<div class="relative flex w-full flex-col">
+												<input
+													id="confirmPassword"
+													v-model="confirmPassword"
+													class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
+													:class="{ error: confirmPassword && confirmPassword !== newPassword }"
+													placeholder=" "
+													type="password"
+													autocomplete="new-password"
+												><label
+													class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
+													for="confirmPassword"
+												>Confirm new password</label>
+											</div>
+											<p
+												v-if="confirmPassword && confirmPassword !== newPassword"
+												class="text-sm text-red-500"
+											>
+												Passwords do not match
+											</p>
 										</div>
 									</div>
-								</div><!---->
-							</div><!---->
+								</div>
+							</div>
+							<div class="flex w-full items-center justify-end">
+								<button
+									class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold shadow-sm"
+									type="submit"
+									:disabled="isSavingProfile || (wantsPasswordChange && (!oldPassword || !newPassword || newPassword !== confirmPassword))"
+								>
+									Save profile
+								</button>
+							</div>
 						</div>
 					</form>
 					<div class="mt-8 pb-8">
+						<div class="relative z-20 flex h-16 items-center justify-between">
+							<div class="">
+								<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
+									Two-factor authentication
+								</h3>
+							</div>
+						</div>
+						<div
+							class="flex flex-1 flex-col divide-y divide-gray-50 overflow-hidden rounded-lg bg-white shadow dark:divide-gray-700 dark:bg-gray-900"
+						>
+							<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
+								<div
+									v-if="totpUnavailable"
+									class="text-sm text-gray-500"
+								>
+									Authenticator app 2FA is not enabled on this server.
+								</div>
+								<div v-else-if="totpEnrolled && !totpSetup">
+									<p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+										An authenticator app is currently linked to your account.
+									</p>
+									<button
+										class="bg-red-600 hover:bg-red-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold"
+										type="button"
+										@click="disableTotp"
+									>
+										Disable authenticator app
+									</button>
+								</div>
+								<div v-else-if="totpSetup">
+									<p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+										Scan this QR code with your authenticator app, then it will be active on next login.
+									</p>
+									<img
+										:src="totpSetup.qr"
+										alt="TOTP QR code"
+										class="mb-3 h-40 w-40"
+									>
+									<p class="mb-3 break-all font-mono text-xs text-gray-500">
+										{{ totpSetup.secret }}
+									</p>
+									<button
+										class="bg-vtd-primary-500 hover:bg-vtd-primary-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold"
+										type="button"
+										@click="totpSetup = null"
+									>
+										Done
+									</button>
+								</div>
+								<div v-else>
+									<button
+										class="bg-vtd-primary-500 hover:bg-vtd-primary-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold"
+										type="button"
+										@click="enableTotp"
+									>
+										Enable authenticator app
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="pb-8">
 						<form @submit.prevent="handleSaveSettings">
 							<div class="relative z-20 flex h-16 items-center justify-between">
 								<div class="">
@@ -98,16 +220,10 @@
 										Settings
 									</h3>
 									<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
+										&nbsp;
 									</p>
 								</div>
-								<div class="flex-1" />
-								<div class="ml-2 flex-shrink-0">
-									<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-									</p>
-								</div>
-							</div><!---->
+							</div>
 							<div class="flex flex-col gap-y-8">
 								<div
 									class="flex flex-1 flex-col divide-y divide-gray-50 overflow-hidden rounded-lg bg-white shadow dark:divide-gray-700 dark:bg-gray-900"
@@ -117,10 +233,7 @@
 											<h3 class="text-xl font-semibold leading-7 text-gray-900 dark:text-gray-50">
 												General
 											</h3>
-											<p
-												class="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-500"
-											/>
-										</div><!---->
+										</div>
 									</div>
 									<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
 										<div class="h-full w-full">
@@ -136,7 +249,7 @@
 												<div class="mt-4">
 													<CustomThemedSelect
 														id="uDMB3DAEKQ"
-														disabled
+														v-model="useSecureShellExtension"
 														label="Use Secure Shell Extension for Chrome"
 														placeholder="Select..."
 														:options="yesNoOptions"
@@ -154,42 +267,32 @@
 														>Requires the Secure Shell
 															extension for Chrome. </a>
 													</div>
-													<div class="flex-1" /><button
-														class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-														type="button"
-													>
-														<!----><!----><span
-															class="flex items-center justify-center gap-x-2"
-														><!----><a
-															href="https://chrome.google.com/webstore/detail/secure-shell-app/iodihamcpbpeioajjeobimgagajmlibd"
-															target="_blank"
-														> Install Now</a></span>
-													</button>
 												</div>
 											</div>
 											<div
 												class="flex flex-col mt-4"
-												modelmodifiers="[object Object]"
 											>
 												<div class="relative mt-1 flex w-full flex-col">
 													<input
 														id="lXseOVzBfm"
+														v-model="commandHistoryMaxEntries"
 														class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 														placeholder=" "
 														type="number"
+														min="0"
+														max="200"
 														autocomplete="off"
 													><label
 														class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
 														for="lXseOVzBfm"
 													>Command history max entries</label>
 												</div>
-												<!---->
 												<p class="mt-1 pl-1 text-sm text-theme-inverted">
 													0 - 200
 												</p>
 											</div>
 										</div>
-									</div><!---->
+									</div>
 								</div>
 								<div
 									class="flex flex-1 flex-col divide-y divide-gray-50 overflow-hidden rounded-lg bg-white shadow dark:divide-gray-700 dark:bg-gray-900"
@@ -199,30 +302,30 @@
 											<h3 class="text-xl font-semibold leading-7 text-gray-900 dark:text-gray-50">
 												RDP
 											</h3>
-											<p
-												class="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-500"
-											/>
-										</div><!---->
+										</div>
 									</div>
 									<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
 										<div class="h-full w-full">
 											<div class="mt-4">
-											<CustomThemedSelect
-												id="KXSJoJIuLz"
-												label="Open non-browser-based RDP connections with"
-												placeholder="Select..."
-												:options="rdpConnectionOptions"
-											/>
+												<CustomThemedSelect
+													id="KXSJoJIuLz"
+													v-model="rdpConnectionMethod"
+													label="Open non-browser-based RDP connections with"
+													placeholder="Select..."
+													:options="rdpConnectionOptions"
+												/>
 											</div>
 											<div class="mt-4 grid grid-cols-2 gap-4">
 												<CustomThemedSelect
 													id="LtPRgDEHkP"
+													v-model="rdpWidth"
 													label="Preferred window width for RDP connections"
 													placeholder="Select..."
 													:options="rdpWidthOptions"
 												/>
 												<CustomThemedSelect
 													id="mR1ssRdYGd"
+													v-model="rdpHeight"
 													label="Preferred window height for RDP connections"
 													placeholder="Select..."
 													:options="rdpHeightOptions"
@@ -232,6 +335,7 @@
 												<div class="relative mt-1 flex w-full flex-col">
 													<input
 														id="liTVvYrv39"
+														v-model="defaultRdpUsername"
 														class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
 														placeholder=" "
 														type="text"
@@ -241,163 +345,47 @@
 														for="liTVvYrv39"
 													>Default RDP username</label>
 												</div>
-												<!----><!---->
 											</div>
 											<div class="mt-4">
 												<CustomThemedSelect
-												id="dvmVMJe2id"
-												label="Local keyboard layout for browser-based RDP"
-												placeholder="Select..."
-												:options="keyboardLayoutOptions"
-											/>
-											</div>
-											<div class="mt-4">
-												<button
-													class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-													type="button"
-												>
-													<!----><!----><span
-														class="flex items-center justify-center gap-x-2"
-													><!----> Edit
-														the RDP File Template</span>
-												</button>
+													id="dvmVMJe2id"
+													v-model="keyboardLayout"
+													label="Local keyboard layout for browser-based RDP"
+													placeholder="Select..."
+													:options="keyboardLayoutOptions"
+												/>
 											</div>
 										</div>
-									</div><!---->
+									</div>
 								</div>
 								<div class="flex w-full items-center justify-end">
 									<button
 										class="bg-primary-500 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 										type="submit"
 									>
-										<!----><!----><span
+										<span
 											class="flex items-center justify-center gap-x-2"
-										><!----> Save
+										> Save
 											settings</span>
 									</button>
 								</div>
 							</div>
-						</form><!---->
+						</form>
 					</div>
 				</div>
 			</div>
 		</div>
-		<!-- <div class="container mt-4">
-            <page-header title="Profile" hasAction={true} actionName="Reload" />
-            <div class="card ">
-                <div class="card-body">
-                    <h3 class="card-title">Update profile info</h3>
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input disabled type="text" :value="profile.username" class="form-control"
-                            name="example-text-input" placeholder="Input placeholder" />
-                    </div>
-                    <div v-if="two_fa?.send_to !== undefined" class="mb-3">
-                        <label class="form-label">Two-factor send to</label>
-                        <input type="text" class="form-control" name="example-password-input"
-                            placeholder="Input placeholder" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-colorinput">
-                            <input name="color" type="radio" value="lime" class="form-colorinput-input" />
-                            <span class="form-colorinput-color"></span>
-                        </label>
-                        Change password
-                    </div>
-
-                </div>
-            </div>
-            <page-header title="Settings" />
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h3 class="card-title">General</h3>
-                    <div class="mb-3">
-                        <label class="form-label">Selected theme</label>
-                        <select name="theme" class="form-select">
-                            <option>Light</option>
-                            <option>Dark</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Use Secure Shell Extension for Chrome</label>
-                        <div>
-                            <select name="secure_shell_extension" class="form-select">
-                                <option>No</option>
-                                <option>Yes</option>
-                            </select>
-                            <small class="form-hint">Launch SSH connections directly in your browser. <a
-                                    href="https://chrome.google.com/webstore/detail/secure-shell-app/iodihamcpbpeioajjeobimgagajmlibd"
-                                    class="text-primary" target="_blank">Requires the Secure Shell extension for Chrome.
-                                </a></small>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Command history max entries</label>
-                        <div>
-                            <input type="number" class="form-control" name="shell_history" />
-                            <small class="hint">0 - 200</small>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">RDP</h3>
-                    <div class="mb-3">
-                        <label class="form-label">Open non-browser-based RDP connections with</label>
-                        <select name="non_browser_connections" class="form-select">
-                            <option>Microsoft Remote Desktop via RDP file download (Win & Mac)</option>
-                            <option>Open a rdp:// schema link (Linux & FreeRDP, custom scripts)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Default RDP username</label>
-                        <input type="text" class="form-control" name="example-password-input" placeholder="" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Local keyboard layout for browser-based RDP</label>
-                        <select name="secure_shell_extension" class="form-select">
-                            <option value="pt-br-qwerty">Brazilian (Portuguese)</option>
-                            <option value="en-gb-qwerty">English (UK)</option>
-                            <option selected value="en-us-qwerty">English (US)</option>
-                            <option value="fr-fr-azerty">French</option>
-                            <option value="fr-be-azerty">French (Belgian)</option>
-                            <option value="fr-ch-qwertz">French (Swiss)</option>
-                            <option value="de-de-qwertz">German</option>
-                            <option value="de-ch-qwertz">German (Swiss)</option>
-                            <option value="hu-hu-qwertz">Hungarian</option>
-                            <option value="it-it-qwerty">Italian</option>
-                            <option value="ja-jp-qwerty">Japanese</option>
-                            <option value="no-no-qwerty">Norwegian</option>
-                            <option value="es-es-qwerty">Spanish</option>
-                            <option value="es-latam-qwerty">Spanish (Latin American)</option>
-                            <option value="tr-tr-qwerty">Turkish-Q</option>
-                        </select>
-
-                    </div>
-                    <div class="mb-3">
-                        <button type="button" class="btn btn-primary ms-auto">Edit the RDP File Template</button>
-                    </div>
-
-                </div>
-            </div>
-            <div class="d-flex w-100 align-items-center justify-content-end my-4">
-                <button type="button" class="btn btn-primary ms-auto">Save settings</button>
-            </div>
-        </div> -->
 	</new-page-wrapper>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import Index from '~/pages/dashboard/index.vue';
+import { useLocalStorage } from '@vueuse/core';
 
 const store = useProfile();
-const authStore = useTokenStore();
 const { profile } = storeToRefs(store);
-const { two_fa } = storeToRefs(authStore);
 const { colorMode } = useTheme();
+const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 
 const themeOptions = [
@@ -441,6 +429,50 @@ const keyboardLayoutOptions = [
 	{ value: 'tr-tr-qwerty', label: 'Turkish-Q' },
 ];
 
+// Client-only display preferences (no backend field exists for these; persisted locally).
+const useSecureShellExtension = useLocalStorage('profile_use_secure_shell_extension', 'false');
+const commandHistoryMaxEntries = useLocalStorage('profile_command_history_max_entries', 50);
+const rdpConnectionMethod = useLocalStorage('profile_rdp_connection_method', 'microsoft_remote_desktop');
+const rdpWidth = useLocalStorage('profile_rdp_width', '1024');
+const rdpHeight = useLocalStorage('profile_rdp_height', '768');
+const defaultRdpUsername = useLocalStorage('profile_default_rdp_username', '');
+const keyboardLayout = useLocalStorage('profile_keyboard_layout', 'en-us-qwerty');
+
+const twoFaSendTo = ref('');
+const wantsPasswordChange = ref(false);
+const oldPassword = ref('');
+const newPassword = ref('');
+const confirmPassword = ref('');
+const isSavingProfile = ref(false);
+
+watch(profile, (value) => {
+	twoFaSendTo.value = value?.two_fa_send_to ?? '';
+}, { immediate: true });
+
+const handleSaveProfile = async () => {
+	if (wantsPasswordChange.value && (!oldPassword.value || newPassword.value !== confirmPassword.value)) return;
+	isSavingProfile.value = true;
+	try {
+		await $api.profile.updateProfile({
+			username: profile.value.username,
+			two_fa_send_to: twoFaSendTo.value,
+			...(wantsPasswordChange.value ? { password: newPassword.value, old_password: oldPassword.value } : {}),
+		});
+		snackbar.add({ type: 'success', text: 'Profile updated' });
+		wantsPasswordChange.value = false;
+		oldPassword.value = '';
+		newPassword.value = '';
+		confirmPassword.value = '';
+		await store.fetchProfile();
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to update profile' });
+	}
+	finally {
+		isSavingProfile.value = false;
+	}
+};
+
 const handleSaveSettings = () => {
 	snackbar.add({
 		type: 'success',
@@ -448,8 +480,47 @@ const handleSaveSettings = () => {
 	});
 };
 
-console.log(two_fa);
+const totpEnrolled = ref(false);
+const totpUnavailable = ref(false);
+const totpSetup = ref<{ secret: string; qr: string } | null>(null);
+
+const refreshTotpStatus = async () => {
+	try {
+		await $api.profile.getTotP();
+		totpEnrolled.value = true;
+		totpUnavailable.value = false;
+	}
+	catch (error: any) {
+		if (error?.response?.status === 400) {
+			totpUnavailable.value = true;
+		}
+		totpEnrolled.value = false;
+	}
+};
+
+const enableTotp = async () => {
+	try {
+		totpSetup.value = await $api.profile.createTotP();
+		totpEnrolled.value = true;
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to generate authenticator secret' });
+	}
+};
+
+const disableTotp = async () => {
+	try {
+		await $api.profile.deleteTotP();
+		totpEnrolled.value = false;
+		snackbar.add({ type: 'success', text: 'Authenticator app disabled' });
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to disable authenticator app' });
+	}
+};
+
 await store.fetchProfile();
+await refreshTotpStatus();
 </script>
 
 <style scoped>

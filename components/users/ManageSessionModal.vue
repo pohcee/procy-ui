@@ -7,20 +7,21 @@
 		:show-cancel="true"
 	>
 		<div
-			v-if="userSession?.length===0"
+			v-if="userSessions?.length===0"
 			class="relative max-h-[20vh]"
 		>
 			<div class="bg-cyan-50 dark:bg-cyan-500/10 rounded-md p-4">
 				<div class="flex items-end justify-center gap-x-3">
-					<!---->
 					<span>
-						<span class="text-cyan-700 dark:text-cyan-400">User test has no active sessions currently.</span>
-
-					</span><!---->
+						<span class="text-cyan-700 dark:text-cyan-400">User {{ username }} has no active sessions currently.</span>
+					</span>
 				</div>
 			</div>
 		</div>
-		<div v-else class="relative max-h-[70vh]">
+		<div
+			v-else
+			class="relative max-h-[70vh]"
+		>
 			<div class="bg-red-50 dark:bg-red-500/10 rounded-md p-4">
 				<div class="flex items-end justify-center gap-x-3">
 					<!---->
@@ -34,9 +35,9 @@
 				<button
 					class="bg-red-500 hover:bg-red-300 focus-visible:outline-red-600 disabled:bg-red-500/30 disabled:hover:bg-red-500/30 disabled:focus-visible:outline-red-500/30 text-white disabled:text-gray-600 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 					type="button"
+					@click="removeAllSessions"
 				>
-					<!----><!---->
-					<span class="flex items-center justify-center gap-x-2"><!---->
+					<span class="flex items-center justify-center gap-x-2">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="24px"
@@ -53,16 +54,16 @@
 							</g>
 
 						</svg>
-						<span>Remove All sessions Session</span>
+						<span>Remove All Sessions</span>
 
 					</span>
 				</button>
 			</div>
 			<div
 				v-for="session in userSessions"
-				:key="session.id"
-				class="flex flex-1 flex-col divide-y divide-slate-50 overflow-hidden rounded-lg bg-white shadow dark:divide-slate-700 dark:bg-slate-900 mb-12 w-full">
-				<!---->
+				:key="session.session_id"
+				class="flex flex-1 flex-col divide-y divide-slate-50 overflow-hidden rounded-lg bg-white shadow dark:divide-slate-700 dark:bg-slate-900 mb-12 w-full"
+			>
 				<div class="flex-1 px-4 py-5 text-slate-950 dark:text-slate-50 sm:p-6">
 					<div class="h-full w-full">
 						<div class="grid w-full grid-cols-12">
@@ -104,8 +105,9 @@
 								<button
 									class="bg-red-500 hover:bg-red-300 focus-visible:outline-red-600 disabled:bg-red-500/30 disabled:hover:bg-red-500/30 disabled:focus-visible:outline-red-500/30 text-white disabled:text-gray-600 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 									type="button"
+									@click="removeSession(session.session_id)"
 								>
-									<!----><!----><span class="flex items-center justify-center gap-x-2"><!----><svg
+									<span class="flex items-center justify-center gap-x-2"><svg
 										data-v-ca945699=""
 										xmlns="http://www.w3.org/2000/svg"
 										width="24px"
@@ -128,19 +130,24 @@
 </template>
 
 <script setup lang="ts">
-import type { UserSession } from "~/types";
+import type { UserSession } from '~/types';
 
 const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
 const isOpen = ref(false);
 
 const props = defineProps({
 	username: {
 		type: String,
+		default: '',
 	},
 	userSessions: {
 		type: Array<UserSession>,
+		default: () => [],
 	},
 });
+
+const emit = defineEmits(['sessions-changed']);
 
 const open = () => {
 	isOpen.value = true;
@@ -149,5 +156,28 @@ const open = () => {
 const close = () => {
 	isOpen.value = false;
 };
+
+const removeSession = async (sessionId: number) => {
+	try {
+		await $api.users.deleteSessionForUser(props.username, sessionId);
+		snackbar.add({ type: 'success', text: 'Session removed' });
+		emit('sessions-changed');
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to remove session' });
+	}
+};
+
+const removeAllSessions = async () => {
+	try {
+		await $api.users.deleteSessions(props.username);
+		snackbar.add({ type: 'success', text: 'All sessions removed' });
+		emit('sessions-changed');
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to remove sessions' });
+	}
+};
+
 defineExpose({ open, close });
 </script>

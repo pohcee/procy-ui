@@ -37,11 +37,12 @@
 				<div class="mt-1 text-white">
 					<CustomThemedSelect
 						id="KQvbzK4XzJ"
+						v-model="interpreter"
 						label="Interpreter"
 						placeholder="Select..."
 						:options="interpreterOptions"
 					/>
-				</div><!----><!---->
+				</div>
 				<div class="flex flex-col mt-1">
 					<div class="relative mt-1 flex w-full flex-col">
 						<input
@@ -82,17 +83,19 @@
 						:class="[' px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none col-span-3 secondary',
 							scriptContent.length == 0 || scriptName.length == 0 ? 'cursor-not-allowed hover:opacity-100' : 'hover:opacity-80',
 						]"
-						:disabled="scriptContent.length == 0 || scriptName.length == 0 "
+						:disabled="scriptContent.length == 0 || scriptName.length == 0 || isSaving"
 						type="button"
+						@click="saveScript"
 					>
-						<!----> Save
-					</button><!---->
+						{{ loadedId ? 'Update' : 'Save' }}
+					</button>
 				</div><button
 					class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none ml-2 bg-white bg-opacity-10"
 					type="button"
+					@click="openLoadModal"
 				>
-					<!----> Load
-				</button><!---->
+					Load
+				</button>
 			</div>
 		</div>
 		<div class="col-span-5">
@@ -107,12 +110,13 @@
 				<div>
 					<button
 						:class="['px-4 py-2 text-sm text-black rounded inline-flex items-center duration-200 focus:outline-none bg-slate-100',
-							scriptContent.length == 0 ? 'cursor-not-allowed opacity-50 hover:opacity-100' : 'hover:opacity-80',
+							scriptContent.length == 0 || scriptName.length == 0 ? 'cursor-not-allowed opacity-50 hover:opacity-100' : 'hover:opacity-80',
 						]"
-						:disabled="scriptContent.length == 0"
+						:disabled="scriptContent.length == 0 || scriptName.length == 0"
 						type="button"
+						@click="$emit('schedule-request', buildPayload())"
 					>
-						<!----><svg
+						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="24px"
 							height="24px"
@@ -131,11 +135,12 @@
 						<label
 							class="flex cursor-pointer select-none items-center justify-start text-sm text-gray-200"
 						><input
+							v-model="abortOnError"
 							type="checkbox"
 							class="mr-2 h-[16px] w-[16px] cursor-pointer rounded border-none bg-transparent ring-2 ring-gray-300 focus:ring-gray-300 focus:ring-offset-0 text-transparent"
 						>Abort
-							on error</label><!---->
-					</div><!----><span class="mr-4 text-xs text-gray-300"> (CMD +
+							on error</label>
+					</div><span class="mr-4 text-xs text-gray-300"> (CMD +
 						ENTER) </span>
 					<button
 						class="hover:opacity-80 px-4 py-2 text-sm text-black rounded inline-flex items-center duration-200 focus:outline-none bg-[#C6F94C]"
@@ -159,39 +164,122 @@
 				</div>
 			</div>
 		</div>
-	</div><!----><!----><!---->
+	</div>
+	<LibraryLoadModal
+		v-model="isLoadModalOpen"
+		title="Load a saved script"
+		:items="savedScripts"
+		@select="loadScript"
+		@delete="deleteSavedScript"
+	/>
 </template>
 
 <script setup lang="ts">
 import ExecutionTags from '~/components/custom/ExecutionTags.vue';
 import LoadingSpinner from '~/components/custom/loading-spinner/LoadingSpinner.vue';
+import LibraryLoadModal from '~/components/custom/LibraryLoadModal.vue';
+import type { ScriptPayload } from '~/types';
 
-const emit = defineEmits(['script-data']);
-const props = defineProps({
+const emit = defineEmits(['script-data', 'schedule-request']);
+defineProps({
 	isLoading: {
 		type: Boolean,
 		default: false,
 	},
 });
+
+const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
+
 const tagsValue = ref<string[]>([]);
 const scriptName = ref<string>('');
 const timeoutInSeconds = ref<number>(300);
 const scriptContent = ref<string>('');
 const workingDirectory = ref<string>('');
 const useSudo = ref<boolean>(false);
+const abortOnError = ref<boolean>(true);
+const DEFAULT_INTERPRETER = 'default';
+const interpreter = ref<string>(DEFAULT_INTERPRETER);
 const interpreterOptions = [
-	{ value: 'shOrShebang', label: '/bin/sh or shebang' },
+	{ value: DEFAULT_INTERPRETER, label: '/bin/sh or shebang' },
 	{ value: 'tacoscript', label: 'Tacoscript (Experimental)' },
 ];
 
+const isSaving = ref(false);
+const loadedId = ref<string | null>(null);
+const isLoadModalOpen = ref(false);
+const savedScripts = ref<{ id: string; name: string }[]>([]);
+
+const resolveInterpreter = () => (interpreter.value === DEFAULT_INTERPRETER ? '' : interpreter.value);
+
+const buildPayload = () => ({
+	scriptName: scriptName.value,
+	tagsValue: tagsValue.value,
+	workingDirectory: workingDirectory.value,
+	timeoutInSeconds: timeoutInSeconds.value,
+	scriptContent: scriptContent.value,
+	useSudo: useSudo.value,
+	abortOnError: abortOnError.value,
+	interpreter: resolveInterpreter(),
+});
+
+const openLoadModal = async () => {
+	const response = await $api.library.listScript();
+	savedScripts.value = response.data.map(script => ({ id: script.id, name: script.name }));
+	isLoadModalOpen.value = true;
+};
+
+const loadScript = async (id: string) => {
+	const { data: script } = await $api.library.showScript(id);
+	loadedId.value = script.id;
+	scriptName.value = script.name;
+	tagsValue.value = script.tags ?? [];
+	workingDirectory.value = script.cwd ?? '';
+	timeoutInSeconds.value = script.timeout_sec;
+	scriptContent.value = script.script;
+	useSudo.value = script.is_sudo;
+	interpreter.value = script.interpreter || DEFAULT_INTERPRETER;
+};
+
+const deleteSavedScript = async (id: string) => {
+	await $api.library.deleteScript(id);
+	savedScripts.value = savedScripts.value.filter(script => script.id !== id);
+	if (loadedId.value === id) {
+		loadedId.value = null;
+	}
+	snackbar.add({ type: 'success', text: 'Script removed from library' });
+};
+
+const saveScript = async () => {
+	isSaving.value = true;
+	const payload: ScriptPayload = {
+		name: scriptName.value,
+		tags: tagsValue.value,
+		timeout_sec: Number(timeoutInSeconds.value),
+		script: scriptContent.value,
+		cwd: workingDirectory.value,
+		is_sudo: useSudo.value,
+		interpreter: resolveInterpreter(),
+	};
+	try {
+		if (loadedId.value) {
+			await $api.library.updateScript(loadedId.value, payload);
+		}
+		else {
+			const { data } = await $api.library.createScript(payload);
+			loadedId.value = data.id;
+		}
+		snackbar.add({ type: 'success', text: 'Script saved to library' });
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to save script' });
+	}
+	finally {
+		isSaving.value = false;
+	}
+};
+
 const emitScriptData = () => {
-	emit('script-data', {
-		scriptName: scriptName.value,
-		tagsValue: tagsValue,
-		workingDirectory: workingDirectory.value,
-		timeoutInSeconds: timeoutInSeconds.value,
-		scriptContent: scriptContent.value,
-		useSudo: useSudo.value,
-	});
+	emit('script-data', buildPayload());
 };
 </script>

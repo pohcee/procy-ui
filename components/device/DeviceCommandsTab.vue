@@ -70,17 +70,19 @@
 								:class="[' px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none col-span-3 secondary',
 									commandText.length == 0 || commandName.length == 0 ? 'cursor-not-allowed hover:opacity-100' : 'hover:opacity-80',
 								]"
-								:disabled="commandText.length == 0 || commandName.length == 0 "
+								:disabled="commandText.length == 0 || commandName.length == 0 || isSaving"
 								type="button"
+								@click="saveCommand"
 							>
-								<!----> Save
-							</button><!---->
+								{{ loadedId ? 'Update' : 'Save' }}
+							</button>
 						</div><button
 							class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none ml-2 bg-white bg-opacity-10"
 							type="button"
+							@click="openLoadModal"
 						>
-							<!----> Load
-						</button><!---->
+							Load
+						</button>
 					</div>
 				</div>
 				<div class="col-span-5">
@@ -95,12 +97,13 @@
 						<div>
 							<button
 								:class="['px-4 py-2 text-sm text-black rounded inline-flex items-center duration-200 focus:outline-none bg-slate-100',
-									commandText.length == 0 ? 'cursor-not-allowed opacity-50 hover:opacity-100' : 'hover:opacity-80',
+									commandText.length == 0 || commandName.length == 0 ? 'cursor-not-allowed opacity-50 hover:opacity-100' : 'hover:opacity-80',
 								]"
-								:disabled="commandText.length == 0"
+								:disabled="commandText.length == 0 || commandName.length == 0"
 								type="button"
+								@click="openScheduleModal"
 							>
-								<!----><svg
+								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									width="24px"
 									height="24px"
@@ -119,11 +122,12 @@
 								<label
 									class="flex cursor-pointer select-none items-center justify-start text-sm text-gray-200"
 								><input
+									v-model="abortOnError"
 									type="checkbox"
 									class="mr-2 h-[16px] w-[16px] cursor-pointer rounded border-none bg-transparent ring-2 ring-gray-300 focus:ring-gray-300 focus:ring-offset-0 text-transparent"
 								>Abort
-									on error</label><!---->
-							</div><!----><span class="mr-4 text-xs text-gray-300"> (CMD +
+									on error</label>
+							</div><span class="mr-4 text-xs text-gray-300"> (CMD +
 								ENTER) </span>
 							<button
 								class="hover:opacity-80 px-4 py-2 text-sm text-black rounded inline-flex items-center duration-200 focus:outline-none bg-[#C6F94C]"
@@ -147,20 +151,33 @@
 						</div>
 					</div>
 				</div>
-			</div><!---->
+			</div>
 			<CommandResult
 				v-if="results.length > 0"
 				language="vim"
 				:results="results"
 			/>
-			<!---->
 		</div>
+		<ScheduleModal
+			ref="scheduleModal"
+			:client-ids="[id]"
+		/>
+		<LibraryLoadModal
+			v-model="isLoadModalOpen"
+			title="Load a saved command"
+			:items="savedCommands"
+			@select="loadCommand"
+			@delete="deleteSavedCommand"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { useCommandExecution } from '~/composables/useCommandExecution';
 import ExecutionTags from '~/components/custom/ExecutionTags.vue';
+import ScheduleModal from '~/components/schedules/ScheduleModal.vue';
+import LibraryLoadModal from '~/components/custom/LibraryLoadModal.vue';
+import type { CommandPayload } from '~/types';
 
 const props = defineProps({
 	id: {
@@ -169,14 +186,91 @@ const props = defineProps({
 	},
 });
 
+const { $api } = useNuxtApp();
+const snackbar = useSnackbar();
+
 const tagsValue = ref<string[]>([]);
 
 const timeoutInSeconds = ref<number>(300);
 const commandName = ref<string>('');
 const commandText = ref<string>('');
-const { executeCommand, isLoading, results, error, disconnect } = useCommandExecution();
+const abortOnError = ref<boolean>(true);
+const { executeCommand, isLoading, results } = useCommandExecution();
+
+const isSaving = ref(false);
+const loadedId = ref<string | null>(null);
+const isLoadModalOpen = ref(false);
+const savedCommands = ref<{ id: string; name: string }[]>([]);
+const scheduleModal = ref<InstanceType<typeof ScheduleModal> | null>(null);
+
+const openLoadModal = async () => {
+	const response = await $api.library.listCommand();
+	savedCommands.value = response.data.map(command => ({ id: command.id, name: command.name }));
+	isLoadModalOpen.value = true;
+};
+
+const loadCommand = async (id: string) => {
+	const { data: command } = await $api.library.showCommand(id);
+	loadedId.value = command.id;
+	commandName.value = command.name;
+	tagsValue.value = command.tags ?? [];
+	timeoutInSeconds.value = command.timeout_sec;
+	commandText.value = command.cmd;
+};
+
+const deleteSavedCommand = async (id: string) => {
+	await $api.library.deleteCommand(id);
+	savedCommands.value = savedCommands.value.filter(command => command.id !== id);
+	if (loadedId.value === id) {
+		loadedId.value = null;
+	}
+	snackbar.add({ type: 'success', text: 'Command removed from library' });
+};
+
+const saveCommand = async () => {
+	isSaving.value = true;
+	const payload: CommandPayload = {
+		name: commandName.value,
+		tags: tagsValue.value,
+		timeout_sec: Number(timeoutInSeconds.value),
+		cmd: commandText.value,
+	};
+	try {
+		if (loadedId.value) {
+			await $api.library.updateCommand(loadedId.value, payload);
+		}
+		else {
+			const { data } = await $api.library.createCommand(payload);
+			loadedId.value = data.id;
+		}
+		snackbar.add({ type: 'success', text: 'Command saved to library' });
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to save command' });
+	}
+	finally {
+		isSaving.value = false;
+	}
+};
+
+const openScheduleModal = () => {
+	scheduleModal.value?.openForCommand({
+		commandName: commandName.value,
+		tagsValue: tagsValue.value,
+		timeoutInSeconds: timeoutInSeconds.value,
+		commandText: commandText.value,
+	});
+};
 
 const runCommand = () => {
-	executeCommand(commandText.value, [props.id], []);
+	executeCommand(
+		commandText.value,
+		[props.id],
+		[],
+		tagsValue.value?.length ? { tags: tagsValue.value, operator: 'AND' } : null,
+		Number(timeoutInSeconds.value),
+		false,
+		abortOnError.value,
+	);
 };
 </script>

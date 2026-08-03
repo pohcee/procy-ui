@@ -63,14 +63,17 @@
 				</button>
 				<div class="flex flex-grow justify-end">
 					<button
-						class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-gray-300 plain"
+						class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-gray-300 plain disabled:pointer-events-none disabled:opacity-50"
 						type="button"
+						:disabled="loading"
+						@click="handleResend"
 					>
 						Resend
 					</button>
 					<button
 						class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-gray-300 plain"
 						type="button"
+						@click="handleCancel"
 					>
 						Cancel
 					</button>
@@ -90,8 +93,16 @@ const props = defineProps({
 	},
 });
 const code = ref('');
-const emit = defineEmits(['code']);
+const emit = defineEmits(['code', 'resend', 'cancel']);
 const verifyTwoFa = async () => {
 	emit('code', code.value);
+};
+const handleResend = () => {
+	code.value = '';
+	emit('resend');
+};
+const handleCancel = () => {
+	code.value = '';
+	emit('cancel');
 };
 </script>

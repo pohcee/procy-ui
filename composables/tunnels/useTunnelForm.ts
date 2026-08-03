@@ -2,7 +2,6 @@ import { storeToRefs } from 'pinia';
 import type { TunnelFormState, TunnelPayload } from '~/types';
 import { useTunnelValidation } from '~/composables/tunnels/useTunnelValidation';
 import { TUNNEL_OPTIONS } from '~/constants';
-import { toQueryString } from '~/lib/utils';
 
 export function useTunnelForm(client: any) {
 	const tunnelStore = useTunnelStore();
@@ -13,7 +12,7 @@ export function useTunnelForm(client: any) {
 	const formState = reactive<TunnelFormState>({
 		service: 'ssh',
 		forwardingService: 'ssh',
-		forwardDestination: '192.250.198.203',
+		forwardDestination: '',
 		port: 22,
 		storeInLibrary: false,
 		protocol: 'tcp',
@@ -94,17 +93,26 @@ export function useTunnelForm(client: any) {
 				errors.value = error;
 			}
 			else {
+				if (formState.storeInLibrary && formState.name) {
+					const { $api } = useNuxtApp();
+					await $api.clients.createStoredTunnel(client.id, {
+						name: formState.name,
+						scheme: payload.scheme,
+						remote_ip: data?.data?.rhost || 'localhost',
+						remote_port: Number(data?.data?.rport ?? formState.port),
+						public_port: data?.data?.lport ? Number(data.data.lport) : undefined,
+						acl: payload.acl,
+					});
+				}
 				tunnelStore.closeAddTunnel();
 			}
-			isLoading.value = false;
 		}
 		catch (e) {
-			console.log(e);
+			console.error(e);
 		}
 		finally {
 			isLoading.value = false;
 		}
-		console.log(toQueryString(payload));
 	};
 
 	watch(() => formState.service, handleServiceChange);

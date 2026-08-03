@@ -29,6 +29,18 @@ class ClientsModule extends HttpFactory {
 		);
 	}
 
+	async paginate(page = 0, itemsPerPage = 20, filter = '', connectionState = ''): Promise<ClientsResponse> {
+		let params = `?sort=name&fields[clients]=id,name,os,os_full_name,hostname,ipv4,connection_state,disconnected_at,version,tags,updates_status`
+			+ `&page[limit]=${itemsPerPage}&page[offset]=${page * itemsPerPage}`;
+		if (filter?.length > 0) {
+			params += `&filter[name]=*${encodeURIComponent(filter)}*`;
+		}
+		if (connectionState?.length > 0) {
+			params += `&filter[connection_state]=${connectionState}`;
+		}
+		return this.call<ClientsResponse>('GET', `${this.RESOURCE}${params}`, undefined);
+	}
+
 	async getClientsName(clientsIds: Array<string>): Promise<ClientsResponse> {
 		return this.call<ClientsResponse>('GET',
 			`${this.RESOURCE}?sort=name&fields[clients]=name,id&page[limit]=${clientsIds.length}&page[offset]=0&filter[id]=${clientsIds.join(',')}`,
@@ -124,6 +136,46 @@ class ClientsModule extends HttpFactory {
 				tags: client.tags,
 				labels: client.labels,
 			},
+		);
+	}
+
+	async deleteTunnel(clientId: string, tunnelId: string, force = false): Promise<void> {
+		await this.call(
+			'DELETE',
+			`${this.RESOURCE}/${clientId}/tunnels/${tunnelId}?force=${force}`,
+			undefined,
+		);
+	}
+
+	async updateTunnelACL(clientId: string, tunnelId: string, acl: string): Promise<void> {
+		await this.call(
+			'PUT',
+			`${this.RESOURCE}/${clientId}/tunnels/${tunnelId}/acl`,
+			{ acl },
+		);
+	}
+
+	async createStoredTunnel(clientId: string, payload: Partial<StoredTunnel>): Promise<{ data: StoredTunnel }> {
+		return await this.call<{ data: StoredTunnel }>(
+			'POST',
+			`${this.RESOURCE}/${clientId}/stored-tunnels`,
+			payload,
+		);
+	}
+
+	async updateStoredTunnel(clientId: string, tunnelId: string, payload: Partial<StoredTunnel>): Promise<{ data: StoredTunnel }> {
+		return await this.call<{ data: StoredTunnel }>(
+			'PUT',
+			`${this.RESOURCE}/${clientId}/stored-tunnels/${tunnelId}`,
+			payload,
+		);
+	}
+
+	async deleteStoredTunnel(clientId: string, tunnelId: string): Promise<void> {
+		await this.call(
+			'DELETE',
+			`${this.RESOURCE}/${clientId}/stored-tunnels/${tunnelId}`,
+			undefined,
 		);
 	}
 }

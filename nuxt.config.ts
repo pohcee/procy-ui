@@ -1,3 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf-8'));
+
 export default defineNuxtConfig({
 	devtools: { enabled: true },
 
@@ -68,6 +73,8 @@ export default defineNuxtConfig({
 
 	routeRules: {
 		'/': { redirect: '/dashboard' },
+		'/scripts': { redirect: '/execute' },
+		'/commands': { redirect: '/execute' },
 	},
 
 	router: {
@@ -81,6 +88,7 @@ export default defineNuxtConfig({
 		public: {
 			appEnv: process.env.NUXT_APP_ENV,
 			apiUrl: process.env.NUXT_API_URL,
+			appVersion: pkg.version,
 		},
 	},
 
