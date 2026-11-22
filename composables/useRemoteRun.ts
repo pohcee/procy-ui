@@ -68,7 +68,7 @@ export const useRemoteRun = () => {
 			group_ids: nonEmpty(options.groupIds),
 			tags: options.tags ?? undefined,
 			cwd: options.cwd || undefined,
-			interpreter: options.interpreter || undefined,
+			interpreter: normalizeInterpreter(options.interpreter) || undefined,
 			is_sudo: options.isSudo ?? false,
 			timeout_sec: options.timeoutSec ?? 300,
 			abort_on_error: options.abortOnError ?? true,

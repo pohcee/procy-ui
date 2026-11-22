@@ -52,7 +52,7 @@ const fromScript = (s: Script): LibraryEntry => ({
 	timeoutSec: s.timeout_sec,
 	cwd: s.cwd ?? '',
 	isSudo: !!s.is_sudo,
-	interpreter: s.interpreter ?? '',
+	interpreter: normalizeInterpreter(s.interpreter),
 	createdBy: s.created_by,
 	updatedBy: s.updated_by,
 	updatedAt: s.updated_at ?? s.created_at,

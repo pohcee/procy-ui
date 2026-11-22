@@ -205,7 +205,7 @@ const openForEdit = (schedule: Schedule) => {
 	groupIds.value = schedule.group_ids ?? [];
 	tags.value = schedule.tags ?? null;
 	cwd.value = schedule.cwd ?? '';
-	interpreter.value = schedule.interpreter || 'default';
+	interpreter.value = normalizeInterpreter(schedule.interpreter) || 'default';
 	isSudo.value = schedule.is_sudo;
 	abortOnError.value = schedule.abort_on_error ?? true;
 	timeoutSec.value = schedule.timeout_sec;

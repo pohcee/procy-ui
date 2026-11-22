@@ -438,7 +438,7 @@ const loadFromLibrary = async (item: LibraryPickItem) => {
 		timeoutInSeconds.value = entry.timeoutSec || 300;
 		workingDirectory.value = entry.cwd;
 		useSudo.value = entry.isSudo;
-		interpreter.value = entry.interpreter || 'default';
+		interpreter.value = normalizeInterpreter(entry.interpreter) || 'default';
 		// Run it the way it was saved; the user can still change this.
 		kindChoice.value = entry.kind === detectRunKind(entry.code, entry.interpreter) ? 'auto' : entry.kind;
 	}

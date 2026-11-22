@@ -123,7 +123,7 @@ const openForScript = (data: {
 		cwd: data.workingDirectory,
 		timeout_sec: Number(data.timeoutInSeconds),
 		is_sudo: data.useSudo,
-		interpreter: data.interpreter,
+		interpreter: normalizeInterpreter(data.interpreter) || undefined,
 		abort_on_error: data.abortOnError,
 		execute_concurrently: true,
 		overlaps: false,

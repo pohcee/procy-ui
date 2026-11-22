@@ -168,7 +168,7 @@ const openForEdit = async (entry: LibraryEntry) => {
 		timeoutSec.value = full.timeoutSec || 300;
 		content.value = full.code;
 		cwd.value = full.cwd;
-		interpreter.value = full.interpreter || 'default';
+		interpreter.value = normalizeInterpreter(full.interpreter) || 'default';
 		isSudo.value = full.isSudo;
 		isOpen.value = true;
 	}
