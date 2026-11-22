@@ -93,6 +93,14 @@ export const useTokenStore = defineStore('token', {
 			this.authenticated = false;
 			token.value = null;
 			is_authenticated.value = false;
+			// useCookie writes cookies asynchronously. Make sure they're gone before the
+			// caller navigates, or the auth middleware still sees the old token and
+			// sends the user straight back to the dashboard.
+			await nextTick();
+			if (import.meta.client) {
+				document.cookie = 'token=; Max-Age=0; path=/';
+				document.cookie = 'is_authenticated=; Max-Age=0; path=/';
+			}
 		},
 	},
 });

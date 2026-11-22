@@ -72,6 +72,10 @@ export default defineNuxtPlugin(() => {
 			if (response.status === 401) {
 				userAuth.value = null;
 				is_authenticated.value = false;
+				// Cookies are written asynchronously; clear them now so the auth
+				// middleware doesn't see the stale token and redirect back.
+				document.cookie = 'token=; Max-Age=0; path=/';
+				document.cookie = 'is_authenticated=; Max-Age=0; path=/';
 				await navigateTo('/auth');
 			}
 		},

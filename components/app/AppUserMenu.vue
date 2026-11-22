@@ -12,6 +12,7 @@
 		<button
 			type="button"
 			aria-label="Log out"
+			:disabled="loggingOut"
 			class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#C9D1DC] hover:bg-app-nav-hover hover:text-white"
 			@click="logout"
 		>
@@ -42,9 +43,19 @@ onMounted(() => {
 	}
 });
 
+const loggingOut = ref(false);
 const logout = async () => {
+	// One logout per click: a second request for an already-ended session is
+	// rejected by the server (and briefly bans the user).
+	if (loggingOut.value) return;
+	loggingOut.value = true;
 	emit('navigate');
-	await tokenStore.logOut();
-	await router.push('/auth');
+	try {
+		await tokenStore.logOut();
+		await router.replace('/auth');
+	}
+	finally {
+		loggingOut.value = false;
+	}
 };
 </script>
