@@ -1,13 +1,15 @@
-import type { Updater } from '@tanstack/vue-table';
 import type { Ref } from 'vue';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { DiskUsage, QueryParams, TunnelPayload } from '~/types';
 
-export function valueUpdater<T extends Updater<any>>(updaterOrValue: T, ref: Ref) {
+// Local equivalent of @tanstack/vue-table's `Updater` (the package is not installed).
+type Updater<T> = T | ((old: T) => T);
+
+export function valueUpdater<T>(updaterOrValue: Updater<T>, ref: Ref<T>) {
 	ref.value
     = typeof updaterOrValue === 'function'
-			? updaterOrValue(ref.value)
+			? (updaterOrValue as (old: T) => T)(ref.value)
 			: updaterOrValue;
 }
 

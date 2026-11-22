@@ -10,6 +10,8 @@ export const useClientStore = defineStore('clients', {
 		currentMetrics: [] as Array<ClientMetric>,
 		currentDisks: [] as Array<DiskUsage>,
 		currentDiskHistory: [] as Array<ClientMountpoint>,
+		/** Set when the last loadClientById() failed, so pages don't show a stale device. */
+		currentClientError: '' as '' | 'not-found' | 'error',
 	}),
 	getters: {
 		getClients(state) {
@@ -58,15 +60,28 @@ export const useClientStore = defineStore('clients', {
 		},
 		async loadClientById(clientId: string) {
 			const { $api } = useNuxtApp();
+			// Switching devices: drop the previous one first, so a slow or failed
+			// request can never leave another device's details on screen.
+			if (this.$state.currentClient?.id !== clientId) {
+				this.$state.currentClient = {} as Client;
+				this.$state.currentMetrics = [];
+				this.$state.currentDisks = [];
+				this.$state.currentDiskHistory = [];
+			}
+			this.$state.currentClientError = '';
 			try {
 				const data = await $api.clients.show(clientId);
 				this.$state.currentClient = <Client>data.data;
-				await this.loadMetrics(clientId);
-				await this.loadMountpoints(clientId);
 			}
 			catch (e) {
 				console.error('Error fetching client:', e);
+				const status = (e as { status?: number; response?: { status?: number } })?.status
+					?? (e as { response?: { status?: number } })?.response?.status;
+				this.$state.currentClientError = status === 404 ? 'not-found' : 'error';
+				return;
 			}
+			await this.loadMetrics(clientId);
+			await this.loadMountpoints(clientId);
 		},
 		async loadMetrics(clientId: string, since?: string, until?: string) {
 			const { $api } = useNuxtApp();

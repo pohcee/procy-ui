@@ -15,12 +15,14 @@ const props = withDefaults(defineProps<{
 	placeholder?: string;
 	id?: string;
 	disabled?: boolean;
+	mono?: boolean;
 }>(), {
 	modelValue: undefined,
 	label: undefined,
 	placeholder: undefined,
 	id: undefined,
 	disabled: false,
+	mono: false,
 });
 
 const emit = defineEmits<{
@@ -32,13 +34,18 @@ const stringValue = computed(() => props.modelValue === undefined || props.model
 	: String(props.modelValue));
 
 function handleUpdate(next: string) {
-	const match = props.options.find((option) => String(option.value) === next);
+	const match = props.options.find(option => String(option.value) === next);
 	emit('update:modelValue', (match ? match.value : next) as T);
 }
 </script>
 
 <template>
-	<div class="relative mt-1 flex w-full flex-col">
+	<div class="flex w-full min-w-0 flex-col gap-1.5">
+		<label
+			v-if="label"
+			:for="id"
+			class="text-[13px] font-medium text-app-text-2"
+		>{{ label }}</label>
 		<Select
 			:model-value="stringValue"
 			:disabled="disabled"
@@ -46,25 +53,24 @@ function handleUpdate(next: string) {
 		>
 			<SelectTrigger
 				:id="id"
-				class="order-2 h-10 w-full rounded border-theme-border bg-transparent text-sm text-theme-inverted"
+				:class="[
+					'h-11 w-full rounded-[10px] border-app-border-strong bg-app-surface-2 px-3 text-app-text ring-offset-0 focus:border-app-accent focus:ring-2 focus:ring-app-accent/25 focus:ring-offset-0',
+					mono ? 'font-mono text-[13px]' : 'text-sm',
+				]"
 			>
 				<SelectValue :placeholder="placeholder" />
 			</SelectTrigger>
-			<SelectContent>
+			<SelectContent class="border-app-border bg-app-surface text-app-text">
 				<SelectItem
 					v-for="option in options"
 					:key="String(option.value)"
 					:value="String(option.value)"
 					:disabled="option.disabled"
+					:class="mono ? 'font-mono text-[13px]' : ''"
 				>
 					{{ option.label }}
 				</SelectItem>
 			</SelectContent>
 		</Select>
-		<label
-			v-if="label"
-			:for="id"
-			class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label"
-		>{{ label }}</label>
 	</div>
 </template>

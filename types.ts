@@ -57,13 +57,13 @@ export interface Client {
 	connection_state?: string;
 	ipv4: string[];
 	ipv6?: string[];
-	tags: any[];
+	tags: string[];
 	allowed_user_groups?: null;
-	tunnels?: any[];
+	tunnels?: Tunnel[];
 	updates_status?: UpdatesStatus;
-	client_configuration?: any;
-	groups?: any[];
-	labels?: any;
+	client_configuration?: Record<string, unknown>;
+	groups?: string[];
+	labels?: Record<string, string>;
 }
 export interface ClientMetric {
 	cpu_usage_percent: number;
@@ -98,12 +98,29 @@ export interface ClientMountpointsResponse {
 	data: ClientMountpoint[];
 	meta: Meta;
 }
+/** Mirrors cgroups.ClientParams in the rport server. */
+export interface ClientGroupParams {
+	client_id?: string[] | null;
+	name?: string[] | null;
+	os?: string[] | null;
+	os_arch?: string[] | null;
+	os_family?: string[] | null;
+	os_kernel?: string[] | null;
+	hostname?: string[] | null;
+	ipv4?: string[] | null;
+	ipv6?: string[] | null;
+	tag?: string[] | JobClientTags | null;
+	version?: string[] | null;
+	address?: string[] | null;
+	client_auth_id?: string[] | null;
+	connection_state?: string[] | null;
+}
 export interface ClientGroup {
 	id: string;
 	description: string;
 	num_clients: number;
 	clients_ids?: string[];
-	params?: any;
+	params?: ClientGroupParams | null;
 	allowed_user_groups?: string[];
 }
 export interface ClientGroupResponse {
@@ -336,7 +353,7 @@ export interface FilePayload {
 	upload: string;
 	client_id: string;
 	group_id?: string;
-	tags?: any;
+	tags?: JobClientTags;
 	dest: string;
 	force: string;
 	sync: string;
@@ -356,8 +373,6 @@ export interface TunnelOption {
 	id: TunnelOptionId;
 	label: string;
 	ports: string;
-	link?: string;
-	linkLabel?: string;
 }
 export interface InstallerResponse {
 	installers: {
@@ -580,4 +595,27 @@ export interface VaultItemResponse {
 export interface TotP {
 	secret: string;
 	qr: string;
+}
+
+/** Mirrors AuthProviderInfo in the rport server (GET /api/v1/provider). */
+export interface AuthProviderInfo {
+	auth_provider: string;
+	settings_uri: string;
+	device_settings_uri?: string;
+	max_token_lifetime: number;
+}
+
+export interface AuthProviderResponse {
+	data: AuthProviderInfo;
+}
+
+/** Mirrors api.ErrorPayload in the rport server (uniform error response body). */
+export interface ApiErrorItem {
+	code: string;
+	title: string;
+	detail: string;
+}
+
+export interface ApiErrorResponse {
+	errors: ApiErrorItem[];
 }

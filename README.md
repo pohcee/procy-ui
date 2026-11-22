@@ -1,8 +1,6 @@
 <br>
 <p align="center">
-    <a href="https://kb.openrport.io" target="_blank" rel="noopener noreferrer">
-        <img width="100" height="100" src="./public/img/logo-small.svg" alt="OpenRport logo">
-    </a>
+    <img width="100" height="100" src="./public/img/logo-small.svg" alt="OpenRport logo">
 </p>
 
 <h1 align="center"> OpenRPort UI <sup><em>alpha</em></sup> </h1>
@@ -18,9 +16,7 @@ Manage remote systems with ease
 </p>
 
 <p align="center">
-    <a href="https://kb.openrport.io" target="_blank" rel="noopener noreferrer" >
-        <img src="./public/openrport.png" alt="OpenRport screenshoots" width="800" height="auto" />
-    </a>
+    <img src="./public/openrport.png" alt="OpenRport screenshoots" width="800" height="auto" />
 </p>
 
 # OpenRport UI

@@ -1,259 +1,200 @@
 <template>
 	<new-page-wrapper>
-		<div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-			<div class="relative z-20 flex h-16 items-center justify-between">
-				<div class="">
-					<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
-						Inventory
-					</h3>
-					<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-						&nbsp;
-					</p>
-				</div>
-				<div class="flex-1" />
-			</div>
-			<div class="my-4 flex items-center justify-between gap-2">
-				<div class="relative flex w-full">
-					<div class="flex w-full items-center justify-between rounded">
-						<input
-							v-model="filter"
-							class="h-full w-full rounded-l border-none py-0 focus:outline-none focus:outline-0 focus:ring-0"
-							placeholder="Filter clients by name or IP Address"
-							type="text"
-							@keyup.enter="handleFilterList"
-						>
-						<button
-							class="bg-primary-800 hover:bg-primary-800 focus-visible:outline-primary disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 shrink-0 rounded-l-none"
-							type="button"
-							@click="isFilterModalOpen = true"
-						>
-							<span class="flex items-center justify-center gap-x-2">
-								<span>{{ connectionState ? `State: ${connectionState}` : 'More Filters' }}</span>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="24px"
-									height="24px"
-									viewBox="0 0 24 24"
-									class="icon"
-								>
-									<path
-										fill="currentColor"
-										d="M6 13h12v-2H6M3 6v2h18V6M10 18h4v-2h-4v2Z"
-									/>
-								</svg>
-							</span>
-						</button>
-					</div>
-				</div>
-			</div>
-			<div class="w-full">
-				<div class="relative z-10 w-full">
-					<div
-						class="flow-root overflow-hidden border border-gray-100 ring-1 ring-black ring-opacity-10 dark:border-gray-600 sm:rounded-lg"
+		<AppPage
+			title="Inventory"
+			description="Operating system, client version and pending updates for every device."
+		>
+			<div class="flex flex-wrap items-center gap-3">
+				<div class="relative w-full min-w-0 sm:w-auto sm:max-w-md sm:flex-1">
+					<Search
+						class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-text-3"
+						aria-hidden="true"
+					/>
+					<input
+						v-model="filter"
+						type="search"
+						aria-label="Filter devices by name or IP address"
+						placeholder="Filter by name or IP address…"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface pl-9 pr-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+						@keyup.enter="handleFilterList"
 					>
-						<div class="overflow-auto relative z-10 -mb-2">
-							<div class="inline-block min-w-full align-middle">
-								<div class="sm:rounded-t-lg overflow-hidden">
-									<div>
-										<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-											<thead class="rounded-lg bg-gray-50 dark:bg-gray-950">
-												<tr>
-													<th
-														class="w-10 text-right py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													/>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>Client</span>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>ID</span>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>OS</span>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>IPv4</span>
-													</th>
-													<th
-														class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>Client Version</span>
-													</th>
-													<th
-														class="text-center py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>Updates</span>
-													</th>
-													<th
-														class="text-center py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-														scope="col"
-													>
-														<span>Security Updates</span>
-													</th>
-												</tr>
-											</thead>
-											<tbody
-												class="z-10 divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900"
-											>
-												<tr v-if="pending">
-													<td
-														colspan="8"
-														class="w-full flex-1 py-6 text-center text-gray-800 dark:text-gray-200"
-													>
-														Loading clients...
-													</td>
-												</tr>
-												<tr v-else-if="!response?.data?.length">
-													<td
-														colspan="8"
-														class="w-full flex-1 py-6 text-center text-gray-800 dark:text-gray-200"
-													>
-														No results
-													</td>
-												</tr>
-												<tr
-													v-for="client in response?.data"
-													v-else
-													:key="client.id"
-													class="cursor-pointer border-t-1 group relative border-gray-200 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-													@click="navigateTo(`/dashboard/${client.id}`)"
+				</div>
+				<AppButton
+					variant="secondary"
+					:aria-label="connectionState ? `Filters: state ${connectionState}` : 'More filters'"
+					@click="isFilterModalOpen = true"
+				>
+					<SlidersHorizontal
+						class="h-4 w-4"
+						aria-hidden="true"
+					/>
+					{{ connectionState ? `State: ${connectionState}` : 'More filters' }}
+				</AppButton>
+				<AppButton
+					v-if="connectionState"
+					variant="ghost"
+					@click="connectionState = ''"
+				>
+					Clear
+				</AppButton>
+			</div>
+
+			<section class="overflow-hidden rounded-xl border border-app-border bg-app-surface">
+				<OpEmpty
+					v-if="pending && !clients.length"
+					loading
+					title="Loading devices…"
+				/>
+				<OpEmpty
+					v-else-if="!clients.length"
+					:icon="Boxes"
+					:title="filter || connectionState ? 'No matching devices' : 'No devices yet'"
+					:description="filter || connectionState ? 'Try a different filter.' : 'Devices appear here once a client connects to this server.'"
+				/>
+				<template v-else>
+					<div class="hidden overflow-x-auto md:block">
+						<table class="w-full min-w-[900px] border-collapse">
+							<thead>
+								<tr class="bg-app-surface-2">
+									<th
+										v-for="col in columns"
+										:key="col.label"
+										scope="col"
+										:class="[
+											'whitespace-nowrap border-b border-app-border px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3 first:pl-4 last:pr-4',
+											col.align === 'right' ? 'text-right' : 'text-left',
+										]"
+									>
+										{{ col.label }}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr
+									v-for="client in clients"
+									:key="client.id"
+									class="cursor-pointer hover:bg-app-hover"
+									@click="navigateTo(`/dashboard/${client.id}`)"
+								>
+									<td class="border-b border-app-border-subtle py-3 pl-4 pr-3 align-middle text-[13px]">
+										<div class="flex items-center gap-3">
+											<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-app-muted">
+												<ClientIcon
+													:os-full-name="client.os_full_name"
+													:os-kernel="client.os_kernel"
+													:os-family="client.os_family"
+													:os="client.os"
+													:size="18"
+												/>
+											</span>
+											<div class="min-w-0">
+												<NuxtLink
+													:to="`/dashboard/${client.id}`"
+													class="block truncate font-mono font-medium text-app-text hover:text-app-link"
+													@click.stop
 												>
-													<td class="whitespace-nowrap py-3.5 pl-4 pr-3 text-right sm:pl-6">
-														<ClientIcon
-															:os_full_name="client.os_full_name"
-															:os_kernel="client.os_kernel"
-															:os_family="client.os_family"
-															:os="client.os"
-															:size="20"
-														/>
-													</td>
-													<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														<div class="flex items-center gap-2">
-															<span
-																class="h-2 w-2 shrink-0 rounded-full"
-																:class="client.connection_state === 'connected' || !client.disconnected_at ? 'bg-green-500' : 'bg-gray-400'"
-															/>
-															{{ client.name || client.hostname }}
-														</div>
-													</td>
-													<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														{{ client.id }}
-													</td>
-													<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														{{ client.os_full_name || client.os }}
-													</td>
-													<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														{{ client.ipv4?.join(', ') }}
-													</td>
-													<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														{{ client.version }}
-													</td>
-													<td class="text-center min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														<span
-															v-if="client.updates_status?.updates_available"
-															class="bg-primary-50 dark:bg-primary-500/10 text-primary-800 dark:text-primary-400 ring-primary-600/20 dark:ring-primary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-														>{{ client.updates_status.updates_available }}</span>
-														<span v-else>&mdash;</span>
-													</td>
-													<td class="text-center min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-														<span
-															v-if="client.updates_status?.security_updates_available"
-															class="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-600/20 dark:ring-red-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-														>{{ client.updates_status.security_updates_available }}</span>
-														<span v-else>&mdash;</span>
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="relative z-0 -mx-4 mt-2 sm:-mx-6 lg:-mx-8">
-							<div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-								<div class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950">
-									<div>
-										<div
-											class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-600 sm:pl-6"
-										>
-											<div class="flex w-full items-center justify-between">
-												<div class="flex items-center justify-between">
+													{{ client.name || client.hostname }}
+												</NuxtLink>
+												<span :class="['mt-0.5 inline-flex items-center gap-1.5 text-xs', isOnline(client) ? 'text-app-ok' : 'text-app-text-3']">
 													<span
-														class="text-xs text-gray-500"
-													> Showing <span
-														class="font-medium"
-													>{{ response?.data?.length ? 1 + (page * ITEMS_PER_PAGE) : 0 }}</span> to <span
-														class="font-medium"
-													>{{ (response?.data?.length ?? 0) + (page * ITEMS_PER_PAGE) }}</span> of <span
-														class="font-medium"
-													>{{ response?.meta?.count ?? 0 }}</span> results </span>
-												</div>
-												<div class="flex-1" />
-												<div class="flex w-full max-w-[90px] items-center justify-between">
-													<button
-														:disabled="page === 0"
-														class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
-														@click="previous"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															viewBox="0 0 20 20"
-															fill="currentColor"
-															aria-hidden="true"
-															class="h-6 w-6"
-														>
-															<path
-																fill-rule="evenodd"
-																d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-																clip-rule="evenodd"
-															/>
-														</svg>
-													</button>
-													<button
-														:disabled="disabledNext"
-														class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
-														@click="next"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															viewBox="0 0 20 20"
-															fill="currentColor"
-															aria-hidden="true"
-															class="h-6 w-6"
-														>
-															<path
-																fill-rule="evenodd"
-																d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-																clip-rule="evenodd"
-															/>
-														</svg>
-													</button>
-												</div>
+														:class="['h-1.5 w-1.5 rounded-full', isOnline(client) ? 'bg-[#22C55E]' : 'bg-app-text-4']"
+														aria-hidden="true"
+													/>
+													{{ isOnline(client) ? 'Online' : 'Offline' }}
+												</span>
 											</div>
 										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+									</td>
+									<td class="max-w-[180px] truncate border-b border-app-border-subtle px-3 py-3 align-middle font-mono text-xs text-app-text-3">
+										{{ client.id }}
+									</td>
+									<td class="border-b border-app-border-subtle px-3 py-3 align-middle text-[13px] text-app-text-2">
+										{{ client.os_full_name || client.os }}
+									</td>
+									<td class="border-b border-app-border-subtle px-3 py-3 align-middle font-mono text-[13px] text-app-text-2">
+										{{ client.ipv4?.join(', ') || '—' }}
+									</td>
+									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 align-middle font-mono text-[13px] text-app-text-2">
+										{{ client.version || '—' }}
+									</td>
+									<td class="border-b border-app-border-subtle px-3 py-3 text-right align-middle">
+										<UpdatesCount
+											:count="client.updates_status?.updates_available"
+											kind="updates"
+										/>
+									</td>
+									<td class="border-b border-app-border-subtle py-3 pl-3 pr-4 text-right align-middle">
+										<UpdatesCount
+											:count="client.updates_status?.security_updates_available"
+											kind="security"
+										/>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
-					<div class="h-12 w-full" />
-				</div>
-			</div>
-		</div>
+
+					<ul class="divide-y divide-app-border-subtle md:hidden">
+						<li
+							v-for="client in clients"
+							:key="client.id"
+						>
+							<NuxtLink
+								:to="`/dashboard/${client.id}`"
+								class="flex items-start gap-3 px-4 py-3.5 hover:bg-app-hover"
+							>
+								<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-app-muted">
+									<ClientIcon
+										:os-full-name="client.os_full_name"
+										:os-kernel="client.os_kernel"
+										:os-family="client.os_family"
+										:os="client.os"
+										:size="18"
+									/>
+								</span>
+								<span class="min-w-0 flex-1">
+									<span class="flex items-center justify-between gap-2">
+										<span class="truncate font-mono text-sm font-medium text-app-text">{{ client.name || client.hostname }}</span>
+										<span :class="['inline-flex shrink-0 items-center gap-1.5 text-xs', isOnline(client) ? 'text-app-ok' : 'text-app-text-3']">
+											<span
+												:class="['h-1.5 w-1.5 rounded-full', isOnline(client) ? 'bg-[#22C55E]' : 'bg-app-text-4']"
+												aria-hidden="true"
+											/>
+											{{ isOnline(client) ? 'Online' : 'Offline' }}
+										</span>
+									</span>
+									<span class="mt-0.5 block truncate text-xs text-app-text-3">{{ client.os_full_name || client.os }}</span>
+									<span class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-app-text-3">
+										<span class="font-mono">{{ client.ipv4?.[0] || '—' }}</span>
+										<span class="font-mono">v{{ client.version || '?' }}</span>
+										<UpdatesCount
+											:count="client.updates_status?.updates_available"
+											kind="updates"
+											labelled
+										/>
+										<UpdatesCount
+											:count="client.updates_status?.security_updates_available"
+											kind="security"
+											labelled
+										/>
+									</span>
+								</span>
+							</NuxtLink>
+						</li>
+					</ul>
+				</template>
+
+				<OpPagination
+					v-if="clients.length"
+					:page="page"
+					:per-page="ITEMS_PER_PAGE"
+					:count="response?.meta?.count ?? 0"
+					:shown="clients.length"
+					@previous="previous"
+					@next="next"
+				/>
+			</section>
+		</AppPage>
 		<CustomModalFilter
 			v-model="isFilterModalOpen"
 			v-model:connection-state="connectionState"
@@ -263,11 +204,26 @@
 
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core';
+import { Boxes, Search, SlidersHorizontal } from 'lucide-vue-next';
 import ClientIcon from '~/components/device/ClientIcon.vue';
+import OpEmpty from '~/components/operate/OpEmpty.vue';
+import OpPagination from '~/components/operate/OpPagination.vue';
+import UpdatesCount from '~/components/operate/UpdatesCount.vue';
+import type { Client } from '~/types';
 
 const { $api } = useNuxtApp();
 
 const ITEMS_PER_PAGE = 20;
+
+const columns = [
+	{ label: 'Device', align: 'left' },
+	{ label: 'ID', align: 'left' },
+	{ label: 'OS', align: 'left' },
+	{ label: 'IPv4', align: 'left' },
+	{ label: 'Client version', align: 'left' },
+	{ label: 'Updates', align: 'right' },
+	{ label: 'Security', align: 'right' },
+];
 
 const page = ref(0);
 const filter = ref('');
@@ -279,6 +235,9 @@ const { data: response, pending, refresh } = useLazyAsyncData(
 	() => $api.clients.paginate(page.value, ITEMS_PER_PAGE, filter.value, connectionState.value),
 	{ watch: [page, filter, connectionState] },
 );
+
+const clients = computed(() => response.value?.data ?? []);
+const isOnline = (client: Client) => client.connection_state === 'connected' || !client.disconnected_at;
 
 const disabledNext = computed(() => {
 	return Math.ceil((response?.value?.meta?.count ?? 0) / ITEMS_PER_PAGE) <= page.value + 1;

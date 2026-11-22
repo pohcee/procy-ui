@@ -1,82 +1,62 @@
 <template>
-	<BaseModal v-model="isOpen">
-		<div
-			class="relative z-20 w-full max-w-md rounded border border-slate-400 bg-white p-6 text-theme-inverted-lighter shadow dark:bg-slate-800"
-		>
-			<h3 class="mb-4 text-lg font-semibold">
-				{{ isEditing ? 'Edit' : 'New' }} client group
-			</h3>
-			<form
-				class="flex flex-col gap-4"
-				@submit.prevent="save"
+	<SettingsDialog
+		v-model="isOpen"
+		:title="isEditing ? 'Edit client group' : 'New client group'"
+		:submit-text="isEditing ? 'Update' : 'Create'"
+		:submit-disabled="!id || isSaving"
+		@submit="save"
+	>
+		<div class="st-field">
+			<label
+				class="st-label"
+				for="groupId"
+			>Group ID</label>
+			<input
+				id="groupId"
+				v-model="id"
+				class="st-ctl font-mono"
+				type="text"
+				:disabled="isEditing"
+				autocomplete="off"
+				required
 			>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="groupId"
-						v-model="id"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						:class="{ error: !id }"
-						placeholder=" "
-						type="text"
-						:disabled="isEditing"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="groupId"
-					>Group ID</label>
-				</div>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="groupDescription"
-						v-model="description"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						placeholder=" "
-						type="text"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="groupDescription"
-					>Description</label>
-				</div>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="groupUserGroups"
-						v-model="allowedUserGroupsText"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						placeholder=" "
-						type="text"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="groupUserGroups"
-					>Allowed user groups (comma separated, empty = all)</label>
-				</div>
-				<div class="flex items-center justify-end gap-2 pt-2">
-					<button
-						class="bg-vtd-secondary-600 hover:bg-vtd-secondary-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="button"
-						@click="close"
-					>
-						Cancel
-					</button>
-					<button
-						class="bg-vtd-primary-500 hover:bg-vtd-primary-700 disabled:bg-gray-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="submit"
-						:disabled="!id || isSaving"
-					>
-						{{ isEditing ? 'Update' : 'Create' }}
-					</button>
-				</div>
-			</form>
 		</div>
-	</BaseModal>
+		<div class="st-field">
+			<label
+				class="st-label"
+				for="groupDescription"
+			>Description</label>
+			<input
+				id="groupDescription"
+				v-model="description"
+				class="st-ctl"
+				type="text"
+				autocomplete="off"
+			>
+		</div>
+		<div class="st-field">
+			<label
+				class="st-label"
+				for="groupUserGroups"
+			>Allowed user groups</label>
+			<input
+				id="groupUserGroups"
+				v-model="allowedUserGroupsText"
+				class="st-ctl"
+				type="text"
+				autocomplete="off"
+				placeholder="e.g. admins, operators"
+				aria-describedby="groupUserGroupsHelp"
+			>
+			<span
+				id="groupUserGroupsHelp"
+				class="st-help"
+			>Comma separated. Leave empty to allow all users.</span>
+		</div>
+	</SettingsDialog>
 </template>
 
 <script setup lang="ts">
-import { BaseModal } from '~/components/ui/base-modal';
 import type { ClientGroup } from '~/types';
 
 const emit = defineEmits(['saved']);

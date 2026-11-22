@@ -27,7 +27,7 @@
 <script setup>
 import { IconBrandDebian } from '@tabler/icons-vue';
 
-const props = defineProps({
+defineProps({
 	title: {
 		type: String,
 	},
@@ -40,29 +40,12 @@ const props = defineProps({
 	actionName: {
 		type: String,
 	},
-	is_online: {
+	isOnline: {
 		type: Boolean,
 	},
 	brand: {
 		type: String,
 	},
 });
-const IconComponent = ref(IconBrandDebian);
-
-const icon = computed(() => {
-	switch (this.brand) {
-		case this.brand.includes('ubuntu'):
-			IconComponent.value = IconBrandUbuntu;
-			break;
-		case this.brand.includes('darwin'):
-			IconComponent.value = IconBrandAppleFilled;
-			break;
-		case this.brand.includes('debian'):
-			IconComponent.value = IconBrandDebian;
-			break;
-		default:
-			IconComponent.value = IconBrandUbuntu;
-			break;
-	}
-});
+const IconComponent = IconBrandDebian;
 </script>

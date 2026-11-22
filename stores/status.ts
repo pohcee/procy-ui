@@ -11,8 +11,8 @@ export const useStatusStore = defineStore('status', {
 			try {
 				const { $api } = useNuxtApp();
 				const { data: response } = await $api.status.show();
-				if (response) {
-					this.$state.status = response.value.data as ServerStatus;
+				if (response.value) {
+					this.$state.status = response.value.data as unknown as ServerStatus;
 				}
 			}
 			catch (e) {

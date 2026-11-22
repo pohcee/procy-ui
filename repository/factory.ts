@@ -5,9 +5,9 @@ import type {
 
 class ApiResponse<T> {
 	data: T;
-	error: any;
-	status: any;
-	constructor(data: any, error: any, status: any) {
+	error: unknown;
+	status: unknown;
+	constructor(data: T, error: unknown, status: unknown) {
 		this.data = data;
 		this.status = status;
 		this.error = error;
@@ -43,7 +43,7 @@ class HttpFactory {
 		);
 	}
 
-	async get<T>(
+	protected async httpGet<T>(
 		url: string,
 		data?: object,
 		fetchOptions?: FetchOptions<'json'>,
@@ -55,7 +55,7 @@ class HttpFactory {
 		});
 	}
 
-	async post<T>(
+	protected async httpPost<T>(
 		url: string,
 		data?: object,
 		fetchOptions?: FetchOptions<'json'>,
@@ -67,7 +67,7 @@ class HttpFactory {
 		});
 	}
 
-	async put<T>(
+	protected async httpPut<T>(
 		url: string,
 		data?: object,
 		fetchOptions?: FetchOptions<'json'>,
@@ -82,7 +82,7 @@ class HttpFactory {
 		);
 	}
 
-	async delete<T>(
+	protected async httpDelete<T>(
 		url: string,
 		data?: object,
 		fetchOptions?: FetchOptions<'json'>,

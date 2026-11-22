@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to) => {
 	// const isLoggedIn = false;
 	// if (isLoggedIn) {
 	//     return navigateTo(to.fullPath);

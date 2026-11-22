@@ -1,198 +1,126 @@
 <template>
-	<button
-		type="button"
-		class="inline-flex items-center duration-200 focus:outline-none rounded-full p-0 flex items-center justify-center p-0  w-7 h-7"
-		:class="iconLogo?.color"
+	<!-- Decorative OS tile: tinted square with the OS logo. The OS name is always shown as text next to it. -->
+	<span
+		aria-hidden="true"
+		:class="['os-tile inline-flex flex-none items-center justify-center', `os-${logo.tone}`]"
+		:style="{ width: `${tile}px`, height: `${tile}px`, borderRadius: `${Math.round(tile / 4)}px` }"
 	>
-		<span
-			class="flex items-center justify-center"
-			style="width: 20px; height: 20px;"
-		>
-			<Icon
-				:name="iconLogo.icon"
-				:size="`${size}px`"
-				mode="svg"
-				:class="[iconLogo?.iconColor]"
-			/>
-		</span>
-	</button>
+		<Icon
+			:name="logo.icon"
+			:size="`${iconSize}px`"
+			mode="svg"
+		/>
+	</span>
 </template>
 
-<script setup>
+<script setup lang="ts">
+type Tone = 'ub' | 'db' | 'al' | 'ok' | 'blue' | 'purple' | 'danger' | 'muted';
+
 const props = defineProps({
-	os_full_name: {
+	osFullName: {
 		type: String,
+		default: undefined,
 	},
-	os_kernel: {
+	osKernel: {
 		type: String,
+		default: undefined,
 	},
-	os_family: {
+	osFamily: {
 		type: String,
+		default: undefined,
 	},
 	os: {
 		type: String,
+		default: undefined,
 	},
+	/** Icon size in px. Defaults to ~55% of the tile. */
 	size: {
 		type: Number,
-		default: 24,
+		default: undefined,
+	},
+	/** Tile (square) size in px. */
+	tile: {
+		type: Number,
+		default: 28,
 	},
 });
 
-const icons = {
-	default: {
-		name: 'server',
-		color: 'bg-secondary',
-		icon: 'mdi:server',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	ubuntu: {
-		name: 'ubuntu',
-		color: 'transparent',
-		icon: 'mdi:ubuntu',
-		iconColor: 'text-icon-ubuntu',
-		iconSize: 24,
-		iconActiveClass: 'text-icon-ubuntu',
-	},
-	debian: {
-		name: 'debian',
-		color: 'bg-icon-debian',
-		icon: 'mdi:debian',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	apple: {
-		name: 'apple',
-		color: 'transparent',
-		icon: 'mdi:apple',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	aws: {
-		name: 'aws',
-		color: 'bg-gray-500',
-		icon: 'mdi:apple',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	centos: {
-		name: 'centos',
-		color: 'bg-gray-500',
-		icon: 'mdi:centos',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	fedora: {
-		name: 'fedora',
-		color: 'bg-gray-500',
-		icon: 'mdi:fedora',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	freebsd: {
-		name: 'freebsd',
-		color: 'bg-gray-500',
-		icon: 'mdi:freebsd',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	linux: {
-		name: 'linux',
-		color: 'transparent',
-		icon: 'mdi:linux',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	alpine: {
-		name: 'alpine',
-		color: 'transparent',
-		icon: 'mdi:linux',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	oracle: {
-		name: 'oracle',
-		color: 'transparent',
-		icon: 'mdi:oracle',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	rocky: {
-		name: 'rocky',
-		color: 'transparent',
-		icon: 'mdi:linux',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	redhat: {
-		name: 'redhat',
-		color: 'bg-icon-redhat',
-		icon: 'mdi:redhat',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	suse: {
-		name: 'suse',
-		color: 'bg-icon-suse',
-		icon: 'mdi:linux',
-		iconColor: 'gray-500',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	windows: {
-		name: 'windows',
-		color: 'bg-icon-windows',
-		icon: 'mdi:linux',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	axisIpCamera: {
-		name: 'axisIpCamera',
-		color: 'bg-icon-axisIpCamera',
-		icon: 'mdi:camera',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	almalinux: {
-		name: 'almalinux',
-		color: 'transparent',
-		icon: 'mdi:linux',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
-	arch: {
-		name: 'arch',
-		color: 'bg-icon-arch',
-		icon: 'mdi:arch',
-		iconColor: 'text-white',
-		iconSize: 24,
-		iconActiveClass: 'text-white',
-	},
+const iconSize = computed(() => props.size ?? Math.round(props.tile * 0.55));
+
+const icons: Record<string, { icon: string; tone: Tone }> = {
+	default: { icon: 'mdi:server', tone: 'muted' },
+	ubuntu: { icon: 'mdi:ubuntu', tone: 'ub' },
+	debian: { icon: 'mdi:debian', tone: 'db' },
+	apple: { icon: 'mdi:apple', tone: 'muted' },
+	aws: { icon: 'mdi:aws', tone: 'ub' },
+	centos: { icon: 'mdi:centos', tone: 'purple' },
+	fedora: { icon: 'mdi:fedora', tone: 'blue' },
+	freebsd: { icon: 'mdi:freebsd', tone: 'danger' },
+	linux: { icon: 'mdi:linux', tone: 'muted' },
+	alpine: { icon: 'mdi:linux', tone: 'al' },
+	oracle: { icon: 'mdi:database', tone: 'danger' },
+	rocky: { icon: 'mdi:linux', tone: 'ok' },
+	redhat: { icon: 'mdi:redhat', tone: 'danger' },
+	suse: { icon: 'mdi:linux', tone: 'ok' },
+	windows: { icon: 'mdi:microsoft-windows', tone: 'blue' },
+	axisIpCamera: { icon: 'mdi:camera', tone: 'purple' },
+	almalinux: { icon: 'mdi:linux', tone: 'al' },
+	arch: { icon: 'mdi:arch', tone: 'al' },
 };
 
-const iconLogo = computed(() => {
-	switch (props.os_kernel) {
+const getLinuxIcon = (osFullName?: string, osFamily?: string, os?: string) => {
+	const lower = osFullName?.toLowerCase() || '';
+	const firstWord = lower.trim().split(' ')[0];
+
+	switch (true) {
+		case lower.includes('debian'):
+			return icons.debian;
+		case lower.includes('ubuntu'):
+			return icons.ubuntu;
+		case lower.includes('fedora'):
+			return icons.fedora;
+		case lower.includes('alpine'):
+			return icons.alpine;
+		case lower.includes('rocky'):
+			return icons.rocky;
+		case lower.includes('suse'):
+			return icons.suse;
+		case lower.includes('centos'):
+			return icons.centos;
+		case firstWord === 'axis':
+			return icons.axisIpCamera;
+		case firstWord === 'almalinux':
+			return icons.almalinux;
+		case firstWord === 'oracle':
+			return icons.oracle;
+		case osFamily === 'arch':
+			return icons.arch;
+		case os?.toLowerCase().includes('ubuntu'):
+			return icons.ubuntu;
+		case osFamily === 'debian':
+			return icons.debian;
+		case osFamily === 'fedora':
+			return icons.fedora;
+		case osFamily === 'alpine':
+			return icons.alpine;
+		case osFamily === 'rhel' && os?.includes('compute'):
+			return icons.aws;
+		case osFamily === 'rhel':
+			return icons.redhat;
+		case osFamily === 'suse':
+			return icons.suse;
+		default:
+			return icons.linux;
+	}
+};
+
+const logo = computed(() => {
+	switch (props.osKernel) {
 		case 'linux':
-			return getLinuxIcon(props.os_full_name, props.os_family, props.os);
+			return getLinuxIcon(props.osFullName, props.osFamily, props.os);
 		case 'windows':
 			return icons.windows;
 		case 'darwin':
-			return icons.apple;
 		case 'macos':
 			return icons.apple;
 		case 'freebsd':
@@ -201,92 +129,19 @@ const iconLogo = computed(() => {
 			return icons.default;
 	}
 });
-
-const getLinuxIcon = (os_full_name, os_family, os) => {
-	const lowerCaseFUllName = os_full_name?.toLowerCase() || '';
-	const firstWord = lowerCaseFUllName.trim().split(' ')[0];
-
-	switch (true) {
-		case lowerCaseFUllName.includes('debian'):
-			return icons.debian;
-		case lowerCaseFUllName.includes('ubuntu'):
-			return icons.ubuntu;
-		case lowerCaseFUllName.includes('fedora'):
-			return icons.fedora;
-		case lowerCaseFUllName.includes('alpine'):
-			return icons.alpine;
-		case lowerCaseFUllName.includes('rocky'):
-			return icons.rocky;
-		case lowerCaseFUllName.includes('suse'):
-			return icons.suse;
-		case firstWord === 'axis':
-			return icons.axisIpCamera;
-		case firstWord === 'almalinux':
-			return icons.almalinux;
-		case firstWord === 'oracle':
-			return icons.oracle;
-		case os_family === 'arch':
-			return icons.arch;
-		case os?.includes('ubuntu') || os?.includes('Ubuntu'):
-			return icons.ubuntu;
-		case os_family === 'debian':
-			return icons.debian;
-		case os_family === 'fedora':
-			return icons.fedora;
-		case os_family === 'alpine':
-			return icons.alpine;
-		case os_family === 'rhel' && os?.includes('compute'):
-			return icons.aws;
-		case os_family === 'rhel':
-			return icons.redhat;
-		case os_family === 'suse':
-			return icons.suse;
-		default:
-			return icons.linux;
-	}
-	return 'debian';
-};
 </script>
 
-<style scoped>
-.text-icon-ubuntu {
-  color: #e64a19;
-}
-.bg-icon-debian {
-  background-color: #a80030;
-}
-.bg-icon-arch {
-  --tw-bg-opacity: 1;
-  background-color: #1793d1;
-}
-.bg-icon-aws {
-  --tw-bg-opacity: 1;
-  background-color: #232f3e;
-}
-.bg-icon-axisIpCamera {
-  --tw-bg-opacity: 1;
-  background-color: #4a148c;
-}
-.bg-icon-centos {
-  --tw-bg-opacity: 1;
-  background-color: #262577;
-}
-.bg-icon-redhat {
-  --tw-bg-opacity: 1;
-  background-color: #cf0000;
-}
-
-.bg-icon-suse {
-  --tw-bg-opacity: 1;
-  background-color: #7cb342;
-}
-.bg-icon-windows {
-  --tw-bg-opacity: 1;
-  background-color: #0078d4;
-}
-
-.bg-neutral-100 {
-  --tw-bg-opacity: 1;
-  background-color: #f5f5f5;
-}
+<style>
+/* OS tile tints from the redesign (light, then dark). */
+.os-ub { background: #FDEBE3; color: #9A3412; }
+.os-db { background: #FCE7EF; color: #9D174D; }
+.os-al { background: #E0F2FE; color: #075985; }
+.os-ok { background: rgb(var(--app-ok-bg)); color: rgb(var(--app-ok)); }
+.os-blue { background: rgb(var(--app-blue-bg)); color: rgb(var(--app-blue)); }
+.os-purple { background: rgb(var(--app-purple-bg)); color: rgb(var(--app-purple)); }
+.os-danger { background: rgb(var(--app-danger-bg)); color: rgb(var(--app-danger)); }
+.os-muted { background: rgb(var(--app-chip)); color: rgb(var(--app-text-2)); }
+.dark .os-ub { background: #3A1E12; color: #FDBA8C; }
+.dark .os-db { background: #3A1428; color: #F9A8D4; }
+.dark .os-al { background: #0E2A3D; color: #7DD3FC; }
 </style>

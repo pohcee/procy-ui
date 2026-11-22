@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { FetchError } from 'ofetch';
 import type { TunnelPayload } from '~/types';
 
 export const useTunnelStore = defineStore('tunnel', {
@@ -16,10 +17,10 @@ export const useTunnelStore = defineStore('tunnel', {
 				const data = await $api.clients.createTunnel(clientID, payload);
 				return { data: data, error: null };
 			}
-			catch (e: any) {
+			catch (e: unknown) {
 				return {
 					data: null,
-					error: e.data,
+					error: e instanceof FetchError ? e.data as unknown : undefined,
 				};
 			}
 		},

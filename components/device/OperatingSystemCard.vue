@@ -61,11 +61,12 @@
 </template>
 
 <script setup lang="ts">
+import type { PropType } from 'vue';
 import type { Client } from '~/types';
 
-const props = defineProps({
+defineProps({
 	device: {
-		type: Object,
+		type: Object as PropType<Client>,
 	},
 });
 </script>

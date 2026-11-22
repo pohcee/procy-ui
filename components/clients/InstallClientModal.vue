@@ -10,173 +10,91 @@
 	>
 		<div
 			v-if="isLoading"
-			class="absolute inset-0 flex items-center justify-center overflow-hidden"
+			class="flex min-h-[200px] items-center justify-center"
+			role="status"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24px"
-				height="24px"
-				viewBox="0 0 24 24"
-				class="icon mr-2 w-full flex-1 animate-spin text-vtd-primary-500"
-			>
-				<path
-					fill="currentColor"
-					d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
-					opacity=".25"
-				/>
-				<path
-					fill="currentColor"
-					d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"
-				>
-					<animateTransform
-						attributeName="transform"
-						dur="0.75s"
-						repeatCount="indefinite"
-						type="rotate"
-						values="0 12 12;360 12 12"
-					/>
-
-				</path>
-
-			</svg>
+			<Loader2
+				class="h-8 w-8 animate-spin text-app-accent"
+				aria-hidden="true"
+			/>
+			<span class="sr-only">Loading installer…</span>
 		</div>
 		<div
 			v-else
-			class="-m-3"
+			class="flex flex-col gap-5"
 		>
-			<div class="flex w-auto flex-col p-3">
-				<div class="my-2 flex w-full bg-white p-3 text-sm text-black-087">
-					<div class="flex w-1/2 items-center justify-start">
-						<div class="inline-flex w-max cursor-pointer ml-3">
-							<div class="flex gap-1">
-								<span class="font-bold">ID</span>
-								<span>{{ client.id }}</span>
-							</div>
-						</div>
-						<div class="inline-flex w-max cursor-pointer ml-3">
-							<button class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									xmlns:xlink="http://www.w3.org/1999/xlink"
-									aria-hidden="true"
-									role="img"
-									class="icon"
-									width="16px"
-									height="16px"
-									viewBox="0 0 24 24"
-								><path
-									fill="currentColor"
-									d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m0 16H8V7h11z"
-								/></svg>
-							</button>
-						</div>
-					</div>
-					<div class="flex w-1/2 items-center justify-end">
-						<div class="inline-flex w-max cursor-pointer ml-3">
-							<div
-								data-v-298c7968=""
-								class="flex gap-1"
-							>
-								<span
-									data-v-298c7968=""
-									class="font-bold"
-								>Password</span>
-								<span data-v-298c7968="">{{ client.password }}</span>
-							</div>
-						</div><div class="inline-flex w-max cursor-pointer ml-3">
-							<button
-								class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									xmlns:xlink="http://www.w3.org/1999/xlink"
-									aria-hidden="true"
-									role="img"
-									class="icon"
-									width="16px"
-									height="16px"
-									viewBox="0 0 24 24"
-								><path
-									fill="currentColor"
-									d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m0 16H8V7h11z"
-								/></svg>
-							</button>
-						</div>
-					</div>
-				</div>
-				<div
-					class="mt-3 flex items-end"
-				>
-					<div
-						class="w-1/2"
+			<dl class="grid grid-cols-1 gap-2 rounded-lg border border-app-border bg-app-surface-2 p-3 sm:grid-cols-2">
+				<div class="flex min-w-0 items-center gap-2">
+					<dt class="text-[13px] text-app-text-3">
+						ID
+					</dt>
+					<dd class="min-w-0 truncate font-mono text-[13px] text-app-text">
+						{{ client?.id }}
+					</dd>
+					<button
+						type="button"
+						class="inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg text-app-text-2 hover:bg-app-hover hover:text-app-text"
+						aria-label="Copy client ID"
+						@click="copyValue(client?.id)"
 					>
-						<p
-							class="pb-2"
-						>
-							How does the client connect?
-						</p>
-					</div>
-					<div
-						class="w-1/2"
-					>
-						<div>
-							<CustomThemedSelect
-								v-model="selectedConnectUrl"
-								label="Connect URL"
-								placeholder="Select..."
-								:options="connectUrlOptions"
-							/>
-						</div>
-					</div>
+						<Copy
+							class="h-4 w-4"
+							aria-hidden="true"
+						/>
+					</button>
 				</div>
-				<div
-					class="mt-3"
-				>
-					<div
-						v-for="option in INSTALLER_OPTIONS"
-						:key="option.id"
-						class="flex flex-col mt-2"
+				<div class="flex min-w-0 items-center gap-2 sm:justify-end">
+					<dt class="text-[13px] text-app-text-3">
+						Password
+					</dt>
+					<dd class="min-w-0 truncate font-mono text-[13px] text-app-text">
+						{{ client?.password }}
+					</dd>
+					<button
+						type="button"
+						class="inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg text-app-text-2 hover:bg-app-hover hover:text-app-text"
+						aria-label="Copy client password"
+						@click="copyValue(client?.password)"
 					>
-						<label
-							v-if="option.id !== 'tacoscript'"
-							class="flex cursor-pointer select-none items-center justify-start text-sm text-theme-label"
-						>
-							<input
-								v-model="selectedOptions[option.id]"
-								type="checkbox"
-								class="mr-2 h-[16px] w-[16px] cursor-pointer rounded border-none bg-transparent ring-2 ring-gray-300 focus:ring-gray-300 focus:ring-offset-0 primary-text"
-								@change="updateCommand"
-							>{{ option.label }}</label>
-						<label
-							v-else
-							class="flex cursor-pointer select-none items-center justify-start text-sm text-theme-label"
-						>
-							<input
-								v-model="selectedOptions[option.id]"
-								type="checkbox"
-								class="mr-2 h-[16px] w-[16px] cursor-pointer rounded border-none bg-transparent ring-2 ring-gray-300 focus:ring-gray-300 focus:ring-offset-0 primary-text"
-								@change="updateCommand"
-							>Install &nbsp;<a
-								href="https://kb.openrport.io/digging-deeper/commands-and-scripts/tacoscript"
-								class="text-primary underline"
-								target="_blank"
-							>Tacoscript </a>&nbsp; along with the RPort client</label>
-					</div>
+						<Copy
+							class="h-4 w-4"
+							aria-hidden="true"
+						/>
+					</button>
 				</div>
-				<div
-					class="mt-3 pl-6"
-				>
-					<p
-						class="pb-4 text-sm text-gray-700"
-					>
-						The pairing service is free and secure. No data is stored. There are a lot more options and parameters. <a
-							href="https://kb.openrport.io/connecting-clients"
-							class="text-primary underline"
-							target="_blank"
-						>Learn more</a>
-					</p>
-				</div>
+			</dl>
+			<div class="flex flex-col gap-1.5">
+				<p class="text-[13px] font-medium text-app-text-2">
+					How does the client connect?
+				</p>
+				<CustomThemedSelect
+					v-model="selectedConnectUrl"
+					label="Connect URL"
+					placeholder="Select..."
+					:options="connectUrlOptions"
+				/>
 			</div>
+			<fieldset class="flex flex-col gap-1">
+				<legend class="mb-1 text-[13px] font-medium text-app-text-2">
+					Installer options
+				</legend>
+				<label
+					v-for="option in INSTALLER_OPTIONS"
+					:key="option.id"
+					class="flex min-h-9 cursor-pointer select-none items-center gap-2.5 text-sm text-app-text"
+				>
+					<input
+						v-model="selectedOptions[option.id]"
+						type="checkbox"
+						class="h-[18px] w-[18px] flex-none cursor-pointer rounded border-app-border-strong accent-app-accent"
+					>
+					<span v-if="option.id !== 'tacoscript'">{{ option.label }}</span>
+					<span v-else>Install Tacoscript along with the RPort client</span>
+				</label>
+				<p class="mt-1 text-xs text-app-text-3">
+					The pairing service is free and secure. No data is stored.
+				</p>
+			</fieldset>
 			<ClientsInstallationCommand
 				:linux-code="linuxCode"
 				:windows-code="windowsCode"
@@ -187,19 +105,29 @@
 </template>
 
 <script setup lang="ts">
-import type { ClientAuth } from '~/types';
+import { Copy, Loader2 } from 'lucide-vue-next';
+import { useClipboard } from '@vueuse/core';
+import type { ClientAuth, INstallerOptionId, ServerStatus } from '~/types';
 import { INSTALLER_OPTIONS } from '~/constants';
 import Modal from '~/components/Modal.vue';
 import { useInstaller } from '~/composables/useInstaller';
 
 const isOpen = ref(false);
 const client = ref<Partial<ClientAuth> | null>(null);
-const status = ref(null);
+const status = ref<ServerStatus | null>(null);
 const selectedConnectUrl = ref('');
 
-const { isLoading, error, installers, fetchInstaller } = useInstaller();
+const { isLoading, installers, fetchInstaller } = useInstaller();
+const { copy } = useClipboard({ legacy: true });
+const snackbar = useSnackbar();
 
-const selectedOptions = ref({});
+const copyValue = async (value?: string) => {
+	if (!value) return;
+	await copy(value);
+	snackbar.add({ type: 'success', text: 'Copied to clipboard' });
+};
+
+const selectedOptions = ref<Partial<Record<INstallerOptionId, boolean>>>({});
 const connectUrlOptions = computed(() => (status.value?.connect_url ?? []).map((connect: string) => ({ value: connect, label: connect })));
 const emit = defineEmits(['close', 'save']);
 
@@ -210,11 +138,11 @@ const close = () => {
 	status.value = null;
 	selectedConnectUrl.value = '';
 };
-const open = async (clientAccess?: Partial<ClientAuth>, statusServer) => {
+const open = async (clientAccess: Partial<ClientAuth> | undefined, statusServer: ServerStatus) => {
 	isOpen.value = true;
-	client.value = clientAccess;
+	client.value = clientAccess ?? null;
 	status.value = statusServer;
-	if (statusServer.connect_url.length > 0) {
+	if (statusServer.connect_url?.length > 0) {
 		selectedConnectUrl.value = statusServer.connect_url[0];
 		await updateInstaller();
 	}
@@ -258,9 +186,9 @@ async function updateInstaller() {
 	await fetchInstaller({
 		client_id: client.value.id,
 		connect_url: selectedConnectUrl.value,
-		fingerprint: status?.value?.fingerprint as string,
+		fingerprint: status.value.fingerprint,
 		password: client.value.password ?? '',
-	}, status?.value?.pairing_url as string);
+	}, status.value.pairing_url);
 }
 
 onMounted(() => {

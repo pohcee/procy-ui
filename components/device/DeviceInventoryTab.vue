@@ -1,14 +1,12 @@
 <template>
-	<div class="flex flex-wrap mt-4 space-x-4 xl:flex-nowrap">
-		<div class="w-full space-y-4 xl:w-1/2">
+	<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+		<div class="flex min-w-0 flex-col gap-4">
 			<DeviceRportClientCard :device="device" />
 			<DeviceGroupsCard :groups="device?.groups" />
-			<DeviceTagsLabelsCard
-				:client="device"
-			/>
+			<DeviceTagsLabelsCard :client="device" />
 			<DeviceOS :device="device" />
 		</div>
-		<div class="w-full space-y-4 xl:w-1/2">
+		<div class="flex min-w-0 flex-col gap-4">
 			<DeviceBenchmarkCard
 				:device="device"
 				:metrics="metrics"
@@ -25,7 +23,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+defineProps({
 	device: {
 		type: Object,
 		required: true,

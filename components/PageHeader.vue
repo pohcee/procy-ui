@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 const emit = defineEmits(['action']);
-const props = defineProps({
+defineProps({
 	title: {
 		type: String,
 	},

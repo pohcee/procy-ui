@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
 	number: string | number;
 	title: string;
 	isFirst?: boolean;

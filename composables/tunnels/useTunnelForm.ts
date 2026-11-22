@@ -1,9 +1,9 @@
 import { storeToRefs } from 'pinia';
-import type { TunnelFormState, TunnelPayload } from '~/types';
+import type { Client, TunnelFormState, TunnelPayload } from '~/types';
 import { useTunnelValidation } from '~/composables/tunnels/useTunnelValidation';
 import { TUNNEL_OPTIONS } from '~/constants';
 
-export function useTunnelForm(client: any) {
+export function useTunnelForm(client: Pick<Client, 'id'>) {
 	const tunnelStore = useTunnelStore();
 	const profileStore = useProfile();
 	const { ip: serverIp } = storeToRefs(profileStore);

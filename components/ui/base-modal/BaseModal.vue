@@ -18,7 +18,7 @@ defineProps<{
 	modelValue: boolean;
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
 	(e: 'update:modelValue', value: boolean): void;
 }>();
 </script>

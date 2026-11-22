@@ -1,72 +1,57 @@
 <template>
-	<BaseModal v-model="isOpen">
-		<div
-			class="relative z-20 w-full max-w-md rounded border border-slate-400 bg-white p-6 text-theme-inverted-lighter shadow dark:bg-slate-800"
-		>
-			<h3 class="mb-4 text-lg font-semibold">
-				{{ isEditing ? 'Edit' : 'New' }} user group
-			</h3>
-			<form
-				class="flex flex-col gap-4"
-				@submit.prevent="save"
+	<SettingsDialog
+		v-model="isOpen"
+		:title="isEditing ? `Edit user group` : 'New user group'"
+		:submit-text="isEditing ? 'Update' : 'Create'"
+		:submit-disabled="!name || isSaving"
+		@submit="save"
+	>
+		<div class="st-field">
+			<label
+				class="st-label"
+				for="userGroupName"
+			>Group name</label>
+			<input
+				id="userGroupName"
+				v-model="name"
+				class="st-ctl"
+				type="text"
+				:disabled="isEditing"
+				autocomplete="off"
+				required
 			>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="userGroupName"
-						v-model="name"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						:class="{ error: !name }"
-						placeholder=" "
-						type="text"
-						:disabled="isEditing"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="userGroupName"
-					>Group name</label>
-				</div>
-				<div>
-					<p class="mb-2 text-sm font-medium text-theme-label">
-						Permissions
-					</p>
-					<div class="grid grid-cols-2 gap-2">
-						<label
-							v-for="permission in permissionKeys"
-							:key="permission"
-							class="flex cursor-pointer select-none items-center gap-2 text-sm capitalize text-theme-label"
-						>
-							<input
-								v-model="permissions[permission]"
-								type="checkbox"
-								class="h-[16px] w-[16px] rounded"
-							>{{ permission }}
-						</label>
-					</div>
-				</div>
-				<div class="flex items-center justify-end gap-2 pt-2">
-					<button
-						class="bg-vtd-secondary-600 hover:bg-vtd-secondary-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="button"
-						@click="close"
-					>
-						Cancel
-					</button>
-					<button
-						class="bg-vtd-primary-500 hover:bg-vtd-primary-700 disabled:bg-gray-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="submit"
-						:disabled="!name || isSaving"
-					>
-						{{ isEditing ? 'Update' : 'Create' }}
-					</button>
-				</div>
-			</form>
 		</div>
-	</BaseModal>
+		<fieldset class="flex flex-col gap-2">
+			<legend class="st-label mb-2">
+				Permissions
+			</legend>
+			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+				<label
+					v-for="permission in permissionKeys"
+					:key="permission"
+					:class="[
+						'flex min-h-[44px] cursor-pointer select-none items-center gap-2.5 rounded-[10px] border px-3 text-sm capitalize transition-colors',
+						permissions[permission]
+							? 'border-app-accent bg-app-blue-bg/60 text-app-text'
+							: 'border-app-border-strong bg-app-surface-2 text-app-text-2 hover:bg-app-hover',
+					]"
+				>
+					<input
+						v-model="permissions[permission]"
+						type="checkbox"
+						class="st-check"
+					>
+					{{ permission }}
+				</label>
+			</div>
+			<p class="st-help">
+				On conflicting permissions, authorization wins over the denial.
+			</p>
+		</fieldset>
+	</SettingsDialog>
 </template>
 
 <script setup lang="ts">
-import { BaseModal } from '~/components/ui/base-modal';
 import type { Permissions, UserGroup } from '~/types';
 
 const emit = defineEmits(['saved']);

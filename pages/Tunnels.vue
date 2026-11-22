@@ -1,367 +1,500 @@
 <template>
 	<new-page-wrapper>
-		<div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-			<div class="relative z-20 flex h-16 items-center justify-between">
-				<div class="">
-					<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
-						Tunnels
-					</h3>
-					<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-					</p>
-				</div>
-				<div class="flex-1" />
-				<div class="ml-2 flex-shrink-0">
-					<button
-						class="bg-primary-800 hover:bg-primary-700 focus-visible:outline-blue-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-						type="button"
-						@click="refreshTunnels"
-					>
-						<span class="flex items-center justify-center gap-x-2">
-							Reload</span>
-					</button>
-					<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-					</p>
-				</div>
-			</div><!---->
-			<div class="relative z-10 w-full">
-				<!---->
-				<div
-					class="flow-root overflow-hidden border border-gray-100 ring-1 ring-black ring-opacity-10 dark:border-gray-600 sm:rounded-lg"
+		<AppPage
+			title="Tunnels"
+			description="Reach a port on a device through the server, without a VPN. Tunnels close themselves when idle."
+		>
+			<template #actions>
+				<AppButton
+					variant="secondary"
+					:disabled="pending"
+					@click="() => refreshTunnels()"
 				>
-					<div class="overflow-auto relative z-10 -mb-2">
-						<div class="inline-block min-w-full align-middle">
-							<div class="sm:rounded-t-lg overflow-hidden">
-								<div>
-									<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-										<thead class="rounded-lg bg-gray-50 dark:bg-gray-950">
-											<tr>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span /><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>Client</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>Allowed
-															clients</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>Exposed
-															port</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>HTTP
-															proxy</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button
-														disabled=""
-													>
-														<span>Protocol</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button
-														disabled=""
-													>
-														<span>Destination</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>Port</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>Name</span><!---->
-													</button>
-												</th>
-												<th
-													class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-													scope="col"
-												>
-													<button disabled="">
-														<span>Created
-															at</span><!---->
-													</button>
-												</th>
-												<th
-													class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-800 sm:pl-6"
-												/>
-												<th
-													class="relative w-6 whitespace-nowrap py-3.5 pl-3 pr-2 text-right text-sm font-medium sm:pr-2"
-												/>
-											</tr>
-										</thead>
-										<tbody
-											class="z-10 divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900"
+					<RefreshCw
+						:class="['h-4 w-4', pending ? 'animate-spin' : '']"
+						aria-hidden="true"
+					/>
+					Reload
+				</AppButton>
+			</template>
+
+			<div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+				<!-- Active tunnels -->
+				<div class="flex min-w-0 flex-col gap-4">
+					<section
+						aria-label="Active tunnels"
+						class="overflow-hidden rounded-xl border border-app-border bg-app-surface"
+					>
+						<div class="flex items-center justify-between border-b border-app-border px-4 py-3.5">
+							<h2 class="text-[15px] font-semibold text-app-text">
+								Active tunnels <span class="font-medium text-app-text-3">· {{ rows.length }}</span>
+							</h2>
+						</div>
+
+						<OpEmpty
+							v-if="pending && !rows.length"
+							loading
+							title="Loading tunnels…"
+						/>
+						<OpEmpty
+							v-else-if="!rows.length"
+							:icon="ArrowLeftRight"
+							title="No active tunnels"
+							description="Create one with the form to reach SSH, RDP, VNC or a web UI on a device."
+						/>
+						<template v-else>
+							<!-- Desktop table -->
+							<div class="hidden overflow-x-auto md:block">
+								<table class="w-full min-w-[720px] border-collapse">
+									<thead>
+										<tr class="bg-app-surface-2">
+											<th
+												v-for="col in columns"
+												:key="col"
+												scope="col"
+												class="whitespace-nowrap border-b border-app-border px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3 first:pl-4"
+											>
+												{{ col }}
+											</th>
+											<th
+												scope="col"
+												class="border-b border-app-border px-3 py-2.5 pr-4"
+											>
+												<span class="sr-only">Actions</span>
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr
+											v-for="tunnel in rows"
+											:key="tunnel.id"
+											:class="[
+												tunnel.openToAll ? 'bg-app-warn-row' : '',
+												selectedId === tunnel.id ? 'shadow-[inset_3px_0_0_rgb(var(--app-accent))]' : '',
+											]"
 										>
-											<tr
-												v-if="updatedTunnels?.length === 0"
-												class="h-[210px] bg-white/10 backdrop-blur-sm dark:bg-black/10"
-											>
-												<td
-													colspan="12"
-													class="w-full flex-1 text-center text-gray-800 dark:text-gray-200"
+											<td class="border-b border-app-border-subtle py-3.5 pl-4 pr-3 align-middle text-[13px]">
+												<NuxtLink
+													:to="`/dashboard/${tunnel.client_id}`"
+													class="whitespace-nowrap font-mono font-medium text-app-text hover:text-app-link hover:underline"
 												>
-													No results
-												</td>
-											</tr>
-											<tr
-												v-for="tunnel in updatedTunnels"
-												:key="tunnel.id"
-												class="cursor-pointer hover:bg-vtd-primary-600/30 border-t-1 group relative border-gray-200 transition-all duration-300"
-											>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6" />
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													<a
-														:href="`/dashboard/${tunnel.client_id}`"
-														class=""
-													>{{ tunnel.client_name }}</a>
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													{{ tunnel.acl }}
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													{{ tunnel.lport }}
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													<span class="bg-vtd-secondary-50 dark:bg-vtd-secondary-500/10 text-vtd-secondary-700 dark:text-vtd-secondary-400 ring-vtd-secondary-600/20 dark:ring-vtd-secondary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset">{{ tunnel.http_proxy ? 'Enabled' : 'Disabled' }}</span>
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													<span class="text-center">{{ tunnel.protocol }}<span>:{{ tunnel.scheme }}</span></span>
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													{{ tunnel.rhost }}
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													{{ tunnel.rport }}
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													<a
-														:href="`/dashboard/${tunnel.client_id}`"
-														class=""
-													>{{ tunnel.name }}</a>
-												</td>
-												<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-													<div class="inline-flex w-max cursor-pointer">
-														{{ useTimeAgo(new Date(tunnel.created_at)).value }}
-													</div>
-												</td>
-												<td class="pr-1 sm:pr-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
-													<DropdownMenu>
-														<DropdownMenuTrigger as-child>
-															<button type="button">
-																<div class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-vtd-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none">
-																	<svg
-																		xmlns="http://www.w3.org/2000/svg"
-																		width="20px"
-																		height="20px"
-																		viewBox="0 0 24 24"
-																		class="icon"
-																	>
-																		<path
-																			fill="currentColor"
-																			d="M16 12a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2Z"
-																		/>
-																	</svg>
-																</div>
-															</button>
-														</DropdownMenuTrigger>
-														<DropdownMenuContent class="w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
-															<div class="px-1 py-1">
-																<DropdownMenuItem
-																	class="focus:bg-vtd-primary-600 focus:text-white group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300"
-																	@click="triggerDeleteTunnel(tunnel)"
-																>
-																	<span>Delete</span>
-																</DropdownMenuItem>
-															</div>
-														</DropdownMenuContent>
-													</DropdownMenu>
-												</td>
-												<td class="pl-1 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
-													<span class="absolute inset-y-0 right-0 flex w-6 items-center justify-center pr-2"><svg
-														xmlns="http://www.w3.org/2000/svg"
-														viewBox="0 0 20 20"
-														fill="currentColor"
-														aria-hidden="true"
-														class="h-6 w-6 text-gray-300 transition-all duration-300 group-hover:text-gray-700 dark:text-gray-700 group-hover:dark:text-gray-200"
-													><path
-														fill-rule="evenodd"
-														d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-														clip-rule="evenodd"
-													/></svg></span>
-												</td>
-												<!--												<div class="inline-flex w-max cursor-pointer"> -->
-												<!--													<button class="absolute inset-y-0 left-0 right-16 z-10 w-[90%]" /><button class="absolute inset-y-0 right-0 z-10 w-8" /><button class="absolute inset-y-0 left-0 right-16 z-10 w-12" />&lt;!&ndash;&ndash;&gt; -->
-												<!--												</div> -->
-											</tr>
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="relative z-0 -mx-4 mt-2 sm:-mx-6 lg:-mx-8">
-						<div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-							<div class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950">
-								<div>
-									<div
-										colspan="12"
-										class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-600 sm:pl-6"
-									>
-										<div class="flex w-full items-center justify-between">
-											<div class="flex items-center justify-between">
+													{{ tunnel.client_name }}
+												</NuxtLink>
+												<div class="mt-0.5 max-w-[150px] text-xs text-app-text-3">
+													{{ tunnel.createdAgo }}<template v-if="tunnel.name">
+														· {{ tunnel.name }}
+													</template>
+												</div>
+											</td>
+											<td class="border-b border-app-border-subtle px-3 py-3.5 align-middle">
+												<span :class="['inline-block whitespace-nowrap rounded-md px-2 py-[3px] text-xs font-semibold', tunnel.badge.class]">{{ tunnel.badge.label }}</span>
 												<span
-													class="text-xs text-gray-500"
-												> Showing <span
-													class="font-medium"
-												>1</span> to <span
-													class="font-medium"
-												>0</span> of <span
-													class="font-medium"
-												>0</span> results </span>
-											</div>
-											<div class="flex-1" />
-											<div class="flex w-full max-w-[90px] items-center justify-between">
-												<button
-													disabled=""
-													class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
+													v-if="tunnel.http_proxy"
+													class="ml-1.5 whitespace-nowrap rounded-md bg-app-chip px-2 py-[3px] text-xs font-medium text-app-text-2"
+												>proxy</span>
+											</td>
+											<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle font-mono text-[13px] text-app-text">
+												:{{ tunnel.lport }} → {{ tunnel.destination }}
+												<div
+													v-if="tunnel.protocol && tunnel.protocol !== 'tcp'"
+													class="text-xs text-app-text-3"
 												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														viewBox="0 0 20 20"
-														fill="currentColor"
-														aria-hidden="true"
-														class="h-6 w-6"
-													>
-														<path
-															fill-rule="evenodd"
-															d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-															clip-rule="evenodd"
-														/>
-													</svg>
-												</button><button
-													disabled=""
-													class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
+													{{ tunnel.protocol }}
+												</div>
+											</td>
+											<td class="border-b border-app-border-subtle px-3 py-3.5 align-middle text-[13px]">
+												<span
+													v-if="tunnel.openToAll"
+													class="inline-flex items-center gap-1.5 font-semibold text-app-warn"
 												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														viewBox="0 0 20 20"
-														fill="currentColor"
+													<TriangleAlert
+														class="h-3.5 w-3.5"
 														aria-hidden="true"
-														class="h-6 w-6"
-													>
-														<path
-															fill-rule="evenodd"
-															d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-															clip-rule="evenodd"
-														/>
-													</svg>
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
+													/>
+													Any IP
+												</span>
+												<span
+													v-else
+													class="break-all font-mono text-app-text"
+												>{{ tunnel.acl }}</span>
+											</td>
+											<td
+												:class="[
+													'min-w-[100px] border-b border-app-border-subtle px-3 py-3.5 align-middle text-[13px]',
+													tunnel.closes.never ? 'font-semibold text-app-warn' : 'text-app-text-2',
+												]"
+											>
+												{{ tunnel.closes.label }}
+											</td>
+											<td class="whitespace-nowrap border-b border-app-border-subtle py-3.5 pl-3 pr-4 text-right align-middle">
+												<div class="inline-flex items-center gap-1">
+													<TunnelActions
+														compact
+														:tunnel="tunnel"
+														@connect="select(tunnel)"
+														@open="openInBrowser(tunnel)"
+														@rdp="downloadRdp(tunnel)"
+														@close="triggerDeleteTunnel(tunnel)"
+													/>
+												</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
 							</div>
+
+							<!-- Phone cards -->
+							<ul class="divide-y divide-app-border-subtle md:hidden">
+								<li
+									v-for="tunnel in rows"
+									:key="tunnel.id"
+									:class="['flex flex-col gap-2.5 px-4 py-3.5', tunnel.openToAll ? 'bg-app-warn-row' : '']"
+								>
+									<div class="flex items-start justify-between gap-3">
+										<div class="min-w-0">
+											<NuxtLink
+												:to="`/dashboard/${tunnel.client_id}`"
+												class="block truncate font-mono text-sm font-medium text-app-text hover:text-app-link"
+											>
+												{{ tunnel.client_name }}
+											</NuxtLink>
+											<p class="mt-0.5 text-xs text-app-text-3">
+												{{ tunnel.createdAgo }}
+											</p>
+										</div>
+										<span :class="['shrink-0 rounded-md px-2 py-[3px] text-xs font-semibold', tunnel.badge.class]">{{ tunnel.badge.label }}</span>
+									</div>
+									<dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+										<dt class="text-app-text-3">
+											Port
+										</dt>
+										<dd class="font-mono text-app-text">
+											:{{ tunnel.lport }} → {{ tunnel.destination }}
+										</dd>
+										<dt class="text-app-text-3">
+											From
+										</dt>
+										<dd>
+											<span
+												v-if="tunnel.openToAll"
+												class="inline-flex items-center gap-1.5 font-semibold text-app-warn"
+											>
+												<TriangleAlert
+													class="h-3.5 w-3.5"
+													aria-hidden="true"
+												/>Any IP
+											</span>
+											<span
+												v-else
+												class="break-all font-mono text-app-text"
+											>{{ tunnel.acl }}</span>
+										</dd>
+										<dt class="text-app-text-3">
+											Closes
+										</dt>
+										<dd :class="tunnel.closes.never ? 'font-semibold text-app-warn' : 'text-app-text-2'">
+											{{ tunnel.closes.label }}
+										</dd>
+									</dl>
+									<div class="flex flex-wrap gap-2">
+										<TunnelActions
+											:tunnel="tunnel"
+											@connect="select(tunnel)"
+											@open="openInBrowser(tunnel)"
+											@rdp="downloadRdp(tunnel)"
+											@close="triggerDeleteTunnel(tunnel)"
+										/>
+									</div>
+								</li>
+							</ul>
+						</template>
+					</section>
+
+					<!-- How to connect -->
+					<section
+						v-if="selected"
+						aria-label="How to connect"
+						class="flex flex-col gap-2.5 rounded-xl border border-app-border bg-app-surface p-[18px]"
+					>
+						<div class="flex items-center justify-between gap-3">
+							<h2 class="text-[15px] font-semibold text-app-text">
+								Connect to <span class="font-mono">{{ selected.client_name }}</span>
+							</h2>
+							<span :class="['rounded-md px-2 py-[3px] text-xs font-semibold', selected.badge.class]">{{ selected.badge.label }}</span>
 						</div>
-					</div>
+						<div class="flex items-center gap-2.5 rounded-[10px] bg-[#0F151D] py-1.5 pl-3.5 pr-1.5">
+							<code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-[13px] text-[#E6EBF2]">{{ connectCommand }}</code>
+							<button
+								type="button"
+								class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[#222B37] px-3 text-[13px] font-medium text-[#E6EBF2] hover:bg-[#2A3442]"
+								@click="copyCommand"
+							>
+								<component
+									:is="copied ? Check : Copy"
+									class="h-3.5 w-3.5"
+									aria-hidden="true"
+								/>
+								{{ copied ? 'Copied' : 'Copy' }}
+							</button>
+						</div>
+						<p class="text-[13px] text-app-text-3">
+							{{ connectHint }}
+						</p>
+						<p
+							v-if="selected.openToAll"
+							class="flex items-center gap-1.5 text-[13px] font-medium text-app-warn"
+						>
+							<TriangleAlert
+								class="h-4 w-4 shrink-0"
+								aria-hidden="true"
+							/>
+							Any IP address can use this port.
+						</p>
+						<p
+							v-else
+							class="text-[13px] text-app-text-3"
+						>
+							Only <span class="font-mono text-app-text-2">{{ selected.acl }}</span>
+							<template v-if="profileIp && selected.acl.includes(profileIp)">
+								(your current IP)
+							</template> can use this port.
+						</p>
+					</section>
 				</div>
-				<div class="h-12 w-full" />
+
+				<!-- New tunnel -->
+				<section
+					aria-label="New tunnel"
+					class="flex flex-col gap-4 rounded-xl border border-app-border bg-app-surface p-5"
+				>
+					<h2 class="text-[15px] font-semibold text-app-text">
+						New tunnel
+					</h2>
+					<CustomThemedSelect
+						id="tunnel-device"
+						v-model="newTunnelDeviceId"
+						label="Device"
+						mono
+						:placeholder="clients.length ? 'Select a device…' : 'No devices'"
+						:options="deviceOptions"
+					/>
+					<TunnelsTunnelForm
+						v-if="newTunnelDevice"
+						:key="`${newTunnelDevice.id}-${formKey}`"
+						:device="newTunnelDevice"
+						embedded
+					/>
+					<p
+						v-else
+						class="text-[13px] text-app-text-3"
+					>
+						Pick the device you want to reach.
+					</p>
+				</section>
 			</div>
-		</div>
+		</AppPage>
 		<Modal
 			v-model="deleteConfirmOpen"
-			title="Please confirm!"
-			ok-text="Delete"
+			title="Close tunnel?"
+			ok-text="Close tunnel"
 			cancel-text="Cancel"
 			:show-cancel="true"
 			@ok="confirmDeleteTunnel"
 		>
-			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
-				<div>Do you want to close this tunnel?</div>
-			</div>
+			<p class="text-sm text-app-text-2">
+				The tunnel to <span class="font-mono font-medium text-app-text">{{ activeTunnel?.client_name }}</span>
+				on server port <span class="font-mono font-medium text-app-text">{{ activeTunnel?.lport }}</span> will be closed. Anyone connected through it is disconnected.
+			</p>
 		</Modal>
 	</new-page-wrapper>
 </template>
 
 <script lang="ts" setup>
-import { useTimeAgo } from '@vueuse/core';
+import { storeToRefs } from 'pinia';
+import { formatTimeAgo, useNow } from '@vueuse/core';
+import { ArrowLeftRight, Check, Copy, RefreshCw, TriangleAlert } from 'lucide-vue-next';
+import OpEmpty from '~/components/operate/OpEmpty.vue';
+import TunnelActions, { type TunnelRow } from '~/components/tunnels/TunnelActions.vue';
+import type { Client, Tunnel } from '~/types';
 
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
+const config = useRuntimeConfig();
+const statusStore = useStatusStore();
+const profileStore = useProfile();
+const tunnelStore = useTunnelStore();
+const { isAddingTunnel } = storeToRefs(tunnelStore);
+const { ip: profileIp } = storeToRefs(profileStore);
 
-const clients = ref([]);
+const columns = ['Device', 'Service', 'Server port → device', 'Allowed from', 'Closes'];
 
-const { data: fetchedTunnels, refresh: refreshTunnels } = useAsyncData('tunnels', () => $api.tunnels.index());
+const clientNames = ref<Client[]>([]);
+const clients = ref<Client[]>([]);
+
+const { data: fetchedTunnels, pending, refresh: refreshTunnels } = useAsyncData('tunnels', () => $api.tunnels.index());
 const ids = computed(() => fetchedTunnels.value?.map(item => item.client_id));
 
 watchEffect(() => {
-	if (ids.value) {
+	if (ids.value?.length) {
 		$api.clients.getClientsName(ids.value as Array<string>).then((response) => {
-			clients.value = response.data;
+			clientNames.value = response.data;
 		});
 	}
 });
 
-const updatedTunnels = computed(() => {
-	if (fetchedTunnels.value && clients.value.length) {
-		return fetchedTunnels.value.map((tunnel) => {
-			const client = clients.value.find(client => client.id === tunnel.client_id);
-			return {
-				...tunnel,
-				client_name: client?.name || tunnel.name, // Update tunnel name with client name if found
-			};
-		});
-	}
-	return fetchedTunnels.value;
+onMounted(async () => {
+	tunnelStore.openAddTunel();
+	const [clientsResponse] = await Promise.all([
+		$api.clients.listClients(),
+		statusStore.status?.version ? Promise.resolve() : statusStore.loadStatus(),
+		profileStore.ip ? Promise.resolve() : profileStore.loadServerIp(),
+	]);
+	clients.value = clientsResponse.data;
+	if (!newTunnelDeviceId.value && clients.value.length === 1) newTunnelDeviceId.value = clients.value[0].id;
 });
+let leaving = false;
+onBeforeUnmount(() => {
+	leaving = true;
+	tunnelStore.closeAddTunnel();
+});
+
+// The form closes the "add tunnel" flag after a successful create: refresh and reset the form.
+const formKey = ref(0);
+watch(isAddingTunnel, async (adding) => {
+	if (adding || leaving) return;
+	snackbar.add({ type: 'success', text: 'Tunnel created' });
+	formKey.value++;
+	tunnelStore.openAddTunel();
+	await refreshTunnels();
+});
+
+const newTunnelDeviceId = ref<string | undefined>(undefined);
+const newTunnelDevice = computed(() => clients.value.find(c => c.id === newTunnelDeviceId.value) ?? null);
+const deviceOptions = computed(() => clients.value.map(c => ({
+	value: c.id,
+	label: `${c.name || c.id}${c.disconnected_at ? ' (offline)' : ''}`,
+})));
+
+// Host users connect to: the server's tunnel host, else the API host name.
+const serverHost = computed(() => {
+	if (statusStore.status?.tunnel_host) return statusStore.status.tunnel_host;
+	try {
+		return new URL(String(config.public.apiUrl)).hostname;
+	}
+	catch {
+		return window.location.hostname;
+	}
+});
+
+const BADGES: Record<string, { label: string; class: string }> = {
+	ssh: { label: 'SSH', class: 'bg-app-blue-bg text-app-blue' },
+	rdp: { label: 'RDP', class: 'bg-app-purple-bg text-app-purple' },
+	vnc: { label: 'VNC', class: 'bg-app-warn-bg text-app-warn' },
+	realvnc: { label: 'RealVNC', class: 'bg-app-warn-bg text-app-warn' },
+	http: { label: 'HTTP', class: 'bg-app-ok-bg text-app-ok' },
+	https: { label: 'HTTPS', class: 'bg-app-ok-bg text-app-ok' },
+};
+
+const formatMinutes = (minutes: number) => {
+	if (minutes < 60) return `${minutes} min`;
+	const h = Math.floor(minutes / 60);
+	const m = minutes % 60;
+	return m ? `${h} h ${m} min` : `${h} h`;
+};
+
+const closesInfo = (tunnel: Tunnel) => {
+	const parts: string[] = [];
+	if (tunnel.idle_timeout_minutes > 0) parts.push(`after ${formatMinutes(tunnel.idle_timeout_minutes)} idle`);
+	if (tunnel.auto_close > 0) {
+		// auto_close is a Go duration (nanoseconds) counted from creation.
+		const closeAt = new Date(tunnel.created_at).getTime() + tunnel.auto_close / 1e6;
+		const left = Math.max(0, Math.round((closeAt - now.value.getTime()) / 60000));
+		parts.push(`in ${formatMinutes(left)}`);
+	}
+	return parts.length ? { label: parts.join(' · '), never: false } : { label: 'Never', never: true };
+};
+
+const now = useNow({ interval: 30_000 });
+const rows = computed<TunnelRow[]>(() => (fetchedTunnels.value ?? []).map((tunnel) => {
+	const client = clientNames.value.find(c => c.id === tunnel.client_id);
+	const scheme = (tunnel.scheme || '').toLowerCase();
+	const local = !tunnel.rhost || ['127.0.0.1', 'localhost', '::1'].includes(tunnel.rhost);
+	return {
+		...tunnel,
+		client_name: client?.name || tunnel.client_id,
+		badge: BADGES[scheme] ?? { label: (tunnel.scheme || tunnel.protocol || 'TCP').toUpperCase(), class: 'bg-app-chip text-app-text-2' },
+		destination: local ? `${tunnel.rport}` : `${tunnel.rhost}:${tunnel.rport}`,
+		openToAll: !tunnel.acl || tunnel.acl.split(',').some(a => ['0.0.0.0/0', '::/0', '0.0.0.0'].includes(a.trim())),
+		closes: closesInfo(tunnel),
+		createdAgo: [
+			(tunnel as Tunnel & { owner?: string }).owner ? `by ${(tunnel as Tunnel & { owner?: string }).owner}` : '',
+			formatTimeAgo(new Date(tunnel.created_at), {}, now.value),
+		].filter(Boolean).join(' · '),
+		isWeb: scheme === 'http' || scheme === 'https' || !!tunnel.tunnel_url || tunnel.http_proxy,
+		isRdp: scheme === 'rdp',
+		isSsh: scheme === 'ssh',
+	};
+}));
+
+const selectedId = ref<string | null>(null);
+const selected = computed(() => rows.value.find(r => r.id === selectedId.value)
+	?? rows.value.find(r => r.isSsh || r.isRdp) ?? rows.value[0] ?? null);
+const select = (tunnel: TunnelRow) => {
+	selectedId.value = tunnel.id;
+};
+
+const tunnelUrl = (tunnel: TunnelRow) => tunnel.tunnel_url
+	|| `${tunnel.scheme === 'https' ? 'https' : 'http'}://${serverHost.value}:${tunnel.lport}`;
+
+const connectCommand = computed(() => {
+	const t = selected.value;
+	if (!t) return '';
+	if (t.isSsh) return `ssh -p ${t.lport} <user>@${serverHost.value}`;
+	if (t.isRdp) return `mstsc /v:${serverHost.value}:${t.lport}`;
+	if (t.isWeb) return tunnelUrl(t);
+	return `${serverHost.value}:${t.lport}`;
+});
+const connectHint = computed(() => {
+	const t = selected.value;
+	if (!t) return '';
+	if (t.isSsh) return 'Replace <user> with an account on the device.';
+	if (t.isRdp) return 'Run on Windows, or download the .rdp file for any RDP client.';
+	if (t.isWeb) return 'Open in a browser.';
+	return 'Point your client at this address.';
+});
+
+const copied = ref(false);
+const copyCommand = async () => {
+	try {
+		await navigator.clipboard.writeText(connectCommand.value);
+		copied.value = true;
+		setTimeout(() => {
+			copied.value = false;
+		}, 1500);
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Could not copy to the clipboard' });
+	}
+};
+
+const openInBrowser = (tunnel: TunnelRow) => {
+	window.open(tunnelUrl(tunnel), '_blank', 'noopener');
+};
+
+const downloadRdp = (tunnel: TunnelRow) => {
+	const content = `full address:s:${serverHost.value}:${tunnel.lport}\r\nprompt for credentials:i:1\r\n`;
+	const url = URL.createObjectURL(new Blob([content], { type: 'application/x-rdp' }));
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = `${tunnel.client_name}-${tunnel.lport}.rdp`;
+	link.click();
+	URL.revokeObjectURL(url);
+};
 
 const deleteConfirmOpen = ref(false);
-const activeTunnel = ref(null);
+const activeTunnel = ref<TunnelRow | null>(null);
 
-const triggerDeleteTunnel = (tunnel) => {
+const triggerDeleteTunnel = (tunnel: TunnelRow) => {
 	activeTunnel.value = tunnel;
 	deleteConfirmOpen.value = true;
 };
@@ -374,7 +507,3 @@ const confirmDeleteTunnel = async () => {
 	await refreshTunnels();
 };
 </script>
-
-<style scoped>
-/* Estilos de la página (opcional) */
-</style>

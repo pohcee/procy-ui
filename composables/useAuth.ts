@@ -5,7 +5,7 @@ export async function getProvider() {
 		});
 		useState('provider').value = result;
 	}
-	catch (e: any) {
-		console.log('error : ', e.toString());
+	catch (e: unknown) {
+		console.log('error : ', String(e));
 	}
 }

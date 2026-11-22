@@ -1,99 +1,57 @@
 <template>
-	<div
-		class="flex w-auto bg-white flex-col py-0"
-	>
-		<div
-			class="flex max-w-full flex-wrap"
+	<div class="flex flex-col gap-3">
+		<section
+			class="overflow-hidden rounded-xl border border-app-border"
+			aria-label="Linux installation command"
 		>
-			<div
-				class="w-full max-w-full"
-			>
-				<div
-					class="flex items-center justify-between px-2 py-2"
+			<div class="flex items-center justify-between gap-2 border-b border-app-border bg-app-surface-2 px-3 py-1.5">
+				<span class="text-[13px] font-semibold text-app-text">Linux</span>
+				<AppButton
+					variant="ghost"
+					size="sm"
+					@click="copyCode(linuxCode, 'copy-linux')"
 				>
-					<span
-						class="text-sm font-bold capitalize text-black-087"
-					>linux</span>
-					<div class="inline-flex w-max cursor-pointer ml-3">
-						<button
-							class="hover:opacity-80 px-4 py-2 text-sm text-primary rounded inline-flex items-center duration-200 focus:outline-none hover:bg-primary-plain-hover focus:border-none focus:outline-none"
-							type="button"
-						>
-							<!---->
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								xmlns:xlink="http://www.w3.org/1999/xlink"
-								aria-hidden="true"
-								role="img"
-								class="icon"
-								width="16px"
-								height="16px"
-								viewBox="0 0 24 24"
-							><path
-								fill="currentColor"
-								d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m0 16H8V7h11z"
-							/></svg>
-							<span
-								class="ml-2 text-sm uppercase"
-							>Copy to Clipboard</span>
-						</button>
-					</div>
-				</div>
-				<div
-					class="max-w-full"
-				>
-					<InstallEditor
-						:code="linuxCode"
-						language="bash"
-						:disabled="disabled"
+					<Copy
+						class="h-4 w-4"
+						aria-hidden="true"
 					/>
-				</div>
+					Copy
+				</AppButton>
 			</div>
-			<div
-				class="w-full max-w-full"
-			>
-				<div
-					class="flex items-center justify-between px-2 py-2"
+			<InstallEditor
+				:code="linuxCode"
+				language="bash"
+				:disabled="disabled"
+			/>
+		</section>
+		<section
+			class="overflow-hidden rounded-xl border border-app-border"
+			aria-label="Windows installation command"
+		>
+			<div class="flex items-center justify-between gap-2 border-b border-app-border bg-app-surface-2 px-3 py-1.5">
+				<span class="text-[13px] font-semibold text-app-text">Windows</span>
+				<AppButton
+					variant="ghost"
+					size="sm"
+					@click="copyCode(windowsCode, 'copy-windows')"
 				>
-					<span
-						class="text-sm font-bold capitalize text-black-087"
-					>windows</span>
-					<div class="inline-flex w-max cursor-pointer ml-3">
-						<button
-							class="hover:opacity-80 px-4 py-2 text-sm text-primary rounded inline-flex items-center duration-200 focus:outline-none hover:bg-primary-plain-hover focus:border-none focus:outline-none"
-							type="button"
-						>
-							<!---->
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								xmlns:xlink="http://www.w3.org/1999/xlink"
-								aria-hidden="true"
-								role="img"
-								class="icon"
-								width="16px"
-								height="16px"
-								viewBox="0 0 24 24"
-							><path
-								fill="currentColor"
-								d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m0 16H8V7h11z"
-							/></svg>
-							<span
-								class="ml-2 text-sm uppercase"
-							>Copy to Clipboard</span>
-						</button>
-					</div>
-				</div>
-				<div
-					class="max-w-full"
-				>
-					<InstallEditor :code="windowsCode" />
-				</div>
+					<Copy
+						class="h-4 w-4"
+						aria-hidden="true"
+					/>
+					Copy
+				</AppButton>
 			</div>
-		</div>
+			<InstallEditor
+				:code="windowsCode"
+			/>
+		</section>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { Copy } from 'lucide-vue-next';
+import { useClipboard } from '@vueuse/core';
 import InstallEditor from '~/components/clients/InstallEditor.vue';
 
 interface Props {
@@ -102,7 +60,7 @@ interface Props {
 	disabled: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
 	disabled: false,
 });
 
@@ -110,4 +68,14 @@ const emit = defineEmits<{
 	'copy-linux': [code: string];
 	'copy-windows': [code: string];
 }>();
+
+const { copy } = useClipboard({ legacy: true });
+const snackbar = useSnackbar();
+
+const copyCode = async (code: string, event: 'copy-linux' | 'copy-windows') => {
+	await copy(code);
+	snackbar.add({ type: 'success', text: 'Command copied to clipboard' });
+	if (event === 'copy-linux') emit('copy-linux', code);
+	else emit('copy-windows', code);
+};
 </script>

@@ -20,7 +20,7 @@ class LibraryModule extends HttpFactory {
 		);
 	}
 
-	async deleteCommand(id: string): Promise<any> {
+	async deleteCommand(id: string): Promise<void> {
 		return await this.call('DELETE', `${this.RESOURCE}/commands/${id}`, undefined);
 	};
 
@@ -56,7 +56,7 @@ class LibraryModule extends HttpFactory {
 		);
 	}
 
-	async deleteScript(id: string): Promise<any> {
+	async deleteScript(id: string): Promise<void> {
 		return await this.call('DELETE', `${this.RESOURCE}/scripts/${id}`, undefined);
 	};
 

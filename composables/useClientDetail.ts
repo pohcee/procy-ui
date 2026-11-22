@@ -1,5 +1,3 @@
-import type { Client, ClientMetric } from '~/types';
-
 export const useClientDetail = () => {
 	const deviceId = useRoute().params.id;
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import type { ILoginInput, TwoFa } from '~/types';
+import { FetchError } from 'ofetch';
+import type { ApiErrorResponse, ILoginInput, TwoFa } from '~/types';
 
 export const useTokenStore = defineStore('token', {
 	state: () => ({
@@ -8,7 +9,7 @@ export const useTokenStore = defineStore('token', {
 		loading: false,
 		errors: [] as Array<string>,
 		two_fa: {} as TwoFa,
-		twoFaToken: null as string,
+		twoFaToken: null as string | null,
 	}),
 	actions: {
 		async getLoginToken(credentials: ILoginInput) {
@@ -32,12 +33,12 @@ export const useTokenStore = defineStore('token', {
 				}
 				this.loading = false;
 			}
-			catch (error: any) {
-				if (error.response && error.response.data && error.response.data.errors) {
-					const apiErrors = error.response.data.errors;
+			catch (error: unknown) {
+				const apiErrors = error instanceof FetchError ? (error.data as ApiErrorResponse | undefined)?.errors : undefined;
+				if (apiErrors) {
 					if (apiErrors.length > 0) {
 						const errorMessage = apiErrors[0].detail || apiErrors[0].title;
-						this.errors = errorMessage;
+						this.errors = [errorMessage];
 					}
 				}
 				else {
@@ -52,7 +53,7 @@ export const useTokenStore = defineStore('token', {
 			const token = useCookie<string>('token');
 			const is_authenticated = useCookie<boolean>('is_authenticated');
 			try {
-				const response = await $api.auth.verify2fa(credentials, this.twoFaToken, code);
+				const response = await $api.auth.verify2fa(credentials, this.twoFaToken ?? '', code);
 				if (response?.data.token) {
 					token.value = response.data.token;
 					is_authenticated.value = true;
@@ -60,7 +61,7 @@ export const useTokenStore = defineStore('token', {
 				}
 				this.loading = false;
 			}
-			catch (error: any) {
+			catch (error: unknown) {
 				this.$state.errors = ['An error occurred. Please try again later.'];
 				console.log(error);
 			}
@@ -76,9 +77,19 @@ export const useTokenStore = defineStore('token', {
 			this.twoFaToken = null;
 			this.errors = [];
 		},
-		logOut() {
+		async logOut() {
+			const { $api } = useNuxtApp();
 			const token = useCookie('token');
 			const is_authenticated = useCookie<boolean>('is_authenticated');
+			if (token.value) {
+				try {
+					// Invalidate the token server-side; clear local state regardless.
+					await $api.auth.logout(token.value);
+				}
+				catch (error) {
+					console.log(error);
+				}
+			}
 			this.authenticated = false;
 			token.value = null;
 			is_authenticated.value = false;

@@ -1,83 +1,96 @@
 <template>
-	<div class="h-full w-full flex-1">
-		<div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+	<div class="flex flex-col gap-4">
+		<AppCard
+			title="Audit log"
+			description="Recorded actions on this device."
+			flush
+		>
 			<div
 				v-if="pending"
-				class="p-6 text-center text-sm text-gray-500"
+				class="py-12 text-center text-sm text-app-text-3"
 			>
-				Loading audit log...
+				Loading audit log…
 			</div>
 			<div
 				v-else-if="entries.length === 0"
-				class="p-6 text-center text-sm text-gray-500"
+				class="py-12 text-center text-sm text-app-text-3"
 			>
 				No audit entries for this client.
 			</div>
-			<table
+			<div
 				v-else
-				class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+				class="overflow-x-auto"
 			>
-				<thead class="bg-gray-50 dark:bg-gray-950">
-					<tr>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Timestamp
-						</th>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Username
-						</th>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Application
-						</th>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Action
-						</th>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-					<tr
-						v-for="(entry, index) in entries"
-						:key="index"
-					>
-						<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-							{{ useDateFormat(entry.timestamp, 'YYYY-MM-DD HH:mm:ss').value }}
-						</td>
-						<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-800 dark:text-white">
-							{{ entry.username }}
-						</td>
-						<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-							{{ entry.application }}
-						</td>
-						<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-							{{ entry.action }}
-						</td>
-					</tr>
-				</tbody>
-			</table>
+				<table class="w-full min-w-[640px] border-collapse text-sm">
+					<thead>
+						<tr class="bg-app-surface-2">
+							<th
+								v-for="col in ['Timestamp', 'Username', 'Application', 'Action']"
+								:key="col"
+								scope="col"
+								class="border-b border-app-border whitespace-nowrap px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3"
+							>
+								{{ col }}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							v-for="(entry, index) in entries"
+							:key="index"
+							class="hover:bg-app-hover"
+						>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 font-mono text-[13px] text-app-text-2">
+								{{ useDateFormat(entry.timestamp, 'YYYY-MM-DD HH:mm:ss').value }}
+							</td>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 font-medium text-app-text">
+								{{ entry.username }}
+							</td>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3">
+								<span class="rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium text-app-text-2">{{ entry.application }}</span>
+							</td>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 text-app-text-2">
+								{{ entry.action }}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 			<div
 				v-if="entries.length > 0"
-				class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-950"
+				class="flex items-center justify-between gap-3 bg-app-surface-2 px-4 py-3 text-[13px] text-app-text-3"
 			>
-				<span class="text-xs text-gray-500">
+				<span>
 					Showing {{ 1 + page * ITEMS_PER_PAGE }} to {{ entries.length + page * ITEMS_PER_PAGE }} of {{ response?.meta?.count ?? 0 }} results
 				</span>
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-1">
 					<button
+						type="button"
+						aria-label="Previous page"
 						:disabled="page === 0"
-						class="rounded-full p-1 text-gray-500 disabled:cursor-not-allowed disabled:text-gray-300"
+						class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-app-text-2 hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-40"
 						@click="previous"
 					>
-						<ChevronLeft class="h-5 w-5" />
+						<ChevronLeft
+							class="h-4 w-4"
+							aria-hidden="true"
+						/>
 					</button>
 					<button
+						type="button"
+						aria-label="Next page"
 						:disabled="disabledNext"
-						class="rounded-full p-1 text-gray-500 disabled:cursor-not-allowed disabled:text-gray-300"
+						class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-app-text-2 hover:bg-app-hover disabled:cursor-not-allowed disabled:opacity-40"
 						@click="next"
 					>
-						<ChevronRight class="h-5 w-5" />
+						<ChevronRight
+							class="h-4 w-4"
+							aria-hidden="true"
+						/>
 					</button>
 				</div>
 			</div>
-		</div>
+		</AppCard>
 	</div>
 </template>
 

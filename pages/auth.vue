@@ -4,8 +4,8 @@
 		@login="handleLogin"
 	/>
 	<TwoFa
-		v-if="showTwoFa"
-		:send_to="store.two_fa?.send_to"
+		v-else
+		:send-to="store.two_fa?.send_to"
 		@code="handleTwoFa"
 		@resend="handleResend"
 		@cancel="handleCancel"

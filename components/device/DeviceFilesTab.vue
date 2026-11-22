@@ -1,238 +1,196 @@
 <template>
-	<div class="h-full w-full flex-1">
-		<div class="relative">
-			<div class="min-h-[400px]">
-				<div class="relative mb-4 rounded border border-theme-border">
-					<input
-						id="file"
-						ref="fileInputRef"
-						type="file"
-						class="h-15 w-full opacity-0"
-						placeholder=" "
-						@change="handleFileChange"
-					><svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="20px"
-						height="20px"
-						viewBox="0 0 24 24"
-						class="icon absolute top-1/2 left-2.5 -trangray-y-1/2 transform text-theme-label"
+	<div class="flex flex-col gap-4">
+		<AppCard
+			title="Upload a file"
+			description="Copy a local file to this device."
+		>
+			<div class="flex max-w-3xl flex-col gap-4">
+				<div class="flex flex-col gap-1.5">
+					<span
+						id="device-file-label"
+						class="text-[13px] font-medium text-app-text-2"
+					>Local file</span>
+					<label
+						for="device-file"
+						class="relative flex min-h-[88px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-app-border-strong bg-app-surface-2 px-4 py-4 text-center hover:bg-app-hover focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-app-accent"
 					>
-						<path
-							fill="currentColor"
-							d="M9 16h6v-6h4l-7-7l-7 7h4v6zm3-10.17L14.17 8H13v6h-2V8H9.83L12 5.83zM5 18h14v2H5z"
-						/></svg><label
-						for="file"
-						class="absolute top-1/2 z-10 origin-[0] transform bg-theme py-0 px-1 text-sm font-normal text-theme-label duration-300 left-8 -trangray-y-1/2"
-					>{{ selectedFile?.name || 'Local file to be uploaded' }}</label>
-				</div>
-				<div class="flex flex-col mb-4">
-					<div class="relative mt-1 flex w-full flex-col">
+						<Upload
+							class="h-5 w-5 text-app-text-3"
+							aria-hidden="true"
+						/>
+						<span
+							v-if="selectedFile"
+							class="break-all font-mono text-[13px] text-app-text"
+						>{{ selectedFile.name }}</span>
+						<span
+							v-else
+							class="text-sm text-app-text-2"
+						>Choose a local file to upload</span>
 						<input
-							id="RnW14XEFRT"
-							v-model="dest"
-							class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							placeholder=" "
+							id="device-file"
+							ref="fileInputRef"
+							type="file"
+							aria-labelledby="device-file-label"
+							class="sr-only"
+							@change="handleFileChange"
+						>
+					</label>
+				</div>
+				<div class="flex flex-col gap-1.5">
+					<label
+						for="device-file-dest"
+						class="text-[13px] font-medium text-app-text-2"
+					>Remote path</label>
+					<input
+						id="device-file-dest"
+						v-model="dest"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						placeholder="/tmp/test.txt or C:\Windows\temp\test.txt"
+						type="text"
+						autocomplete="off"
+					>
+					<p class="text-xs text-app-text-3">
+						Folder and file name on the device.
+					</p>
+				</div>
+
+				<label class="flex min-h-11 cursor-pointer items-center justify-between gap-4 rounded-[10px] border border-app-border px-4 py-2.5">
+					<span class="flex flex-col">
+						<span class="text-sm font-medium text-app-text">Force overwrite</span>
+						<span class="text-xs text-app-text-3">Replace the file if it already exists (optional).</span>
+					</span>
+					<input
+						v-model="force"
+						type="checkbox"
+						role="switch"
+						class="peer sr-only"
+						value="1"
+					>
+					<span
+						aria-hidden="true"
+						class="relative h-6 w-11 flex-none rounded-full bg-app-border-strong transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-[''] peer-checked:bg-app-accent peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-app-accent"
+					/>
+				</label>
+
+				<label class="flex min-h-11 cursor-pointer items-center justify-between gap-4 rounded-[10px] border border-app-border px-4 py-2.5">
+					<span class="flex flex-col">
+						<span class="text-sm font-medium text-app-text">Sync</span>
+						<span class="text-xs text-app-text-3">Skip the copy when the destination already matches (optional).</span>
+					</span>
+					<input
+						v-model="sync"
+						type="checkbox"
+						role="switch"
+						class="peer sr-only"
+						value="1"
+					>
+					<span
+						aria-hidden="true"
+						class="relative h-6 w-11 flex-none rounded-full bg-app-border-strong transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-[''] peer-checked:bg-app-accent peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-app-accent"
+					/>
+				</label>
+
+				<div
+					class="flex items-start gap-3 rounded-lg bg-app-blue-bg px-4 py-3 text-[13px] text-app-blue"
+					role="note"
+				>
+					<Info
+						class="mt-0.5 h-4 w-4 flex-none"
+						aria-hidden="true"
+					/>
+					<p>
+						If sync is enabled, the client looks if a file already exists on the destination. If the md5 sum of the destination equals the md5 sum of the source, and if the ownership and mode are as desired (Linux only), the copy is skipped, and the process is considered successful.
+					</p>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label
+						for="device-file-mode"
+						class="text-[13px] font-medium text-app-text-2"
+					>Mode (optional)</label>
+					<input
+						id="device-file-mode"
+						v-model="mode"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						placeholder="0500"
+						type="text"
+						autocomplete="off"
+					>
+					<p class="text-xs text-app-text-3">
+						Permissions of the remote file in four-digit numeric octal notation, e.g. 0500.
+					</p>
+				</div>
+
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<div class="flex flex-col gap-1.5">
+						<label
+							for="device-file-user"
+							class="text-[13px] font-medium text-app-text-2"
+						>User (optional)</label>
+						<input
+							id="device-file-user"
+							v-model="user"
+							class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+							placeholder="root"
 							type="text"
 							autocomplete="off"
-						><label
-							class="absolute left-1.5 top-1.5 z-10 origin-[0] -trangray-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-trangray-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-trangray-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
-							for="RnW14XEFRT"
-						>Remote path (folder + file name, e.g. /tmp/test.txt,
-							C:\Windows\temp\test.txt)</label>
+						>
+					</div>
+
+					<div class="flex flex-col gap-1.5">
+						<label
+							for="device-file-group"
+							class="text-[13px] font-medium text-app-text-2"
+						>Group (optional)</label>
+						<input
+							id="device-file-group"
+							v-model="group"
+							class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+							placeholder="root"
+							type="text"
+							autocomplete="off"
+						>
 					</div>
 				</div>
 				<div
-					class="mb-4 mb-4 flex h-15 items-center justify-between rounded border border-theme-border px-4 text-sm font-normal text-theme-label text-theme-inverted"
+					class="flex items-start gap-3 rounded-lg bg-app-blue-bg px-4 py-3 text-[13px] text-app-blue"
+					role="note"
 				>
-					<div>Force overwriting existing files (optional)</div>
-					<label class="relative inline-flex cursor-pointer items-center text-theme-label"><input
-							v-model="force"
-							type="checkbox"
-							class="peer sr-only"
-							value="1"
-						>
-						<div
-							class="after:border-theme-border peer-checked:bg-blue-600 peer-checked:after:border-white bg-black bg-opacity-30 peer h-6 w-11 rounded-full after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:trangray-x-full peer-focus:ring-0"
-						/></label>
+					<Info
+						class="mt-0.5 h-4 w-4 flex-none"
+						aria-hidden="true"
+					/>
+					<p>
+						Specify the user and group the file should belong to. If not set, the file is owned by the user and group that runs the rport client.
+					</p>
 				</div>
-				<div
-					class="mb-4 mb-4 flex h-15 items-center justify-between rounded border border-theme-border px-4 text-sm font-normal text-theme-label text-theme-inverted"
-				>
-					<div>Sync (optional)</div>
-					<label class="relative inline-flex cursor-pointer items-center text-theme-label"><input
-							v-model="sync"
-							type="checkbox"
-							class="peer sr-only"
-							value="1"
-						>
-						<div
-							class="after:border-theme-border peer-checked:bg-blue-600 peer-checked:after:border-white bg-black bg-opacity-30 peer h-6 w-11 rounded-full after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:trangray-x-full peer-focus:ring-0"
-						/></label>
-				</div>
-				<div
-					class="mb-4 flex items-start items-center gap-2 rounded bg-primary-100 p-2 text-sm font-normal text-white md:gap-4 md:p-4"
-					role="alert"
-				>
-					<div class="min-w-[22px]">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="22px"
-							height="22px"
-							viewBox="0 0 24 24"
-							class="icon text-current"
-						>
-							<g
-								fill="none"
-								stroke="currentColor"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-							>
-								<circle
-									cx="12"
-									cy="12"
-									r="9"
-								/>
-								<path d="M12 15v-3m0-3v0" />
-							</g>
-						</svg>
-					</div>
-					<div>
-						If sync is enabled, the client looks if a file already exists on the
-						destination. If the md5 sum of the destination equals the md5 sum of the
-						source, and if the ownership and mode are as desired (Linux only) , the copy
-						is skipped, and the process is considered successfully.
-					</div>
-				</div>
-				<div>
-					<div class="flex flex-col mb-4">
-						<div class="relative mt-1 flex w-full flex-col">
-							<input
-								id="2oGR1W3hIL"
-								v-model="mode"
-								class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-								placeholder=" "
-								type="text"
-								autocomplete="off"
-							><label
-								class="absolute left-1.5 top-1.5 z-10 origin-[0] -trangray-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-trangray-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-trangray-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
-								for="2oGR1W3hIL"
-							>Mode (optional)</label>
-						</div>
-					</div>
-					<div
-						class="mb-4 flex items-start items-center gap-2 rounded bg-primary-100 p-2 text-sm font-normal text-white md:gap-4 md:p-4"
-						role="alert"
-					>
-						<div class="min-w-[22px]">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="22px"
-								height="22px"
-								viewBox="0 0 24 24"
-								class="icon text-current"
-							>
-								<g
-									fill="none"
-									stroke="currentColor"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								>
-									<circle
-										cx="12"
-										cy="12"
-										r="9"
-									/>
-									<path d="M12 15v-3m0-3v0" />
-								</g>
-							</svg>
-						</div>
-						<div>
-							Enter the file permissions (mode) of the remote file using four-digit
-							numeric octal notation. e.g. 0500
-						</div>
-					</div>
-					<div class="flex flex-col mb-4">
-						<div class="relative mt-1 flex w-full flex-col">
-							<input
-								id="3cPWo0AEGh"
-								v-model="user"
-								class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-								placeholder=" "
-								type="text"
-								autocomplete="off"
-							><label
-								class="absolute left-1.5 top-1.5 z-10 origin-[0] -trangray-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-trangray-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-trangray-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
-								for="3cPWo0AEGh"
-							>User (optional)</label>
-						</div>
-					</div>
-					<div class="flex flex-col mb-4">
-						<div class="relative mt-1 flex w-full flex-col">
-							<input
-								id="zhW7rlIlkK"
-								v-model="group"
-								class="h-15 primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-								placeholder=" "
-								type="text"
-								autocomplete="off"
-							><label
-								class="absolute left-1.5 top-1.5 z-10 origin-[0] -trangray-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-trangray-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-trangray-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
-								for="zhW7rlIlkK"
-							>Group (optional)</label>
-						</div>
-					</div>
-					<div
-						class="mb-4 flex items-start items-center gap-2 rounded bg-primary-100 p-2 text-sm font-normal text-white md:gap-4 md:p-4"
-						role="alert"
-					>
-						<div class="min-w-[22px]">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="22px"
-								height="22px"
-								viewBox="0 0 24 24"
-								class="icon text-current"
-							>
-								<g
-									fill="none"
-									stroke="currentColor"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-								>
-									<circle
-										cx="12"
-										cy="12"
-										r="9"
-									/>
-									<path d="M12 15v-3m0-3v0" />
-								</g>
-							</svg>
-						</div>
-						<div>
-							Specify the user and group the file should belong to. If not set, the file
-							is owned by the user and group that runs the rport client.
-						</div>
-					</div>
-				</div>
-				<div class="flex items-center justify-center py-4">
-					<button
-						class="hover:opacity-80 px-6 py-3 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none mx-auto mt-2 bg-secondary text-sm font-bold uppercase text-black shadow-3xl disabled:cursor-not-allowed disabled:opacity-50"
-						type="button"
+
+				<div class="flex justify-end border-t border-app-border-subtle pt-4">
+					<AppButton
 						:disabled="!selectedFile || !dest || isUploading"
 						@click="upload"
 					>
-						{{ isUploading ? 'Uploading...' : 'Upload' }}
-					</button>
+						<Loader2
+							v-if="isUploading"
+							class="h-4 w-4 animate-spin"
+							aria-hidden="true"
+						/>
+						<Upload
+							v-else
+							class="h-4 w-4"
+							aria-hidden="true"
+						/>
+						{{ isUploading ? 'Uploading…' : 'Upload' }}
+					</AppButton>
 				</div>
 			</div>
-		</div>
+		</AppCard>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { Info, Loader2, Upload } from 'lucide-vue-next';
+
 const props = defineProps({
 	device: {
 		type: Object,

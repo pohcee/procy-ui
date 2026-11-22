@@ -1,100 +1,115 @@
 <template>
 	<form
-		class="w-full max-w-[400px]"
+		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-sm sm:p-8"
 		novalidate
 		@submit.prevent="verifyTwoFa"
 	>
-		<h1 class="pb-6 text-3xl">
-			Verify it's you
-		</h1>
 		<div>
-			<div>
-				<p class="text-sm">
-					We've sent you a verification code to <b>{{ send_to }}</b>.
-					Please enter it below.
-				</p>
-			</div>
-			<div class="flex flex-col mt-2">
-				<div class="relative mt-1 flex w-full flex-col">
-					<input
-						id="code"
-						v-model="code"
-						class="primary p-2.5 input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						type="text"
-						autocomplete="off"
-					>
-					<label
-						for="code"
-						class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
-					>
-						Enter your 2FA code
-					</label>
-				</div>
-			</div>
-			<div class="mt-6 flex items-center justify-start">
+			<span
+				class="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-app-blue-bg text-app-blue"
+				aria-hidden="true"
+			>
+				<ShieldCheck class="h-6 w-6" />
+			</span>
+			<h1 class="text-2xl font-bold tracking-tight text-app-text">
+				Verify it’s you
+			</h1>
+			<p class="mt-1.5 text-sm text-app-text-3">
+				<template v-if="sendTo">
+					We’ve sent a verification code to <span class="font-medium text-app-text">{{ sendTo }}</span>. Enter it below.
+				</template>
+				<template v-else>
+					Enter the code from your authenticator app.
+				</template>
+			</p>
+		</div>
+
+		<div class="flex flex-col gap-1.5">
+			<label
+				for="code"
+				class="text-[13px] font-medium text-app-text-2"
+			>Verification code</label>
+			<input
+				id="code"
+				v-model="code"
+				type="text"
+				inputmode="numeric"
+				autocomplete="one-time-code"
+				class="h-12 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 font-mono text-lg tracking-[0.3em] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+			>
+		</div>
+
+		<div
+			v-if="attempted && errors.length > 0"
+			class="flex items-start gap-2.5 rounded-[10px] border border-app-border bg-app-danger-bg p-3 text-sm text-app-danger"
+			role="alert"
+		>
+			<CircleAlert
+				class="mt-px h-[18px] w-[18px] shrink-0"
+				aria-hidden="true"
+			/>
+			<span class="block first-letter:uppercase">{{ errors[0] }}</span>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<button
+				type="submit"
+				:disabled="loading"
+				class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-app-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-app-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent disabled:cursor-wait disabled:opacity-70"
+			>
+				<LoaderCircle
+					v-if="loading"
+					class="h-4 w-4 animate-spin"
+					aria-hidden="true"
+				/>
+				<span
+					v-if="loading"
+					class="sr-only"
+				>Verifying…</span>
+				Verify
+			</button>
+			<div class="flex items-center justify-between gap-2">
 				<button
-					class="hover:opacity-80 px-6 py-3 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-primary"
-					type="submit"
-					@click.prevent="verifyTwoFa"
+					type="button"
+					class="inline-flex h-11 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-app-text-2 transition-colors hover:bg-app-hover hover:text-app-text"
+					@click="handleCancel"
 				>
-					<div
-						v-show="loading"
-						role="status"
-					>
-						<svg
-							aria-hidden="true"
-							class="inline w-6 h-6 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-							viewBox="0 0 100 101"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-								fill="currentColor"
-							/>
-							<path
-								d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-								fill="currentFill"
-							/>
-						</svg>
-						<span class="sr-only">Loading...</span>
-					</div>
-					Verify
+					<ArrowLeft
+						class="h-4 w-4"
+						aria-hidden="true"
+					/>
+					Back to sign in
 				</button>
-				<div class="flex flex-grow justify-end">
-					<button
-						class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-gray-300 plain disabled:pointer-events-none disabled:opacity-50"
-						type="button"
-						:disabled="loading"
-						@click="handleResend"
-					>
-						Resend
-					</button>
-					<button
-						class="hover:opacity-80 px-4 py-2 text-sm text-white rounded inline-flex items-center duration-200 focus:outline-none bg-gray-300 plain"
-						type="button"
-						@click="handleCancel"
-					>
-						Cancel
-					</button>
-				</div>
+				<button
+					type="button"
+					:disabled="loading"
+					class="inline-flex h-11 items-center rounded-[10px] px-3 text-sm font-medium text-app-link transition-colors hover:bg-app-hover disabled:pointer-events-none disabled:opacity-50"
+					@click="handleResend"
+				>
+					Resend code
+				</button>
 			</div>
 		</div>
 	</form>
 </template>
 
 <script setup lang="ts">
+import { ArrowLeft, CircleAlert, LoaderCircle, ShieldCheck } from 'lucide-vue-next';
+
 const store = useTokenStore();
 const { errors, loading } = storeToRefs(store);
-const props = defineProps({
-	send_to: {
+defineProps({
+	sendTo: {
 		type: String,
 		default: '',
 	},
 });
 const code = ref('');
+// Only surface store errors caused by a verification attempt made on this screen.
+const attempted = ref(false);
 const emit = defineEmits(['code', 'resend', 'cancel']);
 const verifyTwoFa = async () => {
+	attempted.value = true;
 	emit('code', code.value);
 };
 const handleResend = () => {

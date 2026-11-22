@@ -1,8 +1,9 @@
 <template>
-	<div class="flex h-full min-h-screen">
-		<NewSidebar />
-		<slot />
-		<NuxtSnackbar/>
+	<div>
+		<AppShell>
+			<slot />
+		</AppShell>
+		<NuxtSnackbar />
 	</div>
 </template>
 

@@ -1,192 +1,98 @@
 <template>
-	<div
-		class="flex flex-1 flex-col divide-y divide-gray-50 overflow-hidden rounded-lg bg-white shadow dark:divide-gray-700 dark:bg-gray-900"
-	>
-		<div class="px-4 py-4 sm:flex sm:items-center sm:px-6">
-			<div class="flex h-16 flex-1 content-center items-center">
-				<h3 class="text-xl font-semibold leading-7 text-gray-900 dark:text-gray-50">
-					CPU, memory &amp; disks
-				</h3>
-				<p
-					class="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-500"
+	<AppCard title="CPU, memory & disks">
+		<template #actions>
+			<AppButton
+				variant="secondary"
+				size="sm"
+				:disabled="isLoading"
+				@click="reload"
+			>
+				<RefreshCw
+					:class="['h-3.5 w-3.5', isLoading ? 'animate-spin' : '']"
+					aria-hidden="true"
+				/>
+				Reload
+			</AppButton>
+		</template>
+		<DeviceKv
+			:items="[
+				...(device?.cpu_family ? [{ label: 'CPU family', value: device.cpu_family }] : []),
+				{ label: 'CPU model', value: device?.cpu_model },
+				{ label: 'CPU model name', value: device?.cpu_model_name },
+				{ label: 'Number of CPUs', value: device?.num_cpus },
+				{ label: 'Total memory', value: device?.mem_total ? bytesToSize(device.mem_total) : '' },
+			]"
+		/>
+		<div
+			v-if="metrics.length > 0"
+			class="mt-4 flex flex-col gap-3 border-t border-app-border-subtle pt-4"
+		>
+			<div
+				v-for="bar in bars"
+				:key="bar.label"
+			>
+				<div class="flex justify-between text-[13px]">
+					<span class="font-medium text-app-text-3">{{ bar.label }}</span>
+					<span class="font-semibold text-app-text">{{ bar.value }}%</span>
+				</div>
+				<UsageMeter
+					:label="bar.label"
+					:value="Number(bar.value)"
+					class="mt-1.5"
 				/>
 			</div>
-			<div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-				<button
-					class="bg-primary-800 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-					type="button"
-				>
-					<!----><!----><span class="flex items-center justify-center gap-x-2"><!----><svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="14px"
-						height="14px"
-						viewBox="0 0 24 24"
-						class="icon"
-					>
-						<path
-							fill="currentColor"
-							d="M2 12a9 9 0 0 0 9 9c2.39 0 4.68-.94 6.4-2.6l-1.5-1.5A6.706 6.706 0 0 1 11 19c-6.24 0-9.36-7.54-4.95-11.95C10.46 2.64 18 5.77 18 12h-3l4 4h.1l3.9-4h-3a9 9 0 0 0-18 0Z"
-						/>
-					</svg>
-						Reload</span>
-				</button><!---->
-			</div>
 		</div>
-		<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
-			<div class="h-full w-full">
-				<div>
-					<table class="w-full">
-						<tbody>
-							<tr
-								v-if="device?.cpu_family?.length > 0"
-								class="flex flex-col md:table-row"
-							>
-								<td class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min">
-									CPU Family:
-								</td>
-								<td class="w-full p-1">
-									{{ device?.cpu_family }}
-								</td>
-							</tr>
-							<tr class="flex flex-col md:table-row">
-								<td
-									class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min"
-								>
-									CPU Model:
-								</td>
-								<td class="w-full p-1">
-									{{ device?.cpu_model }}
-								</td>
-							</tr>
-							<tr class="flex flex-col md:table-row">
-								<td
-									class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min"
-								>
-									CPU Model Name:
-								</td>
-								<td class="w-full p-1">
-									{{ device?.cpu_model_name }}
-								</td>
-							</tr>
-							<tr class="flex flex-col md:table-row">
-								<td
-									class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min"
-								>
-									Number of CPUs:
-								</td>
-								<td class="w-full p-1">
-									{{ device?.num_cpus }}
-								</td>
-							</tr>
-							<tr
-								v-if="metrics.length > 0"
-								class="flex flex-col md:table-row"
-							>
-								<td class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min">
-									CPU Usage ( {{ cpu_usage_percent }} %):
-								</td>
-								<td class="w-full p-1">
-									<div class="h-3 w-full bg-gray-200">
-										<div
-											class="bg-primary h-full"
-											:style="{ width: `${cpu_usage_percent}%` }"
-										/>
-									</div>
-								</td>
-							</tr>
-							<tr class="flex flex-col md:table-row">
-								<td class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min">
-									Total Memory:
-								</td>
-								<td class="w-full p-1">
-									{{ bytesToSize(device?.mem_total) }}
-								</td>
-							</tr>
-							<tr
-								v-if="metrics.length > 0"
-								class="flex flex-col md:table-row"
-							>
-								<td class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min">
-									Memory Usage ({{ memory_usage_percent }}%):
-								</td>
-								<td class="w-full p-1">
-									<div class="h-3 w-full bg-gray-200">
-										<div
-											class="bg-primary h-full"
-											:style="{ width: `${memory_usage_percent}%` }"
-										/>
-									</div>
-								</td>
-							</tr>
-							<tr
-								v-if="metrics.length > 0"
-								class="flex flex-col md:table-row"
-								:style="{ width: `${io_usage_percent}%` }"
-							>
-								<td class="w-full whitespace-nowrap p-1 font-medium tracking-tight text-primary md:w-fit md:min-w-min">
-									IO Usage ({{ io_usage_percent }}%):
-								</td>
-								<td class="w-full p-1">
-									<div class="h-3 w-full bg-gray-200">
-										<div
-											class="bg-primary h-full"
-											:style="{ width: `${io_usage_percent}%` }"
-										/>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-						<!---->
-					</table>
-					<div
-						v-if="disks.length > 0"
-						class="mt-4"
-					>
-						<h4 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-50">
-							Disks
-						</h4>
-						<DeviceDiskUsageList :disks="disks" />
-					</div>
-				</div>
-			</div>
+		<div
+			v-if="disks.length > 0"
+			class="mt-4 border-t border-app-border-subtle pt-4"
+		>
+			<h3 class="mb-2.5 text-[13px] font-semibold text-app-text-3">
+				Disks
+			</h3>
+			<DeviceDiskUsageList :disks="disks" />
 		</div>
-		<!---->
-	</div>
+	</AppCard>
 </template>
 
-<script setup>
-import { bytesToSize } from '../../lib/utils';
+<script setup lang="ts">
+import { RefreshCw } from 'lucide-vue-next';
+import DeviceKv from '~/components/device/DeviceKv.vue';
+import UsageMeter from '~/components/device/UsageMeter.vue';
+import { bytesToSize } from '~/lib/utils';
+import type { Client, ClientMetric, DiskUsage } from '~/types';
 
-const props = defineProps({
-	device: {
-		type: Object,
-		required: true,
-	},
-	metrics: {
-		type: Array,
-		default: () => [],
-	},
-	disks: {
-		type: Array,
-		default: () => [],
-	},
+const props = withDefaults(defineProps<{
+	device: Client;
+	metrics?: ClientMetric[];
+	disks?: DiskUsage[];
+}>(), {
+	metrics: () => [],
+	disks: () => [],
 });
-const memory_usage_percent = computed(() => {
-	if (props.metrics.length <= 0) {
-		return 0;
+
+const clientStore = useClientStore();
+const isLoading = ref(false);
+
+// Metrics come newest-first from the API.
+const latest = computed(() => props.metrics[0]);
+const pct = (n: number | undefined) => parseFloat(String(n ?? 0)).toFixed(2);
+const bars = computed(() => [
+	{ label: 'CPU usage', value: pct(latest.value?.cpu_usage_percent) },
+	{ label: 'Memory usage', value: pct(latest.value?.memory_usage_percent) },
+	{ label: 'IO usage', value: pct(latest.value?.io_usage_percent) },
+]);
+
+async function reload() {
+	if (!props.device?.id) return;
+	isLoading.value = true;
+	try {
+		await Promise.all([
+			clientStore.loadMetrics(props.device.id),
+			clientStore.loadMountpoints(props.device.id),
+		]);
 	}
-	return parseFloat(String(props.metrics[0].memory_usage_percent)).toFixed(2);
-});
-const cpu_usage_percent = computed(() => {
-	if (props.metrics.length <= 0) {
-		return 0;
+	finally {
+		isLoading.value = false;
 	}
-	return parseFloat(String(props.metrics[0].cpu_usage_percent)).toFixed(2);
-});
-const io_usage_percent = computed(() => {
-	if (props.metrics.length <= 0) {
-		return 0;
-	}
-	return parseFloat(String(props.metrics[0].io_usage_percent)).toFixed(2);
-});
+}
 </script>

@@ -16,7 +16,7 @@ class GroupsModule extends HttpFactory {
 			`${this.RESOURCE}?page[limit]=${itemPerPage}&page[offset]=${offset}&fields[client_groups]=id,description,params,allowed_user_groups`, undefined);
 	}
 
-	async create(payload: Partial<ClientGroup>): Promise<any> {
+	async create(payload: Partial<ClientGroup>): Promise<void> {
 		return this.call(
 			HttpMethod.POST,
 			`${this.RESOURCE}`,
@@ -24,7 +24,7 @@ class GroupsModule extends HttpFactory {
 		);
 	}
 
-	async show(group_id: string, params?: any): Promise<any> {
+	async show(group_id: string): Promise<{ data: ClientGroup }> {
 		return this.call(
 			'GET',
 			`${this.RESOURCE}/${group_id}`,
@@ -32,7 +32,7 @@ class GroupsModule extends HttpFactory {
 		);
 	}
 
-	async update(group_id: string, payload: Partial<ClientGroup>): Promise<any> {
+	async update(group_id: string, payload: Partial<ClientGroup>): Promise<void> {
 		return this.call(
 			'PUT',
 			`${this.RESOURCE}/${group_id}`,
@@ -40,7 +40,7 @@ class GroupsModule extends HttpFactory {
 		);
 	}
 
-	async delete(group_id: string): Promise<any> {
+	async delete(group_id: string): Promise<void> {
 		return this.call(
 			'DELETE',
 			`${this.RESOURCE}/${group_id}`,

@@ -5,7 +5,9 @@
 </template>
 
 <script setup>
-const props = defineProps({
+defineOptions({ name: 'TabPanel' });
+
+defineProps({
 	isActive: {
 		type: Boolean,
 		required: true,

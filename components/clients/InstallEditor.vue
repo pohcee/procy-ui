@@ -1,5 +1,5 @@
 <template>
-	<div class="core-code-editor line-numbers my-0 min-h-[42px] bg-gray-700">
+	<div class="core-code-editor line-numbers my-0 min-h-[42px] max-h-[220px] overflow-auto bg-[#0F151D]">
 		<prism-editor
 			v-model="codeEdit"
 			class="my-editor p-2"
@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css';
-import { highlight, languages } from 'prismjs/components/prism-core';
+import { highlight } from 'prismjs/components/prism-core';
 import prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 
@@ -33,17 +33,17 @@ const highlighter = (code: string) => {
 
 <style scoped>
 .my-editor {
-    font-family: Fira code,Fira Mono,Consolas,Menlo,Courier,monospace
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
 }
 
 .prism-editor__textarea:focus {
     outline: none
 }
 .core-code-editor {
-    --tw-text-opacity: 1;
-    color: #fff;
-    color: rgb(255 255 255/var(--tw-text-opacity));
-    font-size: .875rem;
+    color: #E6EBF2;
+    font-size: .8125rem;
     font-weight: 400;
     line-height: 1.25rem;
     margin-bottom: 0;

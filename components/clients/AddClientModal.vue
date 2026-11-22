@@ -8,100 +8,94 @@
 		@close="close"
 		@ok="save"
 	>
-		<div class="flex flex-col mt-4">
-			<div class="relative mt-1 flex w-full flex-col">
-				<input
-					v-model="client.id"
-					:class="['primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm', { error: errors.id }]"
-					placeholder=" "
-					type="text"
-					autocomplete="off"
-				>
+		<div class="flex flex-col gap-5">
+			<div class="flex flex-col gap-1.5">
 				<label
-					class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
+					for="add-client-id"
+					class="text-[13px] font-medium text-app-text-2"
 				>ID</label>
-			</div>
-			<p
-				v-if="errors.id"
-				class="mt-1 pl-1 text-sm text-red-500"
-			>
-				{{ errors.id }}
-			</p>
-			<div class="caption mb-6 mt-1 px-3 text-[10.5px] tracking-[0.35px] text-theme-inverted text-opacity-80">
-				Use meaningful names as ID to organize your clients better or <a
-					class="text-primary underline"
-					href="#"
-					@click.prevent="generateRandomID"
-				>generate a random ID </a> instead.
-			</div>
-		</div>
-		<div class="flex flex-col mt-4">
-			<div class="relative mt-1 flex w-full flex-col">
 				<input
-					v-model="client.password"
-					:class="['primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm', { error: errors.password }]"
-					placeholder=" "
+					id="add-client-id"
+					v-model="client.id"
+					:class="['h-11 w-full rounded-[10px] border bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30', errors.id ? 'border-app-danger' : 'border-app-border-strong']"
 					type="text"
 					autocomplete="off"
+					:aria-invalid="!!errors.id"
+					:aria-describedby="errors.id ? 'add-client-id-error' : 'add-client-id-hint'"
 				>
-				<label class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal">Password</label>
+				<p
+					v-if="errors.id"
+					id="add-client-id-error"
+					class="text-[13px] text-app-danger"
+				>
+					{{ errors.id }}
+				</p>
+				<p
+					id="add-client-id-hint"
+					class="text-xs text-app-text-3"
+				>
+					Use meaningful names as ID to organize your clients better or <button
+						type="button"
+						class="font-medium text-app-link underline hover:no-underline"
+						@click="generateRandomID"
+					>
+						generate a random ID
+					</button> instead.
+				</p>
 			</div>
-			<p
-				v-if="errors.password"
-				class="mt-1 pl-1 text-sm text-red-500"
+			<div class="flex flex-col gap-1.5">
+				<div class="flex items-baseline justify-between">
+					<label
+						for="add-client-password"
+						class="text-[13px] font-medium text-app-text-2"
+					>Password</label>
+					<span
+						class="text-xs text-app-text-3"
+						aria-live="polite"
+					>{{ client.password.length }} characters</span>
+				</div>
+				<input
+					id="add-client-password"
+					v-model="client.password"
+					:class="['h-11 w-full rounded-[10px] border bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30', errors.password ? 'border-app-danger' : 'border-app-border-strong']"
+					type="text"
+					autocomplete="off"
+					:aria-invalid="!!errors.password"
+					:aria-describedby="errors.password ? 'add-client-password-error' : undefined"
+				>
+				<p
+					v-if="errors.password"
+					id="add-client-password-error"
+					class="text-[13px] text-app-danger"
+				>
+					{{ errors.password }}
+				</p>
+			</div>
+			<div
+				class="flex flex-col gap-2 rounded-lg bg-app-blue-bg px-4 py-3 text-[13px] text-app-blue"
+				role="note"
 			>
-				{{ errors.password }}
-			</p>
-			<div class="mb-4 mt-2 px-3 text-right text-sm font-normal tracking-[0.35px] text-theme-inverted text-opacity-80">
-				{{ client.password.length }}
-			</div>
-		</div>
-		<div class="relative mt-1 flex px-4 py-2 text-sm font-normal text-primary before:absolute before:inset-0 before:bg-primary before:bg-opacity-10">
-			<div class="mr-4">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					xmlns:xlink="http://www.w3.org/1999/xlink"
-					aria-hidden="true"
-					role="img"
-					class="icon relative z-20 h-5 w-5"
-					width="24px"
-					height="24px"
-					viewBox="0 0 24 24"
-				>
-					<path
-						fill="currentColor"
-						d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"
+				<p class="flex items-start gap-3">
+					<Info
+						class="mt-0.5 h-4 w-4 flex-none"
+						aria-hidden="true"
 					/>
-
-				</svg>
-			</div>
-			<div class="relative z-20">
-				The password must be at least 12 characters long. Only Alphanumeric and the following special characters _ + - . : are allowed.
-			</div>
-		</div>
-		<div class="relative mt-1 flex px-4 py-2 text-sm font-normal text-primary before:absolute before:inset-0 before:bg-primary before:bg-opacity-10">
-			<div class="mr-4">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					xmlns:xlink="http://www.w3.org/1999/xlink"
-					aria-hidden="true"
-					role="img"
-					class="icon relative z-20 h-5 w-5"
-					width="24px"
-					height="24px"
-					viewBox="0 0 24 24"
-				><path
-					fill="currentColor"
-					d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"
-				/></svg>
-			</div><div class="relative z-20">
-				The ID and the password are case-sensitive.
+					The password must be at least 12 characters long. Only alphanumeric and the following special characters _ + - . : are allowed.
+				</p>
+				<p class="flex items-start gap-3">
+					<Info
+						class="mt-0.5 h-4 w-4 flex-none"
+						aria-hidden="true"
+					/>
+					The ID and the password are case-sensitive.
+				</p>
 			</div>
 		</div>
 	</Modal>
 </template>
 
 <script setup lang="ts">
+import { Info } from 'lucide-vue-next';
 import Modal from '~/components/Modal.vue';
 import { randomID, randomSanitizedPassword } from '~/lib/utils';
 
@@ -138,7 +132,7 @@ const save = async () => {
 	}
 };
 
-const showClientAccess = async (data) => {
+const showClientAccess = async (data: { id: string }) => {
 	try {
 		const response = await $api.clientAuth.show(data.id);
 		if (response?.id) {
@@ -147,7 +141,7 @@ const showClientAccess = async (data) => {
 		}
 		return true;
 	}
-	catch (e) {
+	catch {
 		return true;
 	}
 };

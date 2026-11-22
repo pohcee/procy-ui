@@ -1,113 +1,59 @@
 <template>
-	<div
-		class="flex flex-col flex-1 overflow-hidden bg-white divide-y rounded-lg shadow divide-gray-50 dark:divide-gray-700 dark:bg-gray-900"
-	>
-		<div class="px-4 py-4 sm:flex sm:items-center sm:px-6">
-			<div class="flex items-center content-center flex-1 max-h-16">
-				<h3 class="text-xl font-semibold leading-7 text-gray-900 dark:text-gray-50">
-					IP Addresses
-				</h3>
-				<p class="max-w-2xl mt-1 text-sm leading-6 text-gray-500 dark:text-gray-500" />
-			</div>
-		</div>
-		<div class="flex-1 px-4 py-5 text-gray-950 dark:text-gray-50 sm:p-6">
-			<div class="w-full h-full">
-				<div class="flex flex-wrap gap-0.5 lg:gap-1">
-					<div class="flex w-full p-1 leading-tight">
-						<div class="p-1 font-medium text-primary-800">
-							ipv4
-						</div>
-						<div class="overflow-hidden p-1">
-							<span
-								v-for="(ip, index) in ipv4"
-								class="pl-1 first:pl-0"
-								:class="{ hidden: !ipv4View && index >0 }"
-							>
-								<div class="inline-flex cursor-pointer w-max">
-									<span>{{ index > 0 ? ' , ':'' }}{{ ip }}</span>
-								</div>
-							</span>
-							<span
-								class="cursor-pointer px-1 py-0.5"
-								@click="toggleIpv4"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="16px"
-									height="16px"
-									viewBox="0 0 24 24"
-									class="icon"
-								>
-									<path
-										fill="currentColor"
-										d="M6 14q-.825 0-1.413-.588T4 12q0-.825.588-1.413T6 10q.825 0 1.413.588T8 12q0 .825-.588 1.413T6 14Zm6 0q-.825 0-1.413-.588T10 12q0-.825.588-1.413T12 10q.825 0 1.413.588T14 12q0 .825-.588 1.413T12 14Zm6 0q-.825 0-1.413-.588T16 12q0-.825.588-1.413T18 10q.825 0 1.413.588T20 12q0 .825-.588 1.413T18 14Z"
-									/>
-								</svg>
-							</span>
-						</div>
-					</div>
-					<div class="flex w-full p-1 leading-tight">
-						<div class="p-1 font-medium text-primary-800">
-							ipv6
-						</div>
-						<div class="p-1 overflow-hidden">
-							<span
-								v-for="(ip, index) in ipv6"
-								class="pl-1 first:pl-0"
-								:class="{ hidden: !ipv6View && index >0 }"
-							>{{ index > 0 ? ' , ':'' }}{{ ip }}</span>
-							<span
-								class="cursor-pointer px-1 py-0.5"
-								@click="toggleIpv6"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="16px"
-									height="16px"
-									viewBox="0 0 24 24"
-									class="icon"
-								>
-									<path
-										fill="currentColor"
-										d="M6 14q-.825 0-1.413-.588T4 12q0-.825.588-1.413T6 10q.825 0 1.413.588T8 12q0 .825-.588 1.413T6 14Zm6 0q-.825 0-1.413-.588T10 12q0-.825.588-1.413T12 10q.825 0 1.413.588T14 12q0 .825-.588 1.413T12 14Zm6 0q-.825 0-1.413-.588T16 12q0-.825.588-1.413T18 10q.825 0 1.413.588T20 12q0 .825-.588 1.413T18 14Z"
-									/>
-								</svg>
-							</span>
-						</div>
-					</div>
+	<AppCard title="IP addresses">
+		<div class="flex flex-col">
+			<div
+				v-for="family in families"
+				:key="family.label"
+				class="flex gap-3 border-b border-app-border-subtle py-2.5 last:border-b-0"
+			>
+				<span class="w-12 flex-none text-[13px] text-app-text-3">{{ family.label }}</span>
+				<div class="min-w-0 flex-1">
+					<ul
+						v-if="family.list.length"
+						class="flex flex-col gap-1"
+					>
+						<li
+							v-for="ip in family.expanded ? family.list : family.list.slice(0, 1)"
+							:key="ip"
+							class="break-all font-mono text-[13px] text-app-text"
+						>
+							{{ ip }}
+						</li>
+					</ul>
+					<span
+						v-else
+						class="text-[13px] text-app-text-3"
+					>None reported</span>
 				</div>
+				<button
+					v-if="family.list.length > 1"
+					type="button"
+					:aria-expanded="family.expanded"
+					:aria-label="family.expanded ? `Show only the first ${family.label} address` : `Show all ${family.list.length} ${family.label} addresses`"
+					class="h-7 flex-none self-start rounded-md px-2 text-xs font-medium text-app-link hover:bg-app-hover"
+					@click="family.toggle"
+				>
+					{{ family.expanded ? 'Less' : `+${family.list.length - 1} more` }}
+				</button>
 			</div>
 		</div>
-	</div>
+	</AppCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
+const props = withDefaults(defineProps<{
+	ipv4?: string[];
+	ipv6?: string[];
+}>(), {
+	ipv4: () => [],
+	ipv6: () => [],
+});
+
 const ipv4View = ref(false);
 const ipv6View = ref(false);
 
-const props = defineProps({
-	ipv4: {
-		type: Array,
-		default: [],
-	},
-	ipv6: {
-		type: Array,
-		default: [],
-	},
-
-});
-
-const toggleIpv4 = () => {
-	ipv4View.value = !ipv4View.value;
-};
-const toggleIpv6 = () => {
-	ipv6View.value = !ipv6View.value;
-};
+const families = computed(() => [
+	{ label: 'IPv4', list: props.ipv4 ?? [], expanded: ipv4View.value, toggle: () => { ipv4View.value = !ipv4View.value; } },
+	{ label: 'IPv6', list: props.ipv6 ?? [], expanded: ipv6View.value, toggle: () => { ipv6View.value = !ipv6View.value; } },
+]);
 </script>
-
-<style scoped>
-.icon {
-  display: inline-block;
-  vertical-align: middle;
-}
-</style>

@@ -1,75 +1,90 @@
 <template>
-	<div class="h-full w-full flex-1">
-		<div class="flex items-center justify-between pb-4">
-			<h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
-				Schedules for this client
-			</h4>
-			<button
-				class="bg-vtd-primary-500 hover:bg-vtd-primary-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold shadow-sm"
-				type="button"
-				@click="formModal?.openForCreate()"
-			>
-				New schedule
-			</button>
-		</div>
-		<div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+	<div class="flex flex-col gap-4">
+		<AppCard
+			title="Schedules"
+			description="Scheduled commands and scripts that target this client."
+			flush
+		>
+			<template #actions>
+				<AppButton
+					size="sm"
+					@click="formModal?.openForCreate()"
+				>
+					<Plus
+						class="h-4 w-4"
+						aria-hidden="true"
+					/>
+					New schedule
+				</AppButton>
+			</template>
 			<div
 				v-if="pending"
-				class="p-6 text-center text-sm text-gray-500"
+				class="py-12 text-center text-sm text-app-text-3"
 			>
-				Loading schedules...
+				Loading schedules…
 			</div>
 			<div
 				v-else-if="clientSchedules.length === 0"
-				class="p-6 text-center text-sm text-gray-500"
+				class="py-12 text-center text-sm text-app-text-3"
 			>
 				No schedules target this client.
 			</div>
-			<table
+			<div
 				v-else
-				class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+				class="overflow-x-auto"
 			>
-				<thead class="bg-gray-50 dark:bg-gray-950">
-					<tr>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Name
-						</th>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Type
-						</th>
-						<th class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200">
-							Cron
-						</th>
-						<th class="px-4 py-3" />
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-					<tr
-						v-for="schedule in clientSchedules"
-						:key="schedule.id"
-					>
-						<td class="whitespace-nowrap px-4 py-3 text-sm text-gray-800 dark:text-white">
-							{{ schedule.name }}
-						</td>
-						<td class="whitespace-nowrap px-4 py-3 text-sm capitalize text-gray-600 dark:text-gray-300">
-							{{ schedule.type }}
-						</td>
-						<td class="whitespace-nowrap px-4 py-3 font-mono text-sm text-gray-600 dark:text-gray-300">
-							{{ schedule.schedule }}
-						</td>
-						<td class="whitespace-nowrap px-4 py-3 text-right text-sm">
-							<button
-								class="text-primary-600 hover:underline"
-								type="button"
-								@click="formModal?.openForEdit(schedule)"
+				<table class="w-full min-w-[560px] border-collapse text-sm">
+					<thead>
+						<tr class="bg-app-surface-2">
+							<th
+								v-for="col in ['Name', 'Type', 'Cron']"
+								:key="col"
+								scope="col"
+								class="border-b border-app-border whitespace-nowrap px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3"
 							>
-								Edit
-							</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+								{{ col }}
+							</th>
+							<th
+								scope="col"
+								class="border-b border-app-border px-3 py-2.5"
+							>
+								<span class="sr-only">Actions</span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							v-for="schedule in clientSchedules"
+							:key="schedule.id"
+							class="hover:bg-app-hover"
+						>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 font-medium text-app-text">
+								{{ schedule.name }}
+							</td>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3">
+								<span class="rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium capitalize text-app-text-2">{{ schedule.type }}</span>
+							</td>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 font-mono text-[13px] text-app-text-2">
+								{{ schedule.schedule }}
+							</td>
+							<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-2 text-right">
+								<AppButton
+									variant="ghost"
+									size="sm"
+									@click="formModal?.openForEdit(schedule)"
+								>
+									<Pencil
+										class="h-4 w-4"
+										aria-hidden="true"
+									/>
+									Edit
+								</AppButton>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</AppCard>
 		<ScheduleFormModal
 			ref="formModal"
 			@saved="refresh"
@@ -78,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { Pencil, Plus } from 'lucide-vue-next';
 import ScheduleFormModal from '~/components/schedules/ScheduleFormModal.vue';
 
 const props = defineProps({
@@ -89,6 +105,8 @@ const props = defineProps({
 		default: '',
 	},
 });
+
+const formModal = ref<InstanceType<typeof ScheduleFormModal> | null>(null);
 
 const { $api } = useNuxtApp();
 

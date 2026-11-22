@@ -62,7 +62,10 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="update in updates?.update_summaries">
+						<tr
+							v-for="(update, index) in updates?.update_summaries"
+							:key="index"
+						>
 							<td>{{ update.title }}</td>
 							<td class="w-40">
 								<span class="flex items-center justify-end"><svg

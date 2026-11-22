@@ -1,285 +1,174 @@
 <template>
-	<new-page-wrapper is-extra="true">
-		<div class="flex flex-1 xl:overflow-hidden">
-			<new-settings-sidebar />
-			<div class="scrollbar-hide max-h-screen flex-1 xl:overflow-y-auto">
-				<div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-					<div class="relative z-20 flex h-16 items-center justify-between">
-						<div class="">
-							<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
-								User groups
-							</h3>
-							<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-							</p>
-						</div>
-						<div class="flex-1" />
-						<div class="ml-2 flex-shrink-0">
-							<button
-								class="bg-vtd-primary-500 hover:bg-vtd-primary-700 text-white cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold shadow-sm"
-								type="button"
-								@click="groupModal?.openForCreate()"
-							>
-								Add group
-							</button>
-						</div>
-					</div>
-					<div class="relative z-10 w-full">
-						<!---->
-						<div
-							class="flow-root overflow-hidden border border-gray-100 ring-1 ring-black ring-opacity-10 dark:border-gray-600 sm:rounded-lg"
-						>
-							<div class="overflow-auto relative z-10 -mb-2">
-								<div class="inline-block min-w-full align-middle">
-									<div class="sm:rounded-t-lg overflow-hidden">
-										<div>
-											<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-												<thead class="rounded-lg bg-gray-50 dark:bg-gray-950">
-													<tr>
-														<th
-															class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-															scope="col"
-														>
-															<button
-																disabled=""
-															>
-																<span>Name</span><!---->
-															</button>
-														</th>
-														<th
-															class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-															scope="col"
-														>
-															<button
-																disabled=""
-															>
-																<span>Permissions</span><!---->
-															</button>
-														</th>
-														<th
-															class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-															scope="col"
-														>
-															<button
-																disabled=""
-															>
-																<span /><!---->
-															</button>
-														</th>
-														<th
-															class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-800 sm:pl-6"
-														/><!---->
-													</tr>
-												</thead>
-												<tbody class="z-10 divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-													<tr
-														v-for="(group, key) in userGroups"
-														:key="key"
-														class="border-t-1 group relative border-gray-200 transition-all duration-300"
-													>
-														<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-															{{ group.name }}
-														</td>
-														<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6">
-															<div class="flex items-center space-x-0.5">
-																<template v-for="permission in Object.keys(group.permissions).map(id => [id, group.permissions[id]])">
-																	<span
-																		v-if="permission[1]"
-																		:key="permission[0]"
-																		class="bg-primary-50 dark:bg-primary-500/10 text-primary-800 dark:text-primary-400 ring-primary-600/20 dark:ring-primary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-																	>
-																		<!---->
-																		<span>
-																			<!---->
-																		</span>
-																		<span>{{ permission[0] }}</span>
-																		<!---->
-																	</span>
-																</template>
-															</div>
-														</td>
-														<td class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6" />
-														<td class="pr-4 sm:pr-6 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal">
-															<div class="text-blue-600 hover:text-blue-900">
-																<HeadlessMenu as="div">
-																	<HeadlessMenuButton>
-																		<div class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:text-gray-300">
-																			<svg
-																				xmlns="http://www.w3.org/2000/svg"
-																				width="20px"
-																				height="20px"
-																				viewBox="0 0 24 24"
-																				class="icon"
-																			>
-																				<path
-																					fill="currentColor"
-																					d="M16 12a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2Z"
-																				/>
-																			</svg>
-																		</div>
-																	</HeadlessMenuButton>
-																	<HeadlessMenuItems>
-																		<div class="z-20">
-																			<div
-																				class="fixed z-30"
-																				:style="{ top: 208 }"
-																			>
-																				<div class="absolute -right-8 -top-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950">
-																					<HeadlessMenuItem v-slot="{ active }">
-																						<div
-																							class="px-1 py-1"
-																							role="none"
-																						>
-																							<button
-																								:class="[active ? 'bg-primary-600 text-white': 'text-gray-800 dark:text-gray-100', 'group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400']"
-																								@click="groupModal?.openForEdit(group)"
-																							>
-																								<svg
-																									xmlns="http://www.w3.org/2000/svg"
-																									width="24px"
-																									height="24px"
-																									viewBox="0 0 24 24"
-																									class="icon mr-2 h-4 w-4"
-																									aria-hidden="true"
-																								>
-																									<path
-																										fill="currentColor"
-																										d="m19.3 8.925l-4.25-4.2l1.4-1.4q.575-.575 1.413-.575t1.412.575l1.4 1.4q.575.575.6 1.388t-.55 1.387L19.3 8.925ZM4 21q-.425 0-.713-.288T3 20v-2.825q0-.2.075-.388t.225-.337l10.3-10.3l4.25 4.25l-10.3 10.3q-.15.15-.337.225T6.825 21H4Z"
-																									/>
-																								</svg>
-																								<span>Edit</span>
-																							</button>
-																						</div>
-																					</HeadlessMenuItem>
-																					<HeadlessMenuItem v-slot="{ active }">
-																						<div
-																							class="px-1 py-1"
-																							role="none"
-																						>
-																							<button
-																								:class="[active ? 'bg-primary-600 text-white': 'text-gray-800 dark:text-gray-100', 'group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400']"
-																								@click="triggerDelete(group)"
-																							>
-																								<Trash2 class="mr-2 h-4 w-4" />
-																								<span>Delete</span>
-																							</button>
-																						</div>
-																					</HeadlessMenuItem>
-																				</div>
-																			</div>
-																		</div>
-																	</HeadlessMenuItems>
-																</HeadlessMenu>
-															</div>
-														</td><!----><!---->
-													</tr>
-												</tbody>
-											</table>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="relative z-0 -mx-4 mt-2 sm:-mx-6 lg:-mx-8">
-								<div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-									<div
-										class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950"
-									>
-										<div>
-											<div
-												colspan="5"
-												class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-600 sm:pl-6"
-											>
-												<div class="flex w-full items-center justify-between">
-													<div class="flex items-center justify-between">
-														<span
-															class="text-xs text-gray-500"
-														> Showing <span
-															class="font-medium"
-														>1</span> to <span
-															class="font-medium"
-														>1</span> of <span
-															class="font-medium"
-														>1</span> results </span>
-													</div>
-													<div class="flex-1" />
-													<div class="flex w-full max-w-[90px] items-center justify-between">
-														<button
-															disabled=""
-															class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
-														>
-															<svg
-																xmlns="http://www.w3.org/2000/svg"
-																viewBox="0 0 20 20"
-																fill="currentColor"
-																aria-hidden="true"
-																class="h-6 w-6"
-															>
-																<path
-																	fill-rule="evenodd"
-																	d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-																	clip-rule="evenodd"
-																/>
-															</svg>
-														</button><button
-															disabled=""
-															class="rounded-full p-1 text-gray-500 transition-all duration-300 hover:bg-gray-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:text-gray-300 hover:disabled:bg-transparent hover:dark:bg-gray-900 disabled:dark:text-gray-700 hover:dark:disabled:bg-transparent"
-														>
-															<svg
-																xmlns="http://www.w3.org/2000/svg"
-																viewBox="0 0 20 20"
-																fill="currentColor"
-																aria-hidden="true"
-																class="h-6 w-6"
-															>
-																<path
-																	fill-rule="evenodd"
-																	d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-																	clip-rule="evenodd"
-																/>
-															</svg>
-														</button>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<p class="mt-3 px-1.5 py-5 text-sm text-theme-inverted-light">
-							On conflicting permissions, authorization wins over the denial. <a
-								href="https://kb.openrport.io/manage-users-and-permissions"
-								rel="noopener noreferrer"
-								target="_blank"
-								class="cursor-pointer text-primary-500 underline transition-all duration-300 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-400"
-							>
-								Learn more </a>
-						</p>
-					</div>
-				</div>
+	<SettingsLayout
+		heading="User groups"
+		description="Groups bundle permissions; a user gets every permission granted by any of their groups."
+	>
+		<template #actions>
+			<AppButton @click="groupModal?.openForCreate()">
+				<Plus
+					class="h-4 w-4"
+					aria-hidden="true"
+				/>
+				Add group
+			</AppButton>
+		</template>
+
+		<AppCard flush>
+			<div
+				v-if="pending && !userGroups"
+				class="px-4 py-10 text-center text-sm text-app-text-3"
+			>
+				Loading user groups…
 			</div>
-		</div>
+			<div
+				v-else-if="error && !userGroups"
+				class="flex flex-col items-center gap-2 px-4 py-12 text-center"
+				role="status"
+			>
+				<CircleAlert
+					class="h-8 w-8 text-app-text-4"
+					aria-hidden="true"
+				/>
+				<p class="text-sm font-medium text-app-text">
+					User groups aren’t available
+				</p>
+				<p class="max-w-md text-[13px] text-app-text-3">
+					{{ apiErrorText(error) }}
+				</p>
+			</div>
+			<div
+				v-else-if="!userGroups?.length"
+				class="flex flex-col items-center gap-2 px-4 py-12 text-center"
+			>
+				<UsersRound
+					class="h-8 w-8 text-app-text-4"
+					aria-hidden="true"
+				/>
+				<p class="text-sm font-medium text-app-text">
+					No user groups yet
+				</p>
+				<p class="text-[13px] text-app-text-3">
+					Create a group to grant permissions to several users at once.
+				</p>
+			</div>
+			<template v-else>
+				<table class="st-table hidden md:table">
+					<thead>
+						<tr>
+							<th
+								scope="col"
+								class="w-56"
+							>
+								Name
+							</th>
+							<th scope="col">
+								Permissions
+							</th>
+							<th
+								scope="col"
+								class="w-14"
+							>
+								<span class="sr-only">Actions</span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							v-for="group in userGroups"
+							:key="group.name"
+						>
+							<td class="font-medium">
+								{{ group.name }}
+							</td>
+							<td>
+								<div class="flex flex-wrap gap-1.5">
+									<span
+										v-for="permission in grantedPermissions(group)"
+										:key="permission"
+										class="st-chip"
+									>{{ permission }}</span>
+									<span
+										v-if="!grantedPermissions(group).length"
+										class="text-app-text-4"
+									>No permissions</span>
+								</div>
+							</td>
+							<td class="text-right">
+								<SettingsRowActions
+									:items="rowActions(group)"
+									:label="`Actions for ${group.name}`"
+								/>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<ul class="divide-y divide-app-border-subtle md:hidden">
+					<li
+						v-for="group in userGroups"
+						:key="group.name"
+						class="flex items-start gap-3 px-4 py-3"
+					>
+						<div class="min-w-0 flex-1">
+							<p class="truncate text-[15px] font-medium text-app-text">
+								{{ group.name }}
+							</p>
+							<div class="mt-1.5 flex flex-wrap gap-1.5">
+								<span
+									v-for="permission in grantedPermissions(group)"
+									:key="permission"
+									class="st-chip"
+								>{{ permission }}</span>
+								<span
+									v-if="!grantedPermissions(group).length"
+									class="text-[13px] text-app-text-4"
+								>No permissions</span>
+							</div>
+						</div>
+						<SettingsRowActions
+							:items="rowActions(group)"
+							:label="`Actions for ${group.name}`"
+						/>
+					</li>
+				</ul>
+
+				<SettingsPagination
+					:page="0"
+					:current-page-item-count="userGroups.length"
+					:total-items="userGroups.length"
+				/>
+			</template>
+		</AppCard>
+		<p class="flex items-center gap-2 px-1 text-[13px] text-app-text-3">
+			<Info
+				class="h-4 w-4 shrink-0"
+				aria-hidden="true"
+			/>
+			On conflicting permissions, authorization wins over the denial.
+		</p>
+
 		<UserGroupModal
 			ref="groupModal"
 			@saved="refresh"
 		/>
 		<Modal
 			v-model="deleteConfirmOpen"
-			title="Please confirm!"
+			title="Delete user group?"
 			ok-text="Delete"
 			cancel-text="Cancel"
 			:show-cancel="true"
 			@ok="confirmDelete"
 		>
-			<div class="absolute inset-0 flex h-full min-h-[200px] flex-col items-center justify-center p-8 text-center">
-				<div>Do you want to delete the group "{{ activeGroup?.name }}"?</div>
-			</div>
+			<p class="text-sm text-app-text-2">
+				Do you want to delete the group <span class="font-semibold text-app-text">{{ activeGroup?.name }}</span>?
+				Its members lose the permissions it grants.
+			</p>
 		</Modal>
-	</new-page-wrapper>
+	</SettingsLayout>
 </template>
 
 <script setup lang="ts">
-import { Trash2 } from 'lucide-vue-next';
+import { CircleAlert, Info, Pencil, Plus, Trash2, UsersRound } from 'lucide-vue-next';
 import UserGroupModal from '~/components/custom/UserGroupModal.vue';
 import type { UserGroup } from '~/types';
 
@@ -290,7 +179,7 @@ const groupModal = ref<InstanceType<typeof UserGroupModal> | null>(null);
 const deleteConfirmOpen = ref(false);
 const activeGroup = ref<UserGroup | null>(null);
 
-const { data: userGroups, refresh } = useAsyncData('user-groups', () => $api.userGroups.all());
+const { data: userGroups, refresh, pending, error } = useAsyncData('user-groups', () => $api.userGroups.all());
 
 const triggerDelete = (group: UserGroup) => {
 	activeGroup.value = group;
@@ -303,5 +192,25 @@ const confirmDelete = async () => {
 	snackbar.add({ type: 'success', text: 'User group deleted' });
 	deleteConfirmOpen.value = false;
 	await refresh();
+};
+
+const grantedPermissions = (group: UserGroup) => Object.entries(group.permissions ?? {})
+	.filter(([, granted]) => granted)
+	.map(([permission]) => permission);
+
+const rowActions = (group: UserGroup) => [
+	{ label: 'Edit', icon: Pencil, action: () => groupModal.value?.openForEdit(group) },
+	{ label: 'Delete', icon: Trash2, danger: true, action: () => triggerDelete(group) },
+];
+
+interface ApiErrorLike {
+	data?: { errors?: { title?: string; detail?: string }[] };
+	response?: { data?: { errors?: { title?: string; detail?: string }[] } };
+	cause?: ApiErrorLike;
+}
+const apiErrorText = (err: unknown): string => {
+	const e = err as ApiErrorLike | null;
+	const first = (e?.data?.errors ?? e?.response?.data?.errors ?? e?.cause?.data?.errors ?? e?.cause?.response?.data?.errors)?.[0];
+	return first?.title || first?.detail || 'The server returned an error.';
 };
 </script>

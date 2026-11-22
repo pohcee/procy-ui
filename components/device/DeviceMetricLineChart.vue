@@ -1,14 +1,14 @@
 <template>
-	<div class="h-full min-h-[260px] w-full">
+	<div class="relative h-[260px] w-full">
 		<p
 			v-if="metrics.length === 0"
-			class="flex h-full min-h-[260px] w-full items-center justify-center text-sm text-gray-500 dark:text-gray-500"
+			class="flex h-full min-h-[260px] w-full items-center justify-center text-[13px] text-app-text-3"
 		>
 			No monitoring data available for this period.
 		</p>
 		<Line
 			v-else
-			:key="colorMode"
+			:key="String(isDark)"
 			:data="chartData"
 			:options="chartOptions"
 		/>
@@ -25,7 +25,9 @@ import {
 	PointElement,
 	Tooltip,
 } from 'chart.js';
+import type { TooltipItem } from 'chart.js';
 import { Line } from 'vue-chartjs';
+import { useDeviceChartTheme } from '~/components/device/useDeviceChartTheme';
 import type { ClientMetric } from '~/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
@@ -33,11 +35,10 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip,
 const props = defineProps<{
 	metrics: ClientMetric[];
 	field: 'cpu_usage_percent' | 'memory_usage_percent';
-	seriesColor: string;
+	seriesColor?: string;
 }>();
 
-const { colorMode } = useTheme();
-const { gridColor, textColor, tooltipBackgroundColor, tooltipTextColor } = useChartTheme();
+const { isDark, colors } = useDeviceChartTheme();
 
 const sortedMetrics = computed(() => [...props.metrics].sort(
 	(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
@@ -48,13 +49,15 @@ function formatTick(timestamp: string): string {
 	return `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')}`;
 }
 
+const lineColor = computed(() => props.seriesColor ?? colors.value.series[0]);
+
 const chartData = computed(() => ({
 	labels: sortedMetrics.value.map(m => formatTick(m.timestamp)),
 	datasets: [
 		{
 			data: sortedMetrics.value.map(m => m[props.field]),
-			borderColor: props.seriesColor,
-			backgroundColor: props.seriesColor,
+			borderColor: lineColor.value,
+			backgroundColor: lineColor.value,
 			fill: false,
 			tension: 0.3,
 			pointRadius: 0,
@@ -69,26 +72,28 @@ const chartOptions = computed(() => ({
 	interaction: { mode: 'index' as const, intersect: false },
 	scales: {
 		x: {
-			grid: { color: gridColor.value },
-			ticks: { color: textColor.value, maxTicksLimit: 8 },
+			grid: { color: colors.value.grid },
+			border: { color: colors.value.grid },
+			ticks: { color: colors.value.text, maxTicksLimit: 8 },
 		},
 		y: {
 			min: 0,
 			max: 100,
-			grid: { color: gridColor.value },
-			ticks: { color: textColor.value, callback: (value: number) => `${value}%` },
+			grid: { color: colors.value.grid },
+			border: { color: colors.value.grid },
+			ticks: { color: colors.value.text, callback: (value: number | string) => `${value}%` },
 		},
 	},
 	plugins: {
 		legend: { display: false },
 		tooltip: {
-			backgroundColor: tooltipBackgroundColor.value,
-			titleColor: tooltipTextColor.value,
-			bodyColor: tooltipTextColor.value,
-			borderColor: gridColor.value,
+			backgroundColor: colors.value.tooltipBg,
+			titleColor: colors.value.tooltipText,
+			bodyColor: colors.value.tooltipText,
+			borderColor: colors.value.tooltipBorder,
 			borderWidth: 1,
 			callbacks: {
-				label: (context: { parsed: { y: number } }) => `${context.parsed.y.toFixed(1)}%`,
+				label: (context: TooltipItem<'line'>) => (context.parsed.y === null ? '-' : `${context.parsed.y.toFixed(1)}%`),
 			},
 		},
 	},

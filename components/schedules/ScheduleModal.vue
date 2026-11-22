@@ -1,71 +1,62 @@
 <template>
-	<BaseModal v-model="isOpen">
-		<div
-			class="relative z-20 w-full max-w-lg rounded border border-slate-400 bg-white p-6 text-theme-inverted-lighter shadow dark:bg-slate-800"
-		>
-			<h3 class="mb-4 text-lg font-semibold">
-				Schedule {{ type === 'script' ? 'script' : 'command' }} execution
-			</h3>
-			<form
-				class="flex flex-col gap-4"
-				@submit.prevent="save"
+	<OpDialog
+		v-model="isOpen"
+		:title="`Schedule ${type === 'script' ? 'script' : 'command'} execution`"
+		size="md"
+		as-form
+		@submit="save"
+	>
+		<div class="flex flex-col gap-4">
+			<OpField
+				label="Schedule name"
+				for-id="scheduleName"
 			>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="scheduleName"
-						v-model="name"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						:class="{ error: !name }"
-						placeholder=" "
-						type="text"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="scheduleName"
-					>Schedule name</label>
-				</div>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="scheduleCron"
-						v-model="cron"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						:class="{ error: !cron }"
-						placeholder=" "
-						type="text"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="scheduleCron"
-					>Cron expression (e.g. */15 * * * *)</label>
-				</div>
-				<p class="text-xs text-gray-500">
-					Runs on {{ clientIds.length }} client(s){{ groupIds.length ? ` and ${groupIds.length} group(s)` : '' }}.
-				</p>
-				<div class="flex items-center justify-end gap-2 pt-2">
-					<button
-						class="bg-vtd-secondary-600 hover:bg-vtd-secondary-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="button"
-						@click="close"
-					>
-						Cancel
-					</button>
-					<button
-						class="bg-vtd-primary-500 hover:bg-vtd-primary-700 disabled:bg-gray-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="submit"
-						:disabled="!name || !cron || isSaving"
-					>
-						Create schedule
-					</button>
-				</div>
-			</form>
+				<OpInput
+					id="scheduleName"
+					v-model="name"
+					:invalid="!name"
+				/>
+			</OpField>
+			<OpField
+				label="Cron expression"
+				for-id="scheduleCron"
+				help="minute hour day month weekday, e.g. */15 * * * *"
+			>
+				<OpInput
+					id="scheduleCron"
+					v-model="cron"
+					mono
+					placeholder="*/15 * * * *"
+					aria-describedby="scheduleCron-help"
+				/>
+			</OpField>
+			<p class="text-[13px] text-app-text-3">
+				Runs on {{ clientIds.length }} device{{ clientIds.length === 1 ? '' : 's' }}{{ groupIds.length ? ` and ${groupIds.length} group(s)` : '' }}.
+			</p>
 		</div>
-	</BaseModal>
+		<template #footer>
+			<AppButton
+				variant="secondary"
+				@click="close"
+			>
+				Cancel
+			</AppButton>
+			<AppButton
+				type="submit"
+				class="ml-auto"
+				:disabled="!name || !cron || isSaving"
+			>
+				Create schedule
+			</AppButton>
+		</template>
+	</OpDialog>
 </template>
 
 <script setup lang="ts">
-import { BaseModal } from '~/components/ui/base-modal';
+import { encodeScript } from '~/components/schedules/ScheduleFormModal.vue';
+import OpDialog from '~/components/operate/OpDialog.vue';
+import OpField from '~/components/operate/OpField.vue';
+import OpInput from '~/components/operate/OpInput.vue';
 import type { JobClientTags, SchedulePayload } from '~/types';
 
 const props = defineProps({
@@ -128,7 +119,7 @@ const openForScript = (data: {
 	type.value = 'script';
 	name.value = data.scriptName;
 	pendingDetails = {
-		script: data.scriptContent,
+		script: encodeScript(data.scriptContent),
 		cwd: data.workingDirectory,
 		timeout_sec: Number(data.timeoutInSeconds),
 		is_sudo: data.useSudo,

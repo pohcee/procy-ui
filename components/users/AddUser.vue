@@ -1,39 +1,38 @@
 <template>
 	<Modal
 		v-model="isOpen"
-		:title="action === 'edit' ? 'Edit User' : 'New User'"
+		:title="action === 'edit' ? 'Edit user' : 'New user'"
 		ok-text="Save"
 		cancel-text="Cancel"
 		:show-cancel="true"
 		@ok="save"
 		@close="close"
 	>
-		<div class="relative">
-			<div class="flex flex-col mt-4">
-				<div class="relative mt-1 flex w-full flex-col">
-					<input
-						v-model="user.username"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						placeholder=" "
-						type="text"
-						autocomplete="off"
-					><label
-						class="order-1 flex pb-1 pl-1 text-theme-label peer-focus:text-primary text-sm font-normal"
-					>Username</label>
-				</div>
+		<div class="flex flex-col gap-4">
+			<div class="st-field">
+				<label
+					class="st-label"
+					:for="`${uid}-username`"
+				>Username</label>
+				<input
+					:id="`${uid}-username`"
+					v-model="user.username"
+					class="st-ctl"
+					type="text"
+					autocomplete="off"
+				>
 			</div>
-			<div
-				class="relative w-full text-left mt-4"
-			>
-				<div class="relative z-30">
-					<label
-						class="flex pb-1 pl-1 text-sm text-theme-inverted"
-						for=""
-					>Groups</label>
+			<div class="st-field">
+				<label
+					class="st-label"
+					:for="`${uid}-groups`"
+				>Groups</label>
+				<div class="st-multiselect">
 					<Multiselect
+						:id="`${uid}-groups`"
 						v-model="user.groups"
 						mode="tags"
-						placeholder="Select or type in ..."
+						placeholder="Select or type in …"
 						:hide-selected="false"
 						:close-on-select="false"
 						:create-option="true"
@@ -42,61 +41,53 @@
 					/>
 				</div>
 			</div>
-			<div class="mt-4 pl-0.5 text-sm text-theme-inverted">
-				Password{{ action === 'edit' ? ' (leave blank to keep unchanged)' : '' }}
-			</div>
-			<div class="flex items-center justify-between">
-				<div
-					class="flex flex-col mt-4 w-full"
-				>
-					<div class="relative mt-1 flex w-full flex-col">
-						<input
-							v-model="user.password"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							placeholder=" "
-							type="text"
-							autocomplete="off"
-						>
-						<label
-							class="absolute left-1.5 top-1.5 z-10 origin-[0] -translate-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
-						>Password</label>
-					</div>
-				</div>
-				<button
-					class="mt-5 flex h-10 w-12 items-center justify-center hover:bg-theme-light"
-					@click="generatePassword"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24px"
-						height="24px"
-						viewBox="0 0 24 24"
-						class="icon"
-					><path
-						fill="currentColor"
-						d="M22 18v4h-4v-3h-3v-3h-3l-2.26-2.26c-.55.17-1.13.26-1.74.26a6 6 0 0 1-6-6a6 6 0 0 1 6-6a6 6 0 0 1 6 6c0 .61-.09 1.19-.26 1.74L22 18M7 5a2 2 0 0 0-2 2a2 2 0 0 0 2 2a2 2 0 0 0 2-2a2 2 0 0 0-2-2Z"
-					/></svg>
-				</button>
-			</div>
-			<div class="flex flex-col mt-4">
-				<div class="relative mt-1 flex w-full flex-col">
+			<div class="st-field">
+				<label
+					class="st-label"
+					:for="`${uid}-password`"
+				>Password<span
+					v-if="action === 'edit'"
+					class="font-normal text-app-text-3"
+				> (leave blank to keep unchanged)</span></label>
+				<div class="flex items-center gap-2">
 					<input
-						v-model="user.confirmPassword"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						placeholder=" "
+						:id="`${uid}-password`"
+						v-model="user.password"
+						class="st-ctl font-mono"
 						type="text"
 						autocomplete="off"
-					><label
-						class="absolute left-1.5 top-1.5 z-10 origin-[0] -translate-y-4 scale-75 transform px-1 text-theme-label duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-1 text-theme-label peer-focus:text-primary bg-theme text-sm font-normal"
-						for="xBYKSlVe3g"
-					>Confirm password</label>
+					>
+					<AppButton
+						variant="secondary"
+						class="!w-11 shrink-0 !px-0"
+						aria-label="Generate a random password"
+						title="Generate a random password"
+						@click="generatePassword"
+					>
+						<KeyRound
+							class="h-[18px] w-[18px]"
+							aria-hidden="true"
+						/>
+					</AppButton>
 				</div>
-				<p
-					v-if="user.password !== user.confirmPassword"
-					class="mt-1 pl-1 text-sm text-red-500"
+			</div>
+			<div class="st-field">
+				<label
+					class="st-label"
+					:for="`${uid}-confirm`"
+				>Confirm password</label>
+				<input
+					:id="`${uid}-confirm`"
+					v-model="user.confirmPassword"
+					:class="['st-ctl font-mono', { 'st-invalid': user.password !== user.confirmPassword }]"
+					type="text"
+					autocomplete="off"
 				>
-					Passwords do not match
-				</p>
+				<span
+					v-if="user.password !== user.confirmPassword"
+					class="st-error"
+					role="alert"
+				>Passwords do not match</span>
 			</div>
 		</div>
 	</Modal>
@@ -104,17 +95,20 @@
 
 <script setup lang="ts">
 import Multiselect from '@vueform/multiselect';
+import { KeyRound } from 'lucide-vue-next';
+import type { PropType } from 'vue';
 import Modal from '~/components/Modal.vue';
 import { randomPassword } from '@/lib/utils';
-import type { User } from '~/types';
+import type { User, UserGroup } from '~/types';
 
+const uid = useId();
 const isOpen = ref(false);
 const action = ref<'create' | 'edit'>('create');
 const originalUsername = ref('');
 
 defineProps({
 	groups: {
-		type: Array,
+		type: Array as PropType<UserGroup[]>,
 		default: () => [],
 	},
 });
@@ -166,3 +160,42 @@ defineExpose({ open, openForEdit });
 </script>
 
 <style src="@vueform/multiselect/themes/default.css"></style>
+
+<style>
+/* @vueform/multiselect themed with the OpenRPort2 tokens (dropdown is not teleported). */
+.st-multiselect .multiselect {
+	--ms-bg: rgb(var(--app-surface-2));
+	--ms-border-color: rgb(var(--app-border-strong));
+	--ms-border-color-active: rgb(var(--app-accent));
+	--ms-radius: 10px;
+	--ms-ring-color: rgb(var(--app-accent) / 0.25);
+	--ms-ring-width: 2px;
+	--ms-font-size: 14px;
+	--ms-py: 0.55rem;
+	--ms-placeholder-color: rgb(var(--app-text-4));
+	--ms-caret-color: rgb(var(--app-text-3));
+	--ms-clear-color: rgb(var(--app-text-3));
+	--ms-clear-color-hover: rgb(var(--app-text));
+	--ms-tag-bg: rgb(var(--app-chip));
+	--ms-tag-color: rgb(var(--app-text-2));
+	--ms-tag-radius: 6px;
+	--ms-tag-font-weight: 500;
+	--ms-dropdown-bg: rgb(var(--app-surface));
+	--ms-dropdown-border-color: rgb(var(--app-border));
+	--ms-dropdown-radius: 10px;
+	--ms-option-bg-pointed: rgb(var(--app-hover));
+	--ms-option-color-pointed: rgb(var(--app-text));
+	--ms-option-bg-selected: rgb(var(--app-accent));
+	--ms-option-color-selected: #fff;
+	--ms-option-bg-selected-pointed: rgb(var(--app-accent-hover));
+	--ms-option-color-selected-pointed: #fff;
+	--ms-empty-color: rgb(var(--app-text-3));
+	min-height: 44px;
+	color: rgb(var(--app-text));
+}
+.st-multiselect .multiselect-search,
+.st-multiselect .multiselect-tags-search {
+	background: transparent;
+	color: rgb(var(--app-text));
+}
+</style>

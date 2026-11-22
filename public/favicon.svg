@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>OpenRPort2</title>
+  <defs>
+    <linearGradient id="orp2-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <radialGradient id="orp2-hole" cx="0.6" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="0.7" stop-color="#0B1B3F"/>
+      <stop offset="1" stop-color="#1E3A8A"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#orp2-bg)"/>
+  <circle cx="25" cy="30" r="16" fill="url(#orp2-hole)" stroke="#7DD3FC" stroke-width="4"/>
+  <path d="M13 26.5h7M15 33.5h6" fill="none" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <path d="M31 19l14 11-14 11" fill="none" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M51 7.5c.6 3.2 1.8 4.4 5 5-3.2.6-4.4 1.8-5 5-.6-3.2-1.8-4.4-5-5 3.2-.6 4.4-1.8 5-5z" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="50" cy="50" r="11" fill="#FBBF24" stroke="#1D4ED8" stroke-width="3"/>
+  <path d="M46 46.6a4 4 0 0 1 8 0c0 2-1.5 3.1-3.1 4.5L46 55h8" fill="none" stroke="#1C1206" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

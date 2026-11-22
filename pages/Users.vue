@@ -1,232 +1,171 @@
 <template>
-	<new-page-wrapper is-extra="true">
-		<div class="flex flex-1 xl:overflow-hidden">
-			<new-settings-sidebar />
-			<div class="scrollbar-hide max-h-screen flex-1 xl:overflow-y-auto">
-				<div class="mx-auto h-screen max-h-screen max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-					<div class="relative z-20 flex h-16 items-center justify-between">
-						<div class="">
-							<h3 class="text-3xl leading-6 text-gray-800 dark:text-white">
-								Users
-							</h3>
-							<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-							</p>
-						</div>
-						<div class="flex-1" />
-						<div class="ml-2 flex-shrink-0">
-							<button
-								class="bg-primary-800 hover:bg-primary-800 focus-visible:outline-primary-600 disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:focus-visible:outline-gray-400 text-white disabled:text-gray-500 cursor-pointer rounded-md px-2.5 py-1.5 text-sm relative font-semibold shadow-sm transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-								type="button"
-								@click.prevent="openAddUserModal"
-							>
-								<span class="flex items-center justify-center gap-x-2">
-									Add user</span>
-							</button>
-							<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-&nbsp;
-							</p>
-						</div>
-					</div>
-					<div class="relative z-10 w-full">
-						<div
-							class="flow-root overflow-hidden border border-gray-100 ring-1 ring-black ring-opacity-10 dark:border-gray-600 sm:rounded-lg"
-						>
-							<div class="overflow-auto relative z-10 -mb-2">
-								<div class="inline-block min-w-full align-middle">
-									<div class="sm:rounded-t-lg overflow-hidden">
-										<div>
-											<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-												<thead class="rounded-lg bg-gray-50 dark:bg-gray-950">
-													<tr>
-														<th
-															class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-															scope="col"
-														>
-															<button disabled="">
-																<span>User</span>
-															</button>
-														</th>
-														<th
-															class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-															scope="col"
-														>
-															<button disabled="">
-																<span>Groups</span>
-															</button>
-														</th>
-														<th
-															class="text-left py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-200 sm:pl-6"
-															scope="col"
-														>
-															<button disabled="">
-																<span />
-															</button>
-														</th>
-														<th
-															class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-800 sm:pl-6"
-														/>
-													</tr>
-												</thead>
-												<tbody
-													class="z-10 divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900"
-												>
-													<tr
-														v-for="user in users"
-														:key="user.username"
-														class="border-t-1 group relative border-gray-200 transition-all duration-300"
-													>
-														<td
-															class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6"
-														>
-															{{ user.username }}
-														</td>
-														<td
-															class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6"
-														>
-															<div class="flex items-center space-x-0.5">
-																<span
-																	v-for="(group, key) in user.groups"
-																	:key="key"
-																	class="bg-vtd-primary-50 dark:bg-vtd-primary-500/10 text-vtd-primary-700 dark:text-vtd-primary-400 ring-vtd-primary-600/20 dark:ring-vtd-primary-400/30 px-2 py-1 inline-flex items-center gap-x-1.5 rounded-md text-xs font-medium ring-1 ring-inset"
-																><span />
-																	<span>{{ group }}
-																	</span>
-																</span>
-															</div>
-														</td>
-														<td
-															class="text-left min-h-[42px] whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-normal text-gray-800 dark:text-white sm:pl-6"
-														/>
-														<td
-															class="pr-4 sm:pr-6 relative w-8 whitespace-nowrap py-3.5 pl-3 text-right text-sm font-normal"
-														>
-															<div
-																data-headlessui-state=""
-																class="text-blue-600 hover:text-blue-900"
-															>
-																<div>
-																	<DropdownMenu>
-																		<DropdownMenuTrigger as-child>
-																			<button>
-																				<div
-																					class="z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-opacity-20 p-1 text-gray-600 transition-all duration-300 hover:bg-primary-500 hover:bg-opacity-30 hover:text-gray-200 focus:outline-none"
-																				>
-																					<svg
-																						xmlns="http://www.w3.org/2000/svg"
-																						width="20px"
-																						height="20px"
-																						viewBox="0 0 24 24"
-																						class="icon"
-																					>
-																						<path
-																							fill="currentColor"
-																							d="M16 12a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2m-6 0a2 2 0 0 1 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2Z"
-																						/>
-																					</svg>
-																				</div>
-																			</button>
-																		</DropdownMenuTrigger>
-																		<div class="z-20">
-																			<div
-																				class="fixed z-30"
-																				style="top: 316px"
-																			>
-																				<DropdownMenuContent
-																					class="absolute -right-8 -top-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-950"
-																				>
-																					<div class="px-1 py-1">
-																						<DropdownMenuItem
-																							class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
-																							@click="addUserModal?.openForEdit(user)"
-																						>
-																							<Pencil
-																								class="mr-2 h-4 w-4"
-																							/>
-																							<span>Edit</span>
-																						</DropdownMenuItem>
-																					</div>
-																					<div class="px-1 py-1">
-																						<DropdownMenuItem
-																							class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
-																							@click="copy(user.username)"
-																						>
-																							<Copy
-																								class="mr-2 h-4 w-4"
-																							/>
-																							<span>Copy username</span>
-																						</DropdownMenuItem>
-																					</div>
-																					<div class="px-1 py-1">
-																						<DropdownMenuItem
-																							class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
-																							@click="openManageSessionModal(user)"
-																						>
-																							<Laptop
-																								class="mr-2 h-4 w-4"
-																							/>
-																							<span>Manage Session</span>
-																						</DropdownMenuItem>
-																					</div>
-																					<DropdownMenuSeparator />
-																					<div class="px-1 py-1">
-																						<DropdownMenuItem
-																							class="focus:bg-vtd-primary-600 focus:text-white disabled:bg-transparent group flex w-full items-center rounded-md px-2 py-2 text-xs transition-all duration-300 disabled:text-gray-400"
-																							@click="triggerDelete(user)"
-																						>
-																							<Trash2
-																								class="mr-2 h-4 w-4"
-																							/>
-																							<span>Delete</span>
-																						</DropdownMenuItem>
-																					</div>
-																				</DropdownMenuContent>
-																			</div>
-																		</div>
-																	</DropdownMenu>
-																</div>
-																<div class="z-20">
-																	<div
-																		style="top: 208px;"
-																		class="fixed z-30"
-																	/>
-																</div>
-															</div>
-														</td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-									</div>
-								</div>
-							</div>
-							<Pagination
-								:current-page-item-count="users?.length"
-								:page="0"
-								:total-items="users?.length"
-							/>
-						</div>
-						<div class="h-12 w-full" />
-					</div>
-				</div>
+	<SettingsLayout
+		heading="Users"
+		description="People who can sign in to this server, and the groups that grant their permissions."
+	>
+		<template #actions>
+			<AppButton @click="openAddUserModal">
+				<Plus
+					class="h-4 w-4"
+					aria-hidden="true"
+				/>
+				Add user
+			</AppButton>
+		</template>
+
+		<AppCard flush>
+			<div
+				v-if="pending && !users"
+				class="px-4 py-10 text-center text-sm text-app-text-3"
+			>
+				Loading users…
 			</div>
-		</div>
+			<div
+				v-else-if="error && !users"
+				class="flex flex-col items-center gap-2 px-4 py-12 text-center"
+				role="status"
+			>
+				<CircleAlert
+					class="h-8 w-8 text-app-text-4"
+					aria-hidden="true"
+				/>
+				<p class="text-sm font-medium text-app-text">
+					User management isn’t available
+				</p>
+				<p class="max-w-md text-[13px] text-app-text-3">
+					{{ apiErrorText(error) }}
+				</p>
+			</div>
+			<div
+				v-else-if="!users?.length"
+				class="flex flex-col items-center gap-2 px-4 py-12 text-center"
+			>
+				<UsersIcon
+					class="h-8 w-8 text-app-text-4"
+					aria-hidden="true"
+				/>
+				<p class="text-sm font-medium text-app-text">
+					No users yet
+				</p>
+				<p class="text-[13px] text-app-text-3">
+					Add a user to let someone sign in.
+				</p>
+			</div>
+			<template v-else>
+				<!-- Desktop / tablet: table -->
+				<table class="st-table hidden md:table">
+					<thead>
+						<tr>
+							<th scope="col">
+								User
+							</th>
+							<th scope="col">
+								Groups
+							</th>
+							<th
+								scope="col"
+								class="w-14"
+							>
+								<span class="sr-only">Actions</span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							v-for="user in users"
+							:key="user.username"
+						>
+							<td>
+								<div class="flex items-center gap-3">
+									<span
+										aria-hidden="true"
+										class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-chip text-xs font-semibold uppercase text-app-text-2"
+									>{{ user.username.slice(0, 2) }}</span>
+									<span class="font-medium">{{ user.username }}</span>
+								</div>
+							</td>
+							<td>
+								<div class="flex flex-wrap gap-1.5">
+									<span
+										v-for="group in user.groups"
+										:key="group"
+										class="st-chip"
+									>{{ group }}</span>
+									<span
+										v-if="!user.groups?.length"
+										class="text-app-text-4"
+									>—</span>
+								</div>
+							</td>
+							<td class="text-right">
+								<SettingsRowActions
+									:items="rowActions(user)"
+									:label="`Actions for ${user.username}`"
+								/>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- Phone: cards -->
+				<ul class="divide-y divide-app-border-subtle md:hidden">
+					<li
+						v-for="user in users"
+						:key="user.username"
+						class="flex items-start gap-3 px-4 py-3"
+					>
+						<span
+							aria-hidden="true"
+							class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-chip text-xs font-semibold uppercase text-app-text-2"
+						>{{ user.username.slice(0, 2) }}</span>
+						<div class="min-w-0 flex-1">
+							<p class="truncate text-[15px] font-medium text-app-text">
+								{{ user.username }}
+							</p>
+							<div class="mt-1.5 flex flex-wrap gap-1.5">
+								<span
+									v-for="group in user.groups"
+									:key="group"
+									class="st-chip"
+								>{{ group }}</span>
+								<span
+									v-if="!user.groups?.length"
+									class="text-[13px] text-app-text-4"
+								>No groups</span>
+							</div>
+						</div>
+						<SettingsRowActions
+							:items="rowActions(user)"
+							:label="`Actions for ${user.username}`"
+						/>
+					</li>
+				</ul>
+
+				<SettingsPagination
+					:page="0"
+					:current-page-item-count="users.length"
+					:total-items="users.length"
+				/>
+			</template>
+		</AppCard>
+
 		<AddUser
 			ref="addUserModal"
-			:groups="userGroups"
+			:groups="userGroups ?? []"
 			@save="handleUserSave"
 		/>
 		<Modal
 			v-model="delConfirm"
-			title="Please confirm!"
-			ok-text="Ok"
+			title="Delete user?"
+			ok-text="Delete"
 			cancel-text="Cancel"
 			:show-cancel="true"
-			@ok="deleteUser(activeUser?.username)"
+			@ok="activeUser && deleteUser(activeUser.username)"
 		>
-			<div class="absolute inset-0 flex h-full min-h-[240px] flex-col items-center justify-center p-8 text-center">
-				<div>Do you want to delete the user {{ activeUser?.username }}?</div>
-			</div>
+			<p class="text-sm text-app-text-2">
+				Do you want to delete the user <span class="font-semibold text-app-text">{{ activeUser?.username }}</span>?
+				They will no longer be able to sign in.
+			</p>
 		</Modal>
 		<ManageSessionModal
 			ref="manageSessionModal"
@@ -234,27 +173,26 @@
 			:user-sessions="userSessions"
 			@sessions-changed="refreshSessions"
 		/>
-	</new-page-wrapper>
+	</SettingsLayout>
 </template>
 
 <script setup lang="ts">
-import { Pencil, Copy, Laptop, Trash2 } from 'lucide-vue-next';
+import { CircleAlert, Pencil, Copy, Laptop, Plus, Trash2, Users as UsersIcon } from 'lucide-vue-next';
 import { useClipboard } from '@vueuse/core';
 import AddUser from '@/components/users/AddUser.vue';
-import type { UserPayload, UserSession } from '~/types';
+import type { User, UserPayload, UserSession } from '~/types';
 import Modal from '~/components/Modal.vue';
 import ManageSessionModal from '~/components/users/ManageSessionModal.vue';
-import { Pagination } from '~/components/ui/pagination';
 
 const { copy } = useClipboard();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 
-const { data: users, refresh } = useLazyAsyncData('users', () => $api.users.getAll());
+const { data: users, refresh, pending, error } = useLazyAsyncData('users', () => $api.users.getAll());
 const { data: userGroups } = useLazyAsyncData(('user-groups'), () => $api.userGroups.all());
 
 const delConfirm = ref(false);
-const activeUser = ref<UserPayload | null>(null);
+const activeUser = ref<User | null>(null);
 const userSessions = ref<UserSession[]>([]);
 
 const addUserModal = ref<InstanceType<typeof AddUser> | null>(null);
@@ -263,9 +201,6 @@ const manageSessionModal = ref<InstanceType<typeof ManageSessionModal> | null>(n
 const openAddUserModal = () => {
 	addUserModal.value?.open();
 };
-const closeAddUserModal = () => {
-	addUserModal.value?.close();
-};
 
 const fetchSessionsForActiveUser = async () => {
 	if (!activeUser.value?.username) return;
@@ -273,7 +208,7 @@ const fetchSessionsForActiveUser = async () => {
 	userSessions.value = sessions.data as UserSession[];
 };
 
-const openManageSessionModal = async (active: UserPayload) => {
+const openManageSessionModal = async (active: User) => {
 	activeUser.value = active;
 	try {
 		await fetchSessionsForActiveUser();
@@ -314,7 +249,6 @@ const handleUserSave = async (data: UserPayload & { originalUsername?: string; a
 			snackbar.add({ type: 'success', text: 'User created successfully' });
 		}
 		await refresh();
-		closeAddUserModal();
 	}
 	catch {
 		snackbar.add({
@@ -324,7 +258,7 @@ const handleUserSave = async (data: UserPayload & { originalUsername?: string; a
 	}
 };
 
-const triggerDelete = (user) => {
+const triggerDelete = (user: User) => {
 	activeUser.value = user;
 	delConfirm.value = true;
 };
@@ -344,5 +278,23 @@ const deleteUser = async (activeUsername: string) => {
 			text: 'Something went wrong user not deleted',
 		});
 	}
+};
+
+const rowActions = (user: User) => [
+	{ label: 'Edit', icon: Pencil, action: () => addUserModal.value?.openForEdit(user) },
+	{ label: 'Copy username', icon: Copy, action: () => copy(user.username) },
+	{ label: 'Manage sessions', icon: Laptop, action: () => openManageSessionModal(user) },
+	{ label: 'Delete', icon: Trash2, danger: true, action: () => triggerDelete(user) },
+];
+
+interface ApiErrorLike {
+	data?: { errors?: { title?: string; detail?: string }[] };
+	response?: { data?: { errors?: { title?: string; detail?: string }[] } };
+	cause?: ApiErrorLike;
+}
+const apiErrorText = (err: unknown): string => {
+	const e = err as ApiErrorLike | null;
+	const first = (e?.data?.errors ?? e?.response?.data?.errors ?? e?.cause?.data?.errors ?? e?.cause?.response?.data?.errors)?.[0];
+	return first?.title || first?.detail || 'The server returned an error.';
 };
 </script>

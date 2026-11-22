@@ -1,131 +1,124 @@
 <template>
-	<BaseModal v-model="isOpen">
-		<div
-			class="relative z-20 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-y-auto rounded border border-slate-400 bg-white p-6 text-theme-inverted-lighter shadow dark:bg-slate-800"
-		>
-			<h3 class="mb-4 text-lg font-semibold">
-				{{ isEditing ? 'Edit' : 'New' }} {{ type === 'script' ? 'script' : 'command' }}
-			</h3>
-			<form
-				class="flex flex-col gap-4"
-				@submit.prevent="save"
+	<OpDialog
+		v-model="isOpen"
+		:title="title"
+		description="Saved entries can be inserted on the Execute page and on devices."
+		size="xl"
+		as-form
+		@submit="save"
+	>
+		<div class="flex flex-col gap-4">
+			<OpField
+				label="Name"
+				for-id="libItemName"
 			>
-				<div class="relative flex w-full flex-col">
-					<input
-						id="libItemName"
-						v-model="name"
-						class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-						:class="{ error: !name }"
-						placeholder=" "
-						type="text"
-						autocomplete="off"
-					>
-					<label
-						class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-						for="libItemName"
-					>Name</label>
-				</div>
-				<ExecutionTags v-model="tags" />
-				<div
-					v-if="type === 'script'"
-					class="grid grid-cols-2 gap-4"
-				>
-					<div class="relative flex w-full flex-col">
-						<input
-							id="libItemCwd"
-							v-model="cwd"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							placeholder=" "
-							type="text"
-							autocomplete="off"
-						>
-						<label
-							class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-							for="libItemCwd"
-						>Working directory</label>
-					</div>
-					<CustomThemedSelect
-						id="libItemInterpreter"
-						v-model="interpreter"
-						label="Interpreter"
-						placeholder="Select..."
-						:options="[{ value: 'default', label: '/bin/sh or shebang' }, { value: 'tacoscript', label: 'Tacoscript' }]"
+				<OpInput
+					id="libItemName"
+					v-model="name"
+					placeholder="e.g. Restart nginx"
+				/>
+			</OpField>
+			<ExecutionTags v-model="tags" />
+			<div class="flex flex-col gap-1.5">
+				<span class="text-[13px] font-medium text-app-text-2">Command or script</span>
+				<div class="max-h-[300px] min-h-[180px] overflow-auto rounded-xl border border-app-border bg-[#0F151D]">
+					<CommandEditor
+						v-model="content"
+						class="min-h-[180px]"
+						aria-label="Command or script"
 					/>
 				</div>
-				<div class="grid grid-cols-2 gap-4">
-					<div class="relative flex w-full flex-col">
-						<input
-							id="libItemTimeout"
-							v-model="timeoutSec"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							placeholder=" "
-							type="number"
-							autocomplete="off"
-						>
-						<label
-							class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-							for="libItemTimeout"
-						>Timeout (seconds)</label>
-					</div>
-					<label
-						v-if="type === 'script'"
-						class="flex cursor-pointer select-none items-center justify-start text-sm text-theme-label"
-					>
-						<input
-							v-model="isSudo"
-							type="checkbox"
-							class="mr-2 h-[16px] w-[16px] cursor-pointer rounded border-none bg-transparent ring-2 ring-gray-300 focus:ring-gray-300 focus:ring-offset-0 primary-text"
-						>Use sudo (Unix only)
-					</label>
-				</div>
-				<div class="flex flex-col">
-					<label class="mb-1 text-sm font-normal text-theme-label">{{ type === 'script' ? 'Script' : 'Command' }}</label>
-					<div class="max-h-[260px] min-h-[180px] overflow-auto rounded border border-slate-400 bg-[#224A75] text-xs text-gray-200">
-						<CommandEditor v-model="content" />
-					</div>
-				</div>
-				<div class="flex items-center justify-end gap-2 pt-2">
-					<button
-						class="bg-vtd-secondary-600 hover:bg-vtd-secondary-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="button"
-						@click="close"
-					>
-						Cancel
-					</button>
-					<button
-						class="bg-vtd-primary-500 hover:bg-vtd-primary-700 disabled:bg-gray-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="submit"
-						:disabled="!name || !content || isSaving"
-					>
-						{{ isEditing ? 'Update' : 'Create' }}
-					</button>
-				</div>
-			</form>
+				<p
+					class="text-xs text-app-text-3"
+					aria-live="polite"
+				>
+					<template v-if="editing">
+						Saved as a {{ editing.kind }}.
+					</template>
+					<template v-else>
+						Will be saved as a <span class="font-medium text-app-text-2">{{ kind }}</span>. A single full-path command (e.g. /usr/bin/uptime) is saved as a command; anything else — pipes, several lines, a working directory, sudo or an interpreter — as a script.
+					</template>
+				</p>
+			</div>
+			<div
+				v-if="showScriptFields"
+				class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+			>
+				<OpField
+					label="Working directory"
+					for-id="libItemCwd"
+				>
+					<OpInput
+						id="libItemCwd"
+						v-model="cwd"
+						mono
+					/>
+				</OpField>
+				<CustomThemedSelect
+					id="libItemInterpreter"
+					v-model="interpreter"
+					label="Interpreter"
+					placeholder="Select…"
+					:options="[{ value: 'default', label: '/bin/sh or shebang' }, { value: 'tacoscript', label: 'Tacoscript' }]"
+				/>
+			</div>
+			<div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
+				<OpField
+					label="Timeout (seconds)"
+					for-id="libItemTimeout"
+				>
+					<OpInput
+						id="libItemTimeout"
+						v-model="timeoutSec"
+						type="number"
+					/>
+				</OpField>
+				<OpCheckbox
+					v-if="showScriptFields"
+					v-model="isSudo"
+					class="sm:pb-1.5"
+				>
+					Use sudo <span class="text-app-text-3">(Unix only)</span>
+				</OpCheckbox>
+			</div>
 		</div>
-	</BaseModal>
+		<template #footer>
+			<AppButton
+				variant="secondary"
+				@click="close"
+			>
+				Cancel
+			</AppButton>
+			<AppButton
+				type="submit"
+				class="ml-auto"
+				:disabled="!name || !content || isSaving"
+			>
+				{{ editing ? 'Save changes' : 'Save to library' }}
+			</AppButton>
+		</template>
+	</OpDialog>
 </template>
 
 <script setup lang="ts">
-import { BaseModal } from '~/components/ui/base-modal';
 import ExecutionTags from '~/components/custom/ExecutionTags.vue';
 import CommandEditor from '~/components/CommandEditor.vue';
-import type { Command, Script, CommandPayload, ScriptPayload } from '~/types';
+import OpDialog from '~/components/operate/OpDialog.vue';
+import OpField from '~/components/operate/OpField.vue';
+import OpInput from '~/components/operate/OpInput.vue';
+import OpCheckbox from '~/components/operate/OpCheckbox.vue';
+import { libraryKindFor, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
+import type { RunKind } from '~/utils/runKind';
 
-const props = defineProps({
-	type: {
-		type: String as () => 'command' | 'script',
-		required: true,
-	},
-});
 const emit = defineEmits(['saved']);
 
-const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
+const library = useRunLibrary();
 
 const isOpen = ref(false);
 const isSaving = ref(false);
-const isEditing = ref(false);
-const editingId = ref<string | null>(null);
+/** The entry being edited (it stays in its own command/script store). */
+const editing = ref<{ id: string; kind: RunKind } | null>(null);
 
 const name = ref('');
 const tags = ref<string[]>([]);
@@ -135,6 +128,20 @@ const isSudo = ref(false);
 const timeoutSec = ref(300);
 const content = ref('');
 
+const draft = computed(() => ({
+	name: name.value.trim(),
+	tags: tags.value,
+	code: content.value,
+	timeoutSec: Number(timeoutSec.value),
+	cwd: cwd.value,
+	isSudo: isSudo.value,
+	interpreter: interpreter.value === 'default' ? '' : interpreter.value,
+}));
+const kind = computed<RunKind>(() => editing.value?.kind ?? libraryKindFor(draft.value));
+// Saved commands can't hold these; new entries can use them (which makes them scripts).
+const showScriptFields = computed(() => !editing.value || editing.value.kind === 'script');
+const title = computed(() => (editing.value ? `Edit ${editing.value.kind}` : 'New library entry'));
+
 const reset = () => {
 	name.value = '';
 	tags.value = [];
@@ -143,33 +150,31 @@ const reset = () => {
 	isSudo.value = false;
 	timeoutSec.value = 300;
 	content.value = '';
-	editingId.value = null;
+	editing.value = null;
 };
 
 const openForCreate = () => {
 	reset();
-	isEditing.value = false;
 	isOpen.value = true;
 };
 
-const openForEdit = (item: Command | Script) => {
+const openForEdit = async (entry: LibraryEntry) => {
 	reset();
-	isEditing.value = true;
-	editingId.value = item.id;
-	name.value = item.name;
-	tags.value = item.tags ?? [];
-	timeoutSec.value = item.timeout_sec;
-	if (props.type === 'script') {
-		const script = item as Script;
-		cwd.value = script.cwd ?? '';
-		interpreter.value = script.interpreter || 'default';
-		isSudo.value = script.is_sudo;
-		content.value = script.script;
+	try {
+		const full = await library.load(entry.id, entry.kind);
+		editing.value = { id: full.id, kind: full.kind };
+		name.value = full.name;
+		tags.value = full.tags;
+		timeoutSec.value = full.timeoutSec || 300;
+		content.value = full.code;
+		cwd.value = full.cwd;
+		interpreter.value = full.interpreter || 'default';
+		isSudo.value = full.isSudo;
+		isOpen.value = true;
 	}
-	else {
-		content.value = (item as Command).cmd;
+	catch {
+		snackbar.add({ type: 'error', text: `Failed to open ${entry.name}` });
 	}
-	isOpen.value = true;
 };
 
 const close = () => {
@@ -180,43 +185,13 @@ const save = async () => {
 	if (!name.value || !content.value) return;
 	isSaving.value = true;
 	try {
-		if (props.type === 'script') {
-			const payload: ScriptPayload = {
-				name: name.value,
-				tags: tags.value,
-				timeout_sec: Number(timeoutSec.value),
-				script: content.value,
-				cwd: cwd.value,
-				is_sudo: isSudo.value,
-				interpreter: interpreter.value === 'default' ? '' : interpreter.value,
-			};
-			if (editingId.value) {
-				await $api.library.updateScript(editingId.value, payload);
-			}
-			else {
-				await $api.library.createScript(payload);
-			}
-		}
-		else {
-			const payload: CommandPayload = {
-				name: name.value,
-				tags: tags.value,
-				timeout_sec: Number(timeoutSec.value),
-				cmd: content.value,
-			};
-			if (editingId.value) {
-				await $api.library.updateCommand(editingId.value, payload);
-			}
-			else {
-				await $api.library.createCommand(payload);
-			}
-		}
-		snackbar.add({ type: 'success', text: `${props.type === 'script' ? 'Script' : 'Command'} ${isEditing.value ? 'updated' : 'created'}` });
+		const saved = await library.save(draft.value, editing.value);
+		snackbar.add({ type: 'success', text: editing.value ? 'Library entry updated' : `Saved to library as a ${saved.kind}` });
 		emit('saved');
 		close();
 	}
 	catch {
-		snackbar.add({ type: 'error', text: `Failed to save ${props.type}` });
+		snackbar.add({ type: 'error', text: 'Failed to save the library entry' });
 	}
 	finally {
 		isSaving.value = false;

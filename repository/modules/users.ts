@@ -57,7 +57,7 @@ class UsersModule extends HttpFactory {
 		);
 	}
 
-	public async delete(user_id: string): Promise<any> {
+	public async delete(user_id: string): Promise<void> {
 		return this.call(
 			'DELETE',
 			`${this.RESOURCE}/${user_id}`,

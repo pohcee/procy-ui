@@ -1,14 +1,14 @@
 <template>
-	<div class="h-full min-h-[260px] w-full">
+	<div class="relative h-[260px] w-full">
 		<p
 			v-if="mounts.length === 0"
-			class="flex h-full min-h-[260px] w-full items-center justify-center text-sm text-gray-500 dark:text-gray-500"
+			class="flex h-full min-h-[260px] w-full items-center justify-center text-[13px] text-app-text-3"
 		>
 			No monitoring data available for this period.
 		</p>
 		<Line
 			v-else
-			:key="colorMode"
+			:key="String(isDark)"
 			:data="chartData"
 			:options="chartOptions"
 		/>
@@ -26,7 +26,9 @@ import {
 	Tooltip,
 	Legend,
 } from 'chart.js';
+import type { TooltipItem } from 'chart.js';
 import { Line } from 'vue-chartjs';
+import { useDeviceChartTheme } from '~/components/device/useDeviceChartTheme';
 import { parseMountpoints } from '~/lib/utils';
 import type { ClientMountpoint } from '~/types';
 
@@ -36,8 +38,7 @@ const props = defineProps<{
 	history: ClientMountpoint[];
 }>();
 
-const { colorMode } = useTheme();
-const { chartColors, gridColor, textColor, tooltipBackgroundColor, tooltipTextColor } = useChartTheme();
+const { isDark, colors } = useDeviceChartTheme();
 
 const sortedHistory = computed(() => [...props.history].sort(
 	(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
@@ -68,7 +69,7 @@ function formatTick(timestamp: string): string {
 const chartData = computed(() => ({
 	labels: parsedHistory.value.map(row => formatTick(row.timestamp)),
 	datasets: mounts.value.map((mount, index) => {
-		const color = chartColors.value[index % chartColors.value.length];
+		const color = colors.value.series[index % colors.value.series.length];
 		return {
 			label: mount,
 			data: parsedHistory.value.map(row => row.disks.find(d => d.mount === mount)?.usedPercent ?? null),
@@ -89,29 +90,31 @@ const chartOptions = computed(() => ({
 	interaction: { mode: 'index' as const, intersect: false },
 	scales: {
 		x: {
-			grid: { color: gridColor.value },
-			ticks: { color: textColor.value, maxTicksLimit: 8 },
+			grid: { color: colors.value.grid },
+			border: { color: colors.value.grid },
+			ticks: { color: colors.value.text, maxTicksLimit: 8 },
 		},
 		y: {
 			min: 0,
 			max: 100,
-			grid: { color: gridColor.value },
-			ticks: { color: textColor.value, callback: (value: number) => `${value}%` },
+			grid: { color: colors.value.grid },
+			border: { color: colors.value.grid },
+			ticks: { color: colors.value.text, callback: (value: number | string) => `${value}%` },
 		},
 	},
 	plugins: {
 		legend: {
 			display: mounts.value.length > 1,
-			labels: { color: textColor.value },
+			labels: { color: colors.value.text },
 		},
 		tooltip: {
-			backgroundColor: tooltipBackgroundColor.value,
-			titleColor: tooltipTextColor.value,
-			bodyColor: tooltipTextColor.value,
-			borderColor: gridColor.value,
+			backgroundColor: colors.value.tooltipBg,
+			titleColor: colors.value.tooltipText,
+			bodyColor: colors.value.tooltipText,
+			borderColor: colors.value.tooltipBorder,
 			borderWidth: 1,
 			callbacks: {
-				label: (context: { dataset: { label?: string }; parsed: { y: number } }) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`,
+				label: (context: TooltipItem<'line'>) => `${context.dataset.label}: ${context.parsed.y === null ? '-' : `${context.parsed.y.toFixed(1)}%`}`,
 			},
 		},
 	},

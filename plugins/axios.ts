@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export default defineNuxtPlugin((nuxtApp: any): any => {
+export default defineNuxtPlugin(() => {
 	// axios.defaults.withCredentials = true;
 	const defaultUrl = 'https://rport.viziosense.ai';
 	const token = useCookie('token');

@@ -1,155 +1,144 @@
 <template>
-	<BaseModal v-model="isOpen">
-		<div
-			class="relative z-20 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-y-auto rounded border border-slate-400 bg-white p-6 text-theme-inverted-lighter shadow dark:bg-slate-800"
-		>
-			<h3 class="mb-4 text-lg font-semibold">
-				{{ isEditing ? 'Edit' : 'New' }} schedule
-			</h3>
-			<form
-				class="flex flex-col gap-4"
-				@submit.prevent="save"
-			>
-				<div class="grid grid-cols-2 gap-4">
-					<div class="relative flex w-full flex-col">
-						<input
-							id="scheduleFormName"
-							v-model="name"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							:class="{ error: !name }"
-							placeholder=" "
-							type="text"
-							autocomplete="off"
-						>
-						<label
-							class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-							for="scheduleFormName"
-						>Schedule name</label>
-					</div>
-					<div class="relative flex w-full flex-col">
-						<input
-							id="scheduleFormCron"
-							v-model="cron"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							:class="{ error: !cron }"
-							placeholder=" "
-							type="text"
-							autocomplete="off"
-						>
-						<label
-							class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-							for="scheduleFormCron"
-						>Cron expression (e.g. */15 * * * *)</label>
-					</div>
-				</div>
-				<CustomThemedSelect
-					id="scheduleFormType"
-					v-model="type"
-					label="Type"
-					:disabled="isEditing"
-					:options="[{ value: 'command', label: 'Command' }, { value: 'script', label: 'Script' }]"
-				/>
-				<div>
-					<h4 class="mb-2 text-sm font-semibold">
-						Target clients
-					</h4>
-					<div class="rounded bg-[#1c3f68] p-4">
-						<TargetSelector
-							:initial="{ clientIds, groupIds, tags }"
-							@update:target="onTargetChange"
-						/>
-					</div>
-				</div>
-				<div
-					v-if="type === 'script'"
-					class="grid grid-cols-2 gap-4"
+	<OpDialog
+		v-model="isOpen"
+		:title="`${isEditing ? 'Edit' : 'New'} schedule`"
+		description="Run a command or script automatically on a cron schedule."
+		size="xl"
+		as-form
+		@submit="save"
+	>
+		<div class="flex flex-col gap-4">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				<OpField
+					label="Schedule name"
+					for-id="scheduleFormName"
 				>
-					<div class="relative flex w-full flex-col">
-						<input
-							id="scheduleFormCwd"
-							v-model="cwd"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							placeholder=" "
-							type="text"
-							autocomplete="off"
-						>
-						<label
-							class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-							for="scheduleFormCwd"
-						>Working directory</label>
-					</div>
-					<CustomThemedSelect
-						id="scheduleFormInterpreter"
-						v-model="interpreter"
-						label="Interpreter"
-						placeholder="Select..."
-						:options="[{ value: 'default', label: '/bin/sh or shebang' }, { value: 'tacoscript', label: 'Tacoscript' }]"
+					<OpInput
+						id="scheduleFormName"
+						v-model="name"
+						placeholder="e.g. Nightly cleanup"
+					/>
+				</OpField>
+				<OpField
+					label="Cron expression"
+					for-id="scheduleFormCron"
+					help="minute hour day month weekday, e.g. */15 * * * *"
+				>
+					<OpInput
+						id="scheduleFormCron"
+						v-model="cron"
+						mono
+						placeholder="*/15 * * * *"
+						aria-describedby="scheduleFormCron-help"
+					/>
+				</OpField>
+			</div>
+			<div class="flex flex-col gap-2 rounded-xl border border-app-border p-4">
+				<h4 class="text-sm font-semibold text-app-text">
+					Targets
+				</h4>
+				<TargetSelector
+					:initial="{ clientIds, groupIds, tags }"
+					@update:target="onTargetChange"
+				/>
+			</div>
+			<div
+				v-if="showScriptFields"
+				class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+			>
+				<OpField
+					label="Working directory"
+					for-id="scheduleFormCwd"
+				>
+					<OpInput
+						id="scheduleFormCwd"
+						v-model="cwd"
+						mono
+					/>
+				</OpField>
+				<CustomThemedSelect
+					id="scheduleFormInterpreter"
+					v-model="interpreter"
+					label="Interpreter"
+					placeholder="Select…"
+					:options="[{ value: 'default', label: '/bin/sh or shebang' }, { value: 'tacoscript', label: 'Tacoscript' }]"
+				/>
+			</div>
+			<div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-3">
+				<OpField
+					label="Timeout (seconds)"
+					for-id="scheduleFormTimeout"
+				>
+					<OpInput
+						id="scheduleFormTimeout"
+						v-model="timeoutSec"
+						type="number"
+					/>
+				</OpField>
+				<div class="flex flex-col sm:col-span-2 sm:flex-row sm:gap-5 sm:pb-1.5">
+					<OpCheckbox
+						v-if="showScriptFields"
+						v-model="isSudo"
+					>
+						Use sudo
+					</OpCheckbox>
+					<OpCheckbox v-model="abortOnError">
+						Abort on error
+					</OpCheckbox>
+				</div>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<span class="text-[13px] font-medium text-app-text-2">Command or script</span>
+				<div class="max-h-[260px] min-h-[160px] overflow-auto rounded-xl border border-app-border bg-[#0F151D]">
+					<CommandEditor
+						v-model="content"
+						class="min-h-[160px]"
+						aria-label="Command or script"
 					/>
 				</div>
-				<div class="grid grid-cols-3 gap-4">
-					<div class="relative flex w-full flex-col">
-						<input
-							id="scheduleFormTimeout"
-							v-model="timeoutSec"
-							class="primary input-text focus:border-1 peer order-2 block h-10 w-full rounded bg-transparent text-theme-inverted shadow-sm focus:outline-0 focus:ring-0 sm:text-sm"
-							placeholder=" "
-							type="number"
-							autocomplete="off"
-						>
-						<label
-							class="order-1 flex pb-1 pl-1 text-sm font-normal text-theme-label peer-focus:text-primary"
-							for="scheduleFormTimeout"
-						>Timeout (seconds)</label>
-					</div>
-					<label
-						v-if="type === 'script'"
-						class="flex cursor-pointer select-none items-center gap-2 text-sm text-theme-label"
-					>
-						<input
-							v-model="isSudo"
-							type="checkbox"
-							class="h-[16px] w-[16px] rounded"
-						>Use sudo
-					</label>
-					<label class="flex cursor-pointer select-none items-center gap-2 text-sm text-theme-label">
-						<input
-							v-model="abortOnError"
-							type="checkbox"
-							class="h-[16px] w-[16px] rounded"
-						>Abort on error
-					</label>
-				</div>
-				<div class="flex flex-col">
-					<label class="mb-1 text-sm font-normal text-theme-label">{{ type === 'script' ? 'Script' : 'Command' }}</label>
-					<div class="max-h-[220px] min-h-[160px] overflow-auto rounded border border-slate-400 bg-[#224A75] text-xs text-gray-200">
-						<CommandEditor v-model="content" />
-					</div>
-				</div>
-				<div class="flex items-center justify-end gap-2 pt-2">
-					<button
-						class="bg-vtd-secondary-600 hover:bg-vtd-secondary-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="button"
-						@click="close"
-					>
-						Cancel
-					</button>
-					<button
-						class="bg-vtd-primary-500 hover:bg-vtd-primary-700 disabled:bg-gray-400 text-white cursor-pointer rounded-md px-3.5 py-2 text-sm font-semibold"
-						type="submit"
-						:disabled="!canSave || isSaving"
-					>
-						{{ isEditing ? 'Update' : 'Create' }}
-					</button>
-				</div>
-			</form>
+				<p
+					class="text-xs text-app-text-3"
+					aria-live="polite"
+				>
+					<template v-if="isEditing">
+						Runs as a {{ effectiveType }} (fixed once a schedule is created).
+					</template>
+					<template v-else>
+						Runs as a <span class="font-medium text-app-text-2">{{ effectiveType }}</span>. A single full-path command (e.g. /usr/bin/uptime) runs as a command; anything else — pipes, several lines, a working directory, sudo or an interpreter — as a script.
+					</template>
+				</p>
+			</div>
 		</div>
-	</BaseModal>
+		<template #footer>
+			<AppButton
+				variant="secondary"
+				@click="close"
+			>
+				Cancel
+			</AppButton>
+			<span
+				v-if="!canSave"
+				class="ml-auto hidden text-xs text-app-text-3 sm:inline"
+			>Name, cron, targets and a command or script are required.</span>
+			<AppButton
+				type="submit"
+				:class="canSave ? 'ml-auto' : ''"
+				:disabled="!canSave || isSaving"
+			>
+				{{ isEditing ? 'Save changes' : 'Create schedule' }}
+			</AppButton>
+		</template>
+	</OpDialog>
 </template>
 
 <script setup lang="ts">
-import { BaseModal } from '~/components/ui/base-modal';
 import TargetSelector from '~/components/custom/TargetSelector.vue';
 import CommandEditor from '~/components/CommandEditor.vue';
+import OpDialog from '~/components/operate/OpDialog.vue';
+import OpField from '~/components/operate/OpField.vue';
+import OpInput from '~/components/operate/OpInput.vue';
+import OpCheckbox from '~/components/operate/OpCheckbox.vue';
+import { libraryKindFor } from '~/composables/useRunLibrary';
 import type { JobClientTags, Schedule, SchedulePayload } from '~/types';
 
 const emit = defineEmits(['saved']);
@@ -220,13 +209,28 @@ const openForEdit = (schedule: Schedule) => {
 	isSudo.value = schedule.is_sudo;
 	abortOnError.value = schedule.abort_on_error ?? true;
 	timeoutSec.value = schedule.timeout_sec;
-	content.value = (schedule.type === 'script' ? schedule.script : schedule.command) ?? '';
+	content.value = (schedule.type === 'script' ? decodeScript(schedule.script ?? '') : schedule.command) ?? '';
 	isOpen.value = true;
 };
 
 const close = () => {
 	isOpen.value = false;
 };
+
+// The schedule's type is fixed once created; for new ones it follows the content.
+const effectiveType = computed<'command' | 'script'>(() => (isEditing.value
+	? type.value
+	: libraryKindFor({
+			name: name.value,
+			tags: [],
+			code: content.value,
+			timeoutSec: Number(timeoutSec.value),
+			cwd: cwd.value,
+			isSudo: isSudo.value,
+			interpreter: interpreter.value === 'default' ? '' : interpreter.value,
+		})));
+// Commands can't carry these; new schedules can use them (which makes them scripts).
+const showScriptFields = computed(() => !isEditing.value || type.value === 'script');
 
 const save = async () => {
 	if (!canSave.value) return;
@@ -235,17 +239,18 @@ const save = async () => {
 		const payload: SchedulePayload = {
 			name: name.value,
 			schedule: cron.value,
-			type: type.value,
-			client_ids: clientIds.value,
-			group_ids: groupIds.value,
+			type: effectiveType.value,
+			// Leave empty id lists out: the server rejects `client_ids: []` next to tags.
+			client_ids: (clientIds.value.length ? clientIds.value : undefined) as unknown as string[],
+			group_ids: (groupIds.value.length ? groupIds.value : undefined) as unknown as string[],
 			tags: tags.value,
 			timeout_sec: Number(timeoutSec.value),
-			is_sudo: type.value === 'script' ? isSudo.value : false,
+			is_sudo: effectiveType.value === 'script' ? isSudo.value : false,
 			execute_concurrently: true,
 			abort_on_error: abortOnError.value,
 			overlaps: false,
-			...(type.value === 'script'
-				? { script: content.value, cwd: cwd.value, interpreter: interpreter.value === 'default' ? '' : interpreter.value }
+			...(effectiveType.value === 'script'
+				? { script: encodeScript(content.value), cwd: cwd.value, interpreter: interpreter.value === 'default' ? '' : interpreter.value }
 				: { command: content.value }),
 		};
 		if (editingId.value) {
@@ -267,4 +272,17 @@ const save = async () => {
 };
 
 defineExpose({ openForCreate, openForEdit });
+</script>
+
+<script lang="ts">
+// The schedules API stores scripts base64-encoded (commands stay plain text).
+export const encodeScript = (script: string) => btoa(String.fromCharCode(...new TextEncoder().encode(script)));
+export const decodeScript = (encoded: string) => {
+	try {
+		return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(atob(encoded), c => c.charCodeAt(0)));
+	}
+	catch {
+		return encoded;
+	}
+};
 </script>

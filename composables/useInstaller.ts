@@ -1,8 +1,6 @@
 import type { InstallerResponse } from '~/types';
 
 export const useInstaller = () => {
-	const { $api } = useNuxtApp();
-
 	const isLoading = ref(false);
 	const error = ref<string | null>(null);
 

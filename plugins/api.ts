@@ -34,7 +34,7 @@ interface IApiInstance {
 	notifications: NotificationsModule;
 }
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(() => {
 	const config = useRuntimeConfig();
 	const userAuth = useCookie('token');
 	const is_authenticated = useCookie<boolean>('is_authenticated');
@@ -51,10 +51,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 			headers.set('Authorization', `Bearer ${userAuth.value}`);
 			options.headers = headers;
 		},
-		onRequestError({ request, options, error }): void | Promise<void> {
+		onRequestError({ request, error }): void | Promise<void> {
 			console.log('[fetch request error]', request, error);
 		},
-		async onResponseError({ request, response, options }): void | Promise<void> {
+		async onResponseError({ response }): Promise<void> {
 			if (response.status === 401) {
 				userAuth.value = null;
 				is_authenticated.value = false;

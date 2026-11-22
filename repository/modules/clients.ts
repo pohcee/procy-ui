@@ -17,7 +17,9 @@ class ClientsModule extends HttpFactory {
 	async show(id: string): Promise<ClientResponse> {
 		return this.call<ClientResponse>(
 			'GET',
-			`${this.RESOURCE}/${id.toLowerCase()}`,
+			// Client IDs are case-sensitive on the server (e.g. Windows hardware UUIDs are
+			// upper-case), so pass them through unchanged.
+			`${this.RESOURCE}/${encodeURIComponent(id)}`,
 			undefined,
 		);
 	}
@@ -39,6 +41,15 @@ class ClientsModule extends HttpFactory {
 			params += `&filter[connection_state]=${connectionState}`;
 		}
 		return this.call<ClientsResponse>('GET', `${this.RESOURCE}${params}`, undefined);
+	}
+
+	/** One page (max 500, the server's hard limit) of clients with the fields the device list needs. */
+	async listFleet(offset = 0, limit = 500): Promise<ClientsResponse> {
+		return this.call<ClientsResponse>('GET',
+			`${this.RESOURCE}?sort=name&fields[clients]=id,name,hostname,os,os_family,os_kernel,os_full_name,os_arch,ipv4,connection_state,disconnected_at,last_heartbeat_at,tags,labels,groups,updates_status`
+			+ `&page[limit]=${limit}&page[offset]=${offset}`,
+			undefined,
+		);
 	}
 
 	async getClientsName(clientsIds: Array<string>): Promise<ClientsResponse> {

@@ -1,43 +1,51 @@
 <template>
-	<div
-		class="absolute bottom-4 left-4 right-4 top-4 flex justify-between overflow-hidden rounded-xl bg-background shadow-lg shadow-gray-400 dark:shadow-black/50"
-	>
-		<div class="flex h-full w-2/5 items-center justify-center px-8">
-			<slot />
-		</div>
-		<div class="bg-primary-800 flex h-full w-3/5 flex-col items-stretch justify-between py-6">
-			<div class="flex items-center justify-end px-6">
-				<!--				<img -->
-				<!--					src="https://qoqbcjgo.users.openrport.io/_nuxt/rport.30b0ff6d.svg" -->
-				<!--					width="100" -->
-				<!--					height="100" -->
-				<!--				> -->
-			</div>
-			<div class="relative w-full">
-				<div class="flex w-full items-end justify-end">
-					<img
-						src="/login.svg"
-						alt=""
-						class="relative w-full trangray-x-28 transform pr-1"
-						height="100"
-						width="100"
-					>
+	<div class="flex min-h-[100dvh] bg-app-bg font-sans text-app-text">
+		<!-- Form column -->
+		<div class="flex min-w-0 flex-1 flex-col px-4 py-5 sm:px-8 sm:py-7">
+			<header class="flex items-center gap-2.5">
+				<img
+					src="/favicon.svg"
+					alt=""
+					width="36"
+					height="36"
+					class="block h-9 w-9 shrink-0"
+				>
+				<span class="text-[17px] font-bold tracking-tight text-app-text">OpenRPort2</span>
+			</header>
+			<main class="flex flex-1 items-center justify-center py-8 sm:py-12">
+				<div class="w-full max-w-[400px]">
+					<slot />
 				</div>
-				<div class="absolute bottom-0 left-6 flex w-full gap-4 text-xxs font-normal text-white opacity-80">
-					<p>© OpenRPort</p>
-				</div>
-			</div>
+			</main>
+			<footer class="text-xs text-app-text-3">
+				© OpenRPort2 · Remote management for your fleet
+			</footer>
 		</div>
+
+		<!-- Illustration panel (desktop only) -->
+		<aside
+			class="relative hidden w-[52%] max-w-[860px] flex-col justify-between overflow-hidden bg-[#10161F] p-10 text-white lg:flex"
+			aria-hidden="true"
+		>
+			<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,rgba(37,99,235,0.45),transparent_65%)]" />
+			<div class="relative">
+				<p class="text-sm font-semibold uppercase tracking-[0.08em] text-[#93B8FF]">
+					OpenRPort2
+				</p>
+				<p class="mt-3 max-w-md text-[28px] font-bold leading-tight tracking-tight">
+					Every device, one secure tunnel away.
+				</p>
+				<p class="mt-3 max-w-md text-[15px] text-[#C2CAD6]">
+					Run commands, open tunnels and watch your fleet from anywhere.
+				</p>
+			</div>
+			<img
+				src="/login.svg"
+				alt=""
+				width="945"
+				height="787"
+				class="relative -mr-10 ml-auto block h-auto w-[min(100%,760px)]"
+			>
+		</aside>
 	</div>
 </template>
-
-<script setup lang="ts">
-// import {getProvider} from "~/composables/useAuth";
-//
-// getProvider();
-const provider = useState('provider');
-
-await callOnce(async () => {
-
-});
-</script>

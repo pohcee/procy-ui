@@ -238,12 +238,6 @@
 import { IconTerminal, IconServer, IconCode, IconTag } from '@tabler/icons-vue';
 
 export default {
-	components: {
-		IconTerminal,
-		IconServer,
-		IconCode,
-		IconTag,
-	},
 	data() {
 		return {
 			items: [
