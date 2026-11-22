@@ -1,5 +1,6 @@
 import type { CommandResult, JobClientTags } from '~/types';
 import type { RunKind } from '~/utils/runKind';
+import { apiBaseUrl } from '~/utils/apiBase';
 
 export interface RemoteRunOptions {
 	kind: RunKind;
@@ -26,9 +27,9 @@ const toBase64 = (text: string) => {
 	return btoa(binary);
 };
 
-/** ws:// for an http API, wss:// for https. */
-const socketBase = (apiUrl: string) => {
-	const url = new URL(apiUrl);
+/** ws:// for an http API, wss:// for https (same origin when no API URL is configured). */
+const socketBase = (apiUrl: unknown) => {
+	const url = apiBaseUrl(apiUrl);
 	return `${url.protocol === 'http:' ? 'ws:' : 'wss:'}//${url.host}`;
 };
 
@@ -54,7 +55,7 @@ export const useRemoteRun = () => {
 	const run = (options: RemoteRunOptions) => {
 		disconnect();
 		const endpoint = options.kind === 'script' ? 'scripts' : 'commands';
-		const url = `${socketBase(String(config.public.apiUrl))}/api/v1/ws/${endpoint}?access_token=${token.value}`;
+		const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${token.value}`;
 
 		// The server treats an empty `client_ids: []` as "targeting by client" and rejects it
 		// next to group or tag targeting, so leave empty lists out entirely.

@@ -112,6 +112,21 @@ export default defineNuxtConfig({
 		},
 	},
 
+	// Static builds (`nuxi generate`) are served by rportd from its doc_root. Page files
+	// are capitalised (pages/Execute.vue → /Execute/), but the app links to lowercase
+	// URLs, and rportd serves files case-sensitively and only falls back to index.html
+	// for a few known prefixes. Prerender the lowercase paths too so reloads and
+	// bookmarks of every page work.
+	nitro: {
+		prerender: {
+			routes: [
+				'/execute', '/schedules', '/tunnels', '/library', '/inventory', '/audits',
+				'/profile', '/users', '/user-groups', '/client-access', '/client-groups',
+				'/vault', '/api-tokens', '/info', '/dashboard', '/auth',
+			],
+		},
+	},
+
 	ssr: false,
 	compatibilityDate: '2025-03-25',
 });
