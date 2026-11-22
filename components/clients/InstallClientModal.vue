@@ -23,6 +23,13 @@
 			v-else
 			class="flex flex-col gap-5"
 		>
+			<p
+				v-if="installError"
+				role="alert"
+				class="rounded-xl border border-app-danger/30 bg-app-danger-bg px-4 py-3 text-sm text-app-danger"
+			>
+				{{ installError }}
+			</p>
 			<dl class="grid grid-cols-1 gap-2 rounded-lg border border-app-border bg-app-surface-2 p-3 sm:grid-cols-2">
 				<div class="flex min-w-0 items-center gap-2">
 					<dt class="text-[13px] text-app-text-3">
@@ -92,9 +99,7 @@
 					<span v-else>Install Tacoscript along with the RPort client</span>
 				</label>
 				<p class="mt-1 text-xs text-app-text-3">
-					{{ status?.pairing_builtin
-						? 'The install link is only valid for a limited time.'
-						: 'The pairing service is free and secure. No data is stored.' }}
+					The install link is only valid for a limited time.
 				</p>
 			</fieldset>
 			<ClientsInstallationCommand
@@ -119,7 +124,7 @@ const client = ref<Partial<ClientAuth> | null>(null);
 const status = ref<ServerStatus | null>(null);
 const selectedConnectUrl = ref('');
 
-const { isLoading, installers, fetchInstaller } = useInstaller();
+const { isLoading, error: installError, installers, fetchInstaller } = useInstaller();
 const { copy } = useClipboard({ legacy: true });
 const snackbar = useSnackbar();
 

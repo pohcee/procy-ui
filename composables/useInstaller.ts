@@ -17,8 +17,12 @@ export const useInstaller = () => {
 		fingerprint: string;
 		password: string;
 	}, pairingUrl: string, builtin = false) {
-		isLoading.value = true;
 		error.value = null;
+		if (!pairingUrl) {
+			error.value = 'No pairing service is configured on the server. Enable the [pairing] section in rportd.conf.';
+			return;
+		}
+		isLoading.value = true;
 
 		try {
 			// rportd's built-in pairing service requires the API token; an external
