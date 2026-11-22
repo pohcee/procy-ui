@@ -5,7 +5,12 @@
 </template>
 
 <script setup lang="ts">
+import { clearLegacyAuthCookies } from '~/utils/authToken';
+
 useTheme();
+
+// Drop auth cookies left by the original rport UI / earlier builds (see utils/authToken.ts).
+onMounted(() => clearLegacyAuthCookies());
 
 const appName = 'OpenRPort2';
 useHead({

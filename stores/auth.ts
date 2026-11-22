@@ -1,28 +1,11 @@
 import { defineStore } from 'pinia';
 import { FetchError } from 'ofetch';
-import { readAuthToken } from '~/utils/authToken';
+import { readAuthToken, writeAuthToken } from '~/utils/authToken';
 import type { ApiErrorResponse, ILoginInput, TwoFa } from '~/types';
 
-/**
- * Set or clear the auth cookies *now*. useCookie only writes the browser cookie
- * on Vue's next update, so code that navigates right after signing in or out
- * could make the auth middleware read a stale (or missing) token.
- */
+/** Set or clear the signed-in session (the auth cookie is written immediately). */
 export const setAuthCookies = (value: string | null) => {
-	const token = useCookie<string | null>('token');
-	const isAuthenticated = useCookie<boolean | null>('is_authenticated');
-	token.value = value;
-	isAuthenticated.value = value ? true : null;
-	if (import.meta.client) {
-		if (value) {
-			document.cookie = `token=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
-			document.cookie = 'is_authenticated=true; path=/; SameSite=Lax';
-		}
-		else {
-			document.cookie = 'token=; Max-Age=0; path=/';
-			document.cookie = 'is_authenticated=; Max-Age=0; path=/';
-		}
-	}
+	writeAuthToken(value);
 };
 
 export const useTokenStore = defineStore('token', {
