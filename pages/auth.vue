@@ -36,15 +36,16 @@ useHead({
 const handleLogin = async (credentials: ILoginInput) => {
 	credentialsRef.value = credentials;
 	await store.getLoginToken(credentials);
-	if (authenticated) {
-		await router.push('/');
+	// Only once fully signed in (not while a 2FA code is still needed).
+	if (authenticated.value) {
+		await router.push('/dashboard');
 	}
 };
 
 const handleTwoFa = async (two_fa: string) => {
 	await store.verifyTwoFa(credentialsRef.value, two_fa);
-	if (authenticated) {
-		await router.push('/');
+	if (authenticated.value) {
+		await router.push('/dashboard');
 	}
 };
 

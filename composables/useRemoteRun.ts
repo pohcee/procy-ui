@@ -1,6 +1,7 @@
 import type { CommandResult, JobClientTags } from '~/types';
 import type { RunKind } from '~/utils/runKind';
 import { apiBaseUrl } from '~/utils/apiBase';
+import { readAuthToken } from '~/utils/authToken';
 
 export interface RemoteRunOptions {
 	kind: RunKind;
@@ -39,7 +40,6 @@ const socketBase = (apiUrl: unknown) => {
  */
 export const useRemoteRun = () => {
 	const config = useRuntimeConfig();
-	const token = useCookie('token');
 
 	let ws: WebSocket | null = null;
 	const results = ref<CommandResult[]>([]);
@@ -55,7 +55,7 @@ export const useRemoteRun = () => {
 	const run = (options: RemoteRunOptions) => {
 		disconnect();
 		const endpoint = options.kind === 'script' ? 'scripts' : 'commands';
-		const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${token.value}`;
+		const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${readAuthToken() ?? ''}`;
 
 		// The server treats an empty `client_ids: []` as "targeting by client" and rejects it
 		// next to group or tag targeting, so leave empty lists out entirely.

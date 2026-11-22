@@ -1,6 +1,29 @@
 import { defineStore } from 'pinia';
 import { FetchError } from 'ofetch';
+import { readAuthToken } from '~/utils/authToken';
 import type { ApiErrorResponse, ILoginInput, TwoFa } from '~/types';
+
+/**
+ * Set or clear the auth cookies *now*. useCookie only writes the browser cookie
+ * on Vue's next update, so code that navigates right after signing in or out
+ * could make the auth middleware read a stale (or missing) token.
+ */
+export const setAuthCookies = (value: string | null) => {
+	const token = useCookie<string | null>('token');
+	const isAuthenticated = useCookie<boolean | null>('is_authenticated');
+	token.value = value;
+	isAuthenticated.value = value ? true : null;
+	if (import.meta.client) {
+		if (value) {
+			document.cookie = `token=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
+			document.cookie = 'is_authenticated=true; path=/; SameSite=Lax';
+		}
+		else {
+			document.cookie = 'token=; Max-Age=0; path=/';
+			document.cookie = 'is_authenticated=; Max-Age=0; path=/';
+		}
+	}
+};
 
 export const useTokenStore = defineStore('token', {
 	state: () => ({
@@ -15,19 +38,21 @@ export const useTokenStore = defineStore('token', {
 		async getLoginToken(credentials: ILoginInput) {
 			const { $api } = useNuxtApp();
 			this.loading = true;
-			const token = useCookie<string>('token');
-			const is_authenticated = useCookie<boolean>('is_authenticated');
+			this.errors = [];
+			// A new sign-in never reuses a previous session's token.
+			setAuthCookies(null);
+			this.authenticated = false;
 			try {
 				const response = await $api.auth.login(credentials);
 				if (response?.data.token) {
-					if (response?.data?.two_fa !== null) {
+					// With 2FA the server returns a short-lived token that's only good for verify-2fa.
+					if (response.data.two_fa) {
 						this.twoFaToken = response.data.token;
 						this.two_fa = response.data.two_fa;
 						this.showTwoFa = true;
 					}
 					else {
-						token.value = response.data.token;
-						is_authenticated.value = true;
+						setAuthCookies(response.data.token);
 						this.authenticated = true;
 					}
 				}
@@ -50,19 +75,21 @@ export const useTokenStore = defineStore('token', {
 		async verifyTwoFa(credentials: ILoginInput, code: string) {
 			const { $api } = useNuxtApp();
 			this.loading = true;
-			const token = useCookie<string>('token');
-			const is_authenticated = useCookie<boolean>('is_authenticated');
+			this.errors = [];
 			try {
 				const response = await $api.auth.verify2fa(credentials, this.twoFaToken ?? '', code);
 				if (response?.data.token) {
-					token.value = response.data.token;
-					is_authenticated.value = true;
+					setAuthCookies(response.data.token);
 					this.authenticated = true;
+					this.showTwoFa = false;
+					this.twoFaToken = null;
 				}
 				this.loading = false;
 			}
 			catch (error: unknown) {
-				this.$state.errors = ['An error occurred. Please try again later.'];
+				const apiErrors = error instanceof FetchError ? (error.data as ApiErrorResponse | undefined)?.errors : undefined;
+				const first = apiErrors?.[0];
+				this.$state.errors = [first?.detail || first?.title || 'An error occurred. Please try again later.'];
 				console.log(error);
 			}
 			this.loading = false;
@@ -79,28 +106,18 @@ export const useTokenStore = defineStore('token', {
 		},
 		async logOut() {
 			const { $api } = useNuxtApp();
-			const token = useCookie('token');
-			const is_authenticated = useCookie<boolean>('is_authenticated');
-			if (token.value) {
+			const token = readAuthToken();
+			if (token) {
 				try {
 					// Invalidate the token server-side; clear local state regardless.
-					await $api.auth.logout(token.value);
+					await $api.auth.logout(token);
 				}
 				catch (error) {
 					console.log(error);
 				}
 			}
 			this.authenticated = false;
-			token.value = null;
-			is_authenticated.value = false;
-			// useCookie writes cookies asynchronously. Make sure they're gone before the
-			// caller navigates, or the auth middleware still sees the old token and
-			// sends the user straight back to the dashboard.
-			await nextTick();
-			if (import.meta.client) {
-				document.cookie = 'token=; Max-Age=0; path=/';
-				document.cookie = 'is_authenticated=; Max-Age=0; path=/';
-			}
+			setAuthCookies(null);
 		},
 	},
 });

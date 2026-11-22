@@ -1,6 +1,8 @@
 import { $fetch } from 'ofetch';
 import type { FetchOptions } from 'ofetch';
 import AuthModule from '~/repository/modules/auth';
+import { setAuthCookies } from '~/stores/auth';
+import { readAuthToken } from '~/utils/authToken';
 import ClientsModule from '~/repository/modules/clients';
 import GroupsModule from '~/repository/modules/groups';
 import UsersModule from '~/repository/modules/users';
@@ -45,8 +47,6 @@ const rootRelative = (request: unknown) => (typeof request === 'string' && !/^([
 
 export default defineNuxtPlugin(() => {
 	const config = useRuntimeConfig();
-	const userAuth = useCookie('token');
-	const is_authenticated = useCookie<boolean>('is_authenticated');
 	const fetchOptions: FetchOptions = {
 		baseURL: config.public.apiUrl,
 		onRequest(context): void {
@@ -62,7 +62,9 @@ export default defineNuxtPlugin(() => {
 			context.request = rootRelative(context.request) as typeof context.request;
 			const { options } = context;
 			const headers = new Headers(options.headers);
-			headers.set('Authorization', `Bearer ${userAuth.value}`);
+			const token = readAuthToken();
+			// No token → no header (a "Bearer null" just counts as a bad request on the server).
+			if (token) headers.set('Authorization', `Bearer ${token}`);
 			options.headers = headers;
 		},
 		onRequestError({ request, error }): void | Promise<void> {
@@ -70,12 +72,9 @@ export default defineNuxtPlugin(() => {
 		},
 		async onResponseError({ response }): Promise<void> {
 			if (response.status === 401) {
-				userAuth.value = null;
-				is_authenticated.value = false;
-				// Cookies are written asynchronously; clear them now so the auth
-				// middleware doesn't see the stale token and redirect back.
-				document.cookie = 'token=; Max-Age=0; path=/';
-				document.cookie = 'is_authenticated=; Max-Age=0; path=/';
+				// Clear the cookies now so the auth middleware doesn't see the stale token.
+				setAuthCookies(null);
+				useTokenStore().authenticated = false;
 				await navigateTo('/auth');
 			}
 		},

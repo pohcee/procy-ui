@@ -1,3 +1,5 @@
+import { readAuthToken } from '~/utils/authToken';
+
 export default defineNuxtRouteMiddleware((to) => {
 	// const isLoggedIn = false;
 	// if (isLoggedIn) {
@@ -5,7 +7,8 @@ export default defineNuxtRouteMiddleware((to) => {
 	// }
 	// return navigateTo("/auth")
 	const { authenticated } = storeToRefs(useTokenStore());
-	const token = useCookie<string>('token');
+	// Read the cookie directly: a useCookie ref can still hold the pre-sign-in value.
+	const token = { value: readAuthToken() };
 
 	if (token.value) {
 		authenticated.value = true;
