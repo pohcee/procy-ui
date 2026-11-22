@@ -1,6 +1,8 @@
 import { HttpFactory } from '~/repository/factory';
 import type {
+	ClientMetric,
 	ClientMetricsResponse,
+	ClientMountpoint,
 	ClientMountpointsResponse,
 	ClientResponse,
 	ClientsResponse,
@@ -96,10 +98,44 @@ class ClientsModule extends HttpFactory {
 		);
 	}
 
-	async mountpoints(id: string, since?: string, until?: string): Promise<ClientMountpointsResponse> {
+	/**
+	 * CPU/memory/IO history for a time range, downsampled by the server (avg/min/max per
+	 * bucket, ~120 points). Use this for ranges: /metrics only returns the newest 120 raw
+	 * samples, which is about 2 h at the default once-a-minute rate. Spans must be 2–48 h.
+	 */
+	async graphMetrics(id: string, since: string, until: string): Promise<ClientMetric[]> {
+		type Stat = { avg: number };
+		type Entry = { timestamp: string; cpu_usage_percent?: Stat; memory_usage_percent?: Stat; io_usage_percent?: Stat };
+		const params = `?filter[timestamp][since]=${encodeURIComponent(since)}&filter[timestamp][until]=${encodeURIComponent(until)}`;
+		const response = await this.call<{ data: Entry[] }>('GET', `${this.RESOURCE}/${id}/graph-metrics${params}`, undefined);
+		return (response.data ?? []).map(e => ({
+			timestamp: e.timestamp,
+			cpu_usage_percent: e.cpu_usage_percent?.avg ?? 0,
+			memory_usage_percent: e.memory_usage_percent?.avg ?? 0,
+			io_usage_percent: e.io_usage_percent?.avg ?? 0,
+		}));
+	}
+
+	/**
+	 * Disk usage across a time range. The server has no downsampled mount point history and
+	 * returns at most 100 raw samples, so take the latest sample in each of `slices` equal
+	 * slices of the range (newest first).
+	 */
+	async mountpointsOverRange(id: string, since: string, until: string, slices = 30): Promise<ClientMountpoint[]> {
+		const start = new Date(since).getTime();
+		const step = (new Date(until).getTime() - start) / slices;
+		const results = await Promise.all(Array.from({ length: slices }, (_, i) => {
+			const from = new Date(start + i * step).toISOString();
+			const to = new Date(start + (i + 1) * step).toISOString();
+			return this.mountpoints(id, from, to, 1).then(r => r.data ?? []).catch(() => []);
+		}));
+		return results.flat().sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+	}
+
+	async mountpoints(id: string, since?: string, until?: string, limit = 100): Promise<ClientMountpointsResponse> {
 		// page[limit] defaults to 1 on the server if omitted; 100 is the server's hard max
 		// for this endpoint (lower than metrics' 120 - exceeding it is a 400, not a clamp).
-		let params = '?sort=-timestamp&page[limit]=100';
+		let params = `?sort=-timestamp&page[limit]=${limit}`;
 		if (since) {
 			params += `&filter[timestamp][since]=${encodeURIComponent(since)}`;
 		}

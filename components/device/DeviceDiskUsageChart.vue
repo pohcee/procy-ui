@@ -61,13 +61,8 @@ const mounts = computed(() => {
 	return [...seen].sort();
 });
 
-function formatTick(timestamp: string): string {
-	const date = new Date(timestamp);
-	return `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')}`;
-}
-
 const chartData = computed(() => ({
-	labels: parsedHistory.value.map(row => formatTick(row.timestamp)),
+	labels: parsedHistory.value.map(row => row.timestamp).map(chartTickFormatter(parsedHistory.value.map(row => row.timestamp))),
 	datasets: mounts.value.map((mount, index) => {
 		const color = colors.value.series[index % colors.value.series.length];
 		return {

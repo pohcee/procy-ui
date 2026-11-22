@@ -86,8 +86,10 @@ export const useClientStore = defineStore('clients', {
 		async loadMetrics(clientId: string, since?: string, until?: string) {
 			const { $api } = useNuxtApp();
 			try {
-				const metricsData = await $api.clients.metrics(clientId, since, until);
-				this.$state.currentMetrics = <ClientMetric[]>metricsData.data;
+				// A range uses the server's downsampled history; otherwise the latest raw samples.
+				this.$state.currentMetrics = since && until
+					? await $api.clients.graphMetrics(clientId, since, until)
+					: <ClientMetric[]>(await $api.clients.metrics(clientId)).data;
 			}
 			catch (e) {
 				console.error('Error fetching client metrics:', e);
@@ -97,9 +99,11 @@ export const useClientStore = defineStore('clients', {
 		async loadMountpoints(clientId: string, since?: string, until?: string) {
 			const { $api } = useNuxtApp();
 			try {
-				const mountpointsData = await $api.clients.mountpoints(clientId, since, until);
-				this.$state.currentDiskHistory = mountpointsData.data;
-				this.$state.currentDisks = parseMountpoints(mountpointsData.data[0]?.mountpoints);
+				const history = since && until
+					? await $api.clients.mountpointsOverRange(clientId, since, until)
+					: (await $api.clients.mountpoints(clientId)).data;
+				this.$state.currentDiskHistory = history;
+				this.$state.currentDisks = parseMountpoints(history[0]?.mountpoints);
 			}
 			catch (e) {
 				console.error('Error fetching client mountpoints:', e);

@@ -44,15 +44,10 @@ const sortedMetrics = computed(() => [...props.metrics].sort(
 	(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 ));
 
-function formatTick(timestamp: string): string {
-	const date = new Date(timestamp);
-	return `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')}`;
-}
-
 const lineColor = computed(() => props.seriesColor ?? colors.value.series[0]);
 
 const chartData = computed(() => ({
-	labels: sortedMetrics.value.map(m => formatTick(m.timestamp)),
+	labels: sortedMetrics.value.map(m => m.timestamp).map(chartTickFormatter(sortedMetrics.value.map(m => m.timestamp))),
 	datasets: [
 		{
 			data: sortedMetrics.value.map(m => m[props.field]),
