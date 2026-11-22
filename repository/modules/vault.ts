@@ -2,8 +2,8 @@ import { HttpFactory } from '~/repository/factory';
 import type { VaultStatus, VaultItem, VaultItemResponse, VaultItemPayload } from '~/types';
 
 class VaultModule extends HttpFactory {
-	private RESOURCE = 'api/v1/vault-admin';
-	private ITEMS_RESOURCE = 'api/v1/vault';
+	private RESOURCE = '/api/v1/vault-admin';
+	private ITEMS_RESOURCE = '/api/v1/vault';
 
 	public async status(): Promise<VaultStatus> {
 		const response = await this.call<{ data: VaultStatus }>(

@@ -24,7 +24,7 @@ class AuthModule extends HttpFactory {
 	async provider(): Promise<AuthProviderResponse> {
 		return this.call<AuthProviderResponse>(
 			'GET',
-			'api/v1/provider',
+			'/api/v1/provider',
 			undefined,
 		);
 	}
@@ -38,7 +38,7 @@ class AuthModule extends HttpFactory {
 		};
 		return this.call<undefined>(
 			'DELETE',
-			'api/v1/logout',
+			'/api/v1/logout',
 			undefined,
 			fetchOptions,
 		);
@@ -53,7 +53,7 @@ class AuthModule extends HttpFactory {
 		};
 		return this.call<ApiLoginResponse>(
 			'POST',
-			`api/v1/verify-2fa?token-lifetime=${credentials.remember_me}`,
+			`/api/v1/verify-2fa?token-lifetime=${credentials.remember_me}`,
 			{
 				username: credentials.username,
 				token: twofaToken,

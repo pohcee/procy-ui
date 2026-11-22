@@ -2,7 +2,7 @@ import { HttpFactory } from '~/repository/factory';
 import type { UserPayload, User, UserListResponse, UserSessionResponse } from '~/types';
 
 class UsersModule extends HttpFactory {
-	private RESOURCE = 'api/v1/users';
+	private RESOURCE = '/api/v1/users';
 
 	public async getAll(): Promise<User[]> {
 		const response = await this.call<UserListResponse>(

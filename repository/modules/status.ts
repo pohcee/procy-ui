@@ -2,7 +2,7 @@ import { HttpFactory, HttpMethod } from '~/repository/factory';
 import type { StatusResponse } from '~/types';
 
 class StatusModule extends HttpFactory {
-	private RESOURCE = 'api/v1/status';
+	private RESOURCE = '/api/v1/status';
 
 	async show() {
 		return useAsyncData(() => {

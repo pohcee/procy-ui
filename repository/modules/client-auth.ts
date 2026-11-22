@@ -2,7 +2,7 @@ import { HttpFactory } from '~/repository/factory';
 import type { ClientAuth, ClientAuthResponse } from '~/types';
 
 class ClientAuthModule extends HttpFactory {
-	private RESOURCE = 'api/v1/clients-auth';
+	private RESOURCE = '/api/v1/clients-auth';
 
 	async all(): Promise<ClientAuthResponse> {
 		return this.httpGet<ClientAuthResponse>(this.RESOURCE, undefined);

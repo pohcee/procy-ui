@@ -2,7 +2,7 @@ import { HttpFactory } from '~/repository/factory';
 import type { UserGroup, UserGroupResponse } from '~/types';
 
 class UserGroupsModule extends HttpFactory {
-	private RESOURCE = 'api/v1/user-groups';
+	private RESOURCE = '/api/v1/user-groups';
 
 	async all(): Promise<UserGroup[]> {
 		const response = await this.call<UserGroupResponse>(

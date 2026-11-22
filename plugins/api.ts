@@ -34,19 +34,33 @@ interface IApiInstance {
 	notifications: NotificationsModule;
 }
 
+/**
+ * When the UI is served by rportd (no NUXT_API_URL, empty baseURL), a path like
+ * 'api/v1/me' would resolve against the current page (/auth/ → /auth/api/v1/me)
+ * and hit the UI's HTML instead of the API. Always send API paths from the root.
+ */
+const rootRelative = (request: unknown) => (typeof request === 'string' && !/^([a-z]+:)?\/\//i.test(request) && !request.startsWith('/')
+	? `/${request}`
+	: request);
+
 export default defineNuxtPlugin(() => {
 	const config = useRuntimeConfig();
 	const userAuth = useCookie('token');
 	const is_authenticated = useCookie<boolean>('is_authenticated');
 	const fetchOptions: FetchOptions = {
 		baseURL: config.public.apiUrl,
+		onRequest(context): void {
+			context.request = rootRelative(context.request) as typeof context.request;
+		},
 	};
 	const apiFetchOptions: FetchOptions = {
 		baseURL: config.public.apiUrl,
 		headers: {
 			Accept: 'application/json',
 		},
-		onRequest({ options }): void | Promise<void> {
+		onRequest(context): void | Promise<void> {
+			context.request = rootRelative(context.request) as typeof context.request;
+			const { options } = context;
 			const headers = new Headers(options.headers);
 			headers.set('Authorization', `Bearer ${userAuth.value}`);
 			options.headers = headers;
