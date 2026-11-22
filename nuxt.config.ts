@@ -66,7 +66,7 @@ export default defineNuxtConfig({
 				{ rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap' },
 			],
 			meta: [
-				{ name: 'theme-color', content: '#1D4ED8' },
+				{ name: 'theme-color', content: '#10161F' },
 				{ name: 'application-name', content: 'OpenRPort2' },
 				{ name: 'apple-mobile-web-app-title', content: 'OpenRPort2' },
 			],
