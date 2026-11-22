@@ -78,15 +78,15 @@ export const rdpFileContent = ({ tunnel, host }: ConnectTarget, prefs: { usernam
 	'prompt for credentials:i:1',
 ].filter(Boolean).join('\r\n') + '\r\n';
 
-/** rdp:// link in Microsoft's Remote Desktop URI format (FreeRDP/Remmina-style handlers accept it too). */
+/**
+ * rdp:// link as a standard URL: rdp://[user@]host:port?desktopwidth=W&desktopheight=H.
+ * (Microsoft's "rdp://full%20address=s:…" form is not a valid URL, so Chrome blocks it.)
+ * Remmina understands rdp://user@host:port; the query carries the window size for handlers that read it.
+ */
 export const rdpUri = ({ tunnel, host }: ConnectTarget, prefs: { username?: string; width?: string; height?: string }) => {
-	const params = [
-		`full%20address=s:${host}:${tunnel.lport}`,
-		prefs.username ? `username=s:${encodeURIComponent(prefs.username)}` : '',
-		`desktopwidth=i:${Number(prefs.width) || 1024}`,
-		`desktopheight=i:${Number(prefs.height) || 768}`,
-	].filter(Boolean);
-	return `rdp://${params.join('&')}`;
+	const user = prefs.username ? `${encodeURIComponent(prefs.username)}@` : '';
+	const size = `desktopwidth=${Number(prefs.width) || 1024}&desktopheight=${Number(prefs.height) || 768}`;
+	return `rdp://${user}${host}:${tunnel.lport}?${size}`;
 };
 
 /** Open an app-protocol link (ssh://, rdp://, vnc://) without leaving the page. */
