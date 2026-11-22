@@ -145,6 +145,8 @@ export interface ServerStatus {
 	group_permissions_enabled: boolean;
 	monitoring_enabled: boolean;
 	pairing_url: string;
+	/** true when rportd serves pairing itself (pairing_url then needs the API token) */
+	pairing_builtin?: boolean;
 	tunnel_host: string;
 	tunnel_proxy_enabled: boolean;
 	two_fa_delivery_method: string;
@@ -231,6 +233,8 @@ export interface Status {
 	group_permissions_enabled: boolean;
 	monitoring_enabled: boolean;
 	pairing_url: string;
+	/** true when rportd serves pairing itself (pairing_url then needs the API token) */
+	pairing_builtin?: boolean;
 	tunnel_host: string;
 	tunnel_proxy_enabled: boolean;
 	two_fa_delivery_method: string;

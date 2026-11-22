@@ -1,4 +1,5 @@
 import type { InstallerResponse } from '~/types';
+import { readAuthToken } from '~/utils/authToken';
 
 export const useInstaller = () => {
 	const isLoading = ref(false);
@@ -15,14 +16,18 @@ export const useInstaller = () => {
 		connect_url: string;
 		fingerprint: string;
 		password: string;
-	}, pairingUrl: string) {
+	}, pairingUrl: string, builtin = false) {
 		isLoading.value = true;
 		error.value = null;
 
 		try {
+			// rportd's built-in pairing service requires the API token; an external
+			// pairing service must never receive it.
+			const token = builtin ? readAuthToken() : null;
 			const response = await $fetch<InstallerResponse>(pairingUrl, {
 				method: 'POST',
 				body: params,
+				headers: token ? { Authorization: `Bearer ${token}` } : undefined,
 			});
 
 			Object.assign(installers, {

@@ -92,7 +92,9 @@
 					<span v-else>Install Tacoscript along with the RPort client</span>
 				</label>
 				<p class="mt-1 text-xs text-app-text-3">
-					The pairing service is free and secure. No data is stored.
+					{{ status?.pairing_builtin
+						? 'The install link is only valid for a limited time.'
+						: 'The pairing service is free and secure. No data is stored.' }}
 				</p>
 			</fieldset>
 			<ClientsInstallationCommand
@@ -188,7 +190,7 @@ async function updateInstaller() {
 		connect_url: selectedConnectUrl.value,
 		fingerprint: status.value.fingerprint,
 		password: client.value.password ?? '',
-	}, status.value.pairing_url);
+	}, status.value.pairing_url, status.value.pairing_builtin === true);
 }
 
 onMounted(() => {
