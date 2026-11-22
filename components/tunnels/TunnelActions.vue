@@ -1,30 +1,11 @@
 <template>
-	<!-- Row actions for an active tunnel: Connect / Open / Download .rdp, and Close. -->
-	<AppButton
-		v-if="tunnel.isWeb"
-		variant="secondary"
-		size="sm"
-		:aria-label="`Open ${tunnel.client_name} port ${tunnel.lport} in a new tab`"
-		@click="$emit('open')"
-	>
-		<ExternalLink
-			class="h-3.5 w-3.5"
-			aria-hidden="true"
-		/>
-		Open
-	</AppButton>
-	<AppButton
-		v-else-if="tunnel.isRdp"
-		variant="secondary"
-		size="sm"
-		@click="$emit('rdp')"
-	>
-		<Download
-			class="h-3.5 w-3.5"
-			aria-hidden="true"
-		/>
-		Download .rdp
-	</AppButton>
+	<!-- Row actions for an active tunnel: Connect / Open (per the user's preferences), and Close. -->
+	<TunnelConnectButton
+		v-if="tunnelKind(tunnel) !== 'other'"
+		:tunnel="tunnel"
+		:device-name="tunnel.client_name"
+		@connected="$emit('connect')"
+	/>
 	<AppButton
 		v-else
 		variant="secondary"
@@ -32,7 +13,7 @@
 		:aria-label="`How to connect to ${tunnel.client_name} port ${tunnel.lport}`"
 		@click="$emit('connect')"
 	>
-		Connect
+		Details
 	</AppButton>
 	<AppButton
 		variant="danger"
@@ -54,10 +35,12 @@
 </template>
 
 <script setup lang="ts">
-import { Download, ExternalLink, X } from 'lucide-vue-next';
+import { X } from 'lucide-vue-next';
+import TunnelConnectButton from '~/components/tunnels/TunnelConnectButton.vue';
+import { tunnelKind } from '~/composables/useTunnelConnect';
 
 defineProps<{ tunnel: TunnelRow; compact?: boolean }>();
-defineEmits<{ (e: 'connect' | 'open' | 'rdp' | 'close'): void }>();
+defineEmits<{ (e: 'connect' | 'close'): void }>();
 </script>
 
 <script lang="ts">

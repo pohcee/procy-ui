@@ -105,6 +105,7 @@
 				<DeviceTunnelsTab
 					v-else-if="selectedTab === 'tunnels' && device?.id"
 					:id="device.id"
+					:device-name="device.name || device.id"
 					@addtunnel="tunnelStore.openAddTunel()"
 				/>
 				<DeviceInventoryTab

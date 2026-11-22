@@ -75,36 +75,43 @@
 							<td :class="[tdClass, 'whitespace-nowrap']">
 								{{ useTimeAgo(new Date(tunnel.created_at)).value }}
 							</td>
-							<td :class="[tdClass, 'w-12 text-right']">
-								<DropdownMenu>
-									<DropdownMenuTrigger as-child>
-										<button
-											type="button"
-											:aria-label="`Actions for tunnel ${tunnel.lport}`"
-											:class="iconBtnClass"
-										>
-											<MoreHorizontal
-												class="h-4 w-4"
-												aria-hidden="true"
-											/>
-										</button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent :class="menuClass">
-										<DropdownMenuItem
-											v-if="tunnel.tunnel_url"
-											:class="menuItemClass"
-											@click="copy(tunnel.tunnel_url)"
-										>
-											Copy URL
-										</DropdownMenuItem>
-										<DropdownMenuItem
-											:class="[menuItemClass, 'text-app-danger']"
-											@click="triggerDeleteTunnel(tunnel)"
-										>
-											Delete
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
+							<td :class="[tdClass, 'whitespace-nowrap text-right']">
+								<div class="inline-flex items-center gap-1.5">
+									<TunnelConnectButton
+										:tunnel="tunnel"
+										:device-name="deviceName"
+										:client-id="id"
+									/>
+									<DropdownMenu>
+										<DropdownMenuTrigger as-child>
+											<button
+												type="button"
+												:aria-label="`Actions for tunnel ${tunnel.lport}`"
+												:class="iconBtnClass"
+											>
+												<MoreHorizontal
+													class="h-4 w-4"
+													aria-hidden="true"
+												/>
+											</button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent :class="menuClass">
+											<DropdownMenuItem
+												v-if="tunnel.tunnel_url"
+												:class="menuItemClass"
+												@click="copy(tunnel.tunnel_url)"
+											>
+												Copy URL
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												:class="[menuItemClass, 'text-app-danger']"
+												@click="triggerDeleteTunnel(tunnel)"
+											>
+												Delete
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</div>
 							</td>
 						</tr>
 					</tbody>
@@ -229,11 +236,16 @@
 <script setup>
 import { useTimeAgo, useClipboard } from '@vueuse/core';
 import { MoreHorizontal, Plus } from 'lucide-vue-next';
+import TunnelConnectButton from '~/components/tunnels/TunnelConnectButton.vue';
 
 const props = defineProps({
 	id: {
 		type: String,
 		required: true,
+	},
+	deviceName: {
+		type: String,
+		default: '',
 	},
 });
 

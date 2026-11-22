@@ -132,8 +132,6 @@
 														compact
 														:tunnel="tunnel"
 														@connect="select(tunnel)"
-														@open="openInBrowser(tunnel)"
-														@rdp="downloadRdp(tunnel)"
 														@close="triggerDeleteTunnel(tunnel)"
 													/>
 												</div>
@@ -200,8 +198,6 @@
 										<TunnelActions
 											:tunnel="tunnel"
 											@connect="select(tunnel)"
-											@open="openInBrowser(tunnel)"
-											@rdp="downloadRdp(tunnel)"
 											@close="triggerDeleteTunnel(tunnel)"
 										/>
 									</div>
@@ -475,20 +471,6 @@ const copyCommand = async () => {
 	catch {
 		snackbar.add({ type: 'error', text: 'Could not copy to the clipboard' });
 	}
-};
-
-const openInBrowser = (tunnel: TunnelRow) => {
-	window.open(tunnelUrl(tunnel), '_blank', 'noopener');
-};
-
-const downloadRdp = (tunnel: TunnelRow) => {
-	const content = `full address:s:${serverHost.value}:${tunnel.lport}\r\nprompt for credentials:i:1\r\n`;
-	const url = URL.createObjectURL(new Blob([content], { type: 'application/x-rdp' }));
-	const link = document.createElement('a');
-	link.href = url;
-	link.download = `${tunnel.client_name}-${tunnel.lport}.rdp`;
-	link.click();
-	URL.revokeObjectURL(url);
 };
 
 const deleteConfirmOpen = ref(false);
