@@ -208,14 +208,14 @@
 
 		<Modal
 			v-model="deleteTunnelConfirmOpen"
-			title="Please confirm!"
-			ok-text="Delete"
+			title="Close tunnel?"
+			ok-text="Close tunnel"
 			cancel-text="Cancel"
 			:show-cancel="true"
 			@ok="confirmDeleteTunnel"
 		>
 			<p class="py-2 text-sm text-app-text-2">
-				Do you want to close this tunnel?
+				The tunnel on server port <span class="font-mono font-medium text-app-text">{{ activeTunnel?.lport }}</span> will be closed. Anyone connected through it is disconnected.
 			</p>
 		</Modal>
 		<Modal
@@ -277,9 +277,15 @@ const triggerDeleteTunnel = (tunnel) => {
 
 const confirmDeleteTunnel = async () => {
 	if (!activeTunnel.value) return;
-	await $api.clients.deleteTunnel(props.id, activeTunnel.value.id);
-	snackbar.add({ type: 'success', text: 'Tunnel closed' });
-	deleteTunnelConfirmOpen.value = false;
+	try {
+		// force: the dialog warns that connected sessions are dropped (rportd refuses otherwise, 409).
+		await $api.clients.deleteTunnel(props.id, activeTunnel.value.id, true);
+		snackbar.add({ type: 'success', text: 'Tunnel closed' });
+		deleteTunnelConfirmOpen.value = false;
+	}
+	catch (err) {
+		snackbar.add({ type: 'error', text: `Could not close the tunnel: ${apiErrorMessage(err)}` });
+	}
 	await refreshTunnels();
 };
 

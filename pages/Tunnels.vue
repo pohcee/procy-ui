@@ -483,9 +483,15 @@ const triggerDeleteTunnel = (tunnel: TunnelRow) => {
 
 const confirmDeleteTunnel = async () => {
 	if (!activeTunnel.value) return;
-	await $api.clients.deleteTunnel(activeTunnel.value.client_id, activeTunnel.value.id);
-	snackbar.add({ type: 'success', text: 'Tunnel closed' });
-	deleteConfirmOpen.value = false;
+	try {
+		// force: the dialog warns that connected sessions are dropped (rportd refuses otherwise, 409).
+		await $api.clients.deleteTunnel(activeTunnel.value.client_id, activeTunnel.value.id, true);
+		snackbar.add({ type: 'success', text: 'Tunnel closed' });
+		deleteConfirmOpen.value = false;
+	}
+	catch (err) {
+		snackbar.add({ type: 'error', text: `Could not close the tunnel: ${apiErrorMessage(err)}` });
+	}
 	await refreshTunnels();
 };
 </script>
