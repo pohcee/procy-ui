@@ -21,11 +21,11 @@ Manage remote systems with ease
 
 # Procy UI
 
-- [Website and documentation](https://procy.sh/)
+- [Website and documentation](https://docs.procy.sh/)
 - [Procy server](https://github.com/pohcee/openrport)
 
 Welcome to the web UI of Procy, an open-source remote server manager without the hassle of VPNs. Procy takes its name from *Procyon callidus*, Latin for "the clever raccoon"; read the
-[naming story](https://procy.sh/#why-procy). This project is designed using Nuxt 3 to create a seamless and responsive user interface for managing remote systems securely.
+[naming story](https://docs.procy.sh/#why-procy). This project is designed using Nuxt 3 to create a seamless and responsive user interface for managing remote systems securely.
 
 ## Getting started
 ---
