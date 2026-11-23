@@ -557,6 +557,8 @@ export interface ScheduleDetails {
 	tags?: JobClientTags | null;
 	command?: string;
 	script?: string;
+	/** Set on schedules of type 'library'; command, script, interpreter, cwd, is_sudo and timeout are then ignored. */
+	library_entry_id?: string;
 	interpreter?: string;
 	cwd?: string;
 	is_sudo: boolean;
@@ -572,6 +574,8 @@ export interface ScheduleExecution {
 	success_count: number | null;
 	status: string | null;
 	summary: string | null;
+	/** Why the run failed before or instead of running (e.g. a deleted library entry). */
+	error?: string | null;
 }
 
 export interface Schedule extends ScheduleDetails {
@@ -580,14 +584,20 @@ export interface Schedule extends ScheduleDetails {
 	created_by: string;
 	name: string;
 	schedule: string;
-	type: 'command' | 'script';
+	type: 'command' | 'script' | 'library';
 	last_execution?: ScheduleExecution | null;
 }
 
 export interface SchedulePayload extends ScheduleDetails {
 	name: string;
 	schedule: string;
-	type: 'command' | 'script';
+	type: 'command' | 'script' | 'library';
+}
+
+/** A schedule that runs a library entry. */
+export interface EntryUsedBy {
+	id: string;
+	name: string;
 }
 
 export interface ScheduleResponse {

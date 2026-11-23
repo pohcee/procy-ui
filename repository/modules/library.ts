@@ -1,5 +1,5 @@
 import { HttpFactory } from '~/repository/factory';
-import type { EntryVersion, LibraryEntriesResponse, LibraryEntryPayload, LibraryEntryRecord } from '~/types';
+import type { EntryUsedBy, EntryVersion, LibraryEntriesResponse, LibraryEntryPayload, LibraryEntryRecord } from '~/types';
 
 class LibraryModule extends HttpFactory {
 	private RESOURCE = '/api/v1/library/entries';
@@ -33,6 +33,11 @@ class LibraryModule extends HttpFactory {
 
 	async deleteEntry(id: string): Promise<void> {
 		return await this.call('DELETE', this.entryUrl(id), undefined);
+	}
+
+	/** The schedules that run this entry. */
+	async usedBy(id: string): Promise<{ data: EntryUsedBy[] }> {
+		return await this.call<{ data: EntryUsedBy[] }>('GET', `${this.entryUrl(id)}/used-by`, undefined);
 	}
 
 	async undeleteEntry(id: string): Promise<{ data: LibraryEntryRecord }> {

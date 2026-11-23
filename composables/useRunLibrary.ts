@@ -147,6 +147,9 @@ export const useRunLibrary = () => {
 		await $api.library.deleteEntry(id);
 	};
 
+	/** The schedules that run the entry. */
+	const usedBy = async (id: string) => (await $api.library.usedBy(id)).data ?? [];
+
 	const undelete = async (id: string) => {
 		await $api.library.undeleteEntry(id);
 	};
@@ -166,5 +169,5 @@ export const useRunLibrary = () => {
 		}
 	};
 
-	return { listAll, load, save, saveContent, restore, remove, undelete, targetOs };
+	return { listAll, load, save, saveContent, restore, remove, undelete, usedBy, targetOs };
 };

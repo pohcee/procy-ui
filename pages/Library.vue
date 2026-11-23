@@ -311,7 +311,7 @@ import EntryEditorModal from '~/components/library/EntryEditorModal.vue';
 import OpCheckbox from '~/components/operate/OpCheckbox.vue';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
 import { apiErrorMessage } from '~/utils/apiError';
-import { LIBRARY_OS_LABELS, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
+import { LIBRARY_OS_LABELS, isConflict, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
 
 const snackbar = useSnackbar();
 const library = useRunLibrary();
@@ -380,8 +380,17 @@ const confirmDelete = async () => {
 		deleteConfirmOpen.value = false;
 		await refresh();
 	}
-	catch {
-		snackbar.add({ type: 'error', text: `Failed to delete ${activeItem.value.name}` });
+	catch (e) {
+		const item = activeItem.value;
+		if (isConflict(e)) {
+			// Used by schedules: name them.
+			deleteConfirmOpen.value = false;
+			const schedules = await library.usedBy(item.id).catch(() => []);
+			const names = schedules.map(s => s.name).join(', ');
+			snackbar.add({ type: 'error', text: names ? `${item.name} is used by schedules: ${names}. Remove it from them first.` : apiErrorMessage(e) });
+			return;
+		}
+		snackbar.add({ type: 'error', text: `Failed to delete ${item.name}` });
 	}
 };
 </script>

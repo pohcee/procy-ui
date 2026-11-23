@@ -3,7 +3,7 @@
 	<span
 		v-if="run?.started_at"
 		class="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5"
-		:title="run.summary || undefined"
+		:title="detail || undefined"
 	>
 		<span :class="['inline-flex items-center gap-1.5 font-medium', meta.text]">
 			<span
@@ -15,6 +15,10 @@
 			</template>
 		</span>
 		<span class="font-mono text-xs text-app-text-3">{{ useDateFormat(run.started_at, 'YYYY-MM-DD HH:mm').value }}</span>
+		<span
+			v-if="run.error"
+			class="w-full max-w-[320px] truncate text-xs text-app-danger"
+		>{{ run.error }}</span>
 	</span>
 	<span
 		v-else
@@ -35,12 +39,14 @@ import type { Schedule } from '~/types';
 const props = defineProps<{ schedule: Schedule }>();
 
 const run = computed(() => props.schedule.last_execution ?? null);
+const detail = computed(() => [run.value?.error, run.value?.summary].filter(Boolean).join('\n'));
 const meta = computed(() => {
-	const status = run.value?.status;
+	const status = run.value?.error ? 'failed' : run.value?.status;
 	if (status === 'successful') return { label: 'Succeeded', dot: 'bg-[#22C55E]', text: 'text-app-ok' };
 	if (status === 'failed') return { label: 'Failed', dot: 'bg-app-danger', text: 'text-app-danger' };
 	if (status === 'running') return { label: 'Running', dot: 'bg-app-blue', text: 'text-app-blue' };
 	if (status === 'partial_successful' || status === 'partially_successful') return { label: 'Partly failed', dot: 'bg-app-warn', text: 'text-app-warn' };
+	if (status === 'skipped') return { label: 'Skipped', dot: 'bg-app-text-4', text: 'text-app-text-3' };
 	return { label: status ? status.replace(/_/g, ' ') : 'Ran', dot: 'bg-app-warn', text: 'text-app-warn' };
 });
 </script>

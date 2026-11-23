@@ -98,6 +98,32 @@
 				</div>
 			</div>
 
+			<section
+				v-if="usedBy.length"
+				class="flex flex-col gap-1.5 rounded-xl border border-app-border p-3.5"
+				aria-label="Used by"
+			>
+				<h4 class="text-sm font-semibold text-app-text">
+					Used by
+				</h4>
+				<p class="text-[13px] text-app-text-3">
+					These schedules run this entry, so it can’t be deleted while they exist.
+				</p>
+				<ul class="flex flex-wrap gap-1.5">
+					<li
+						v-for="schedule in usedBy"
+						:key="schedule.id"
+					>
+						<NuxtLink
+							to="/schedules"
+							class="rounded-md bg-app-chip px-2 py-0.5 text-xs text-app-accent hover:underline"
+						>
+							{{ schedule.name }}
+						</NuxtLink>
+					</li>
+				</ul>
+			</section>
+
 			<OpField
 				v-if="!readonly"
 				label="What changed"
@@ -178,7 +204,7 @@ import OpDialog from '~/components/operate/OpDialog.vue';
 import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
 import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, implementationFor, isConflict, primaryOs, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
-import type { EntryImplementations, LibraryOS } from '~/types';
+import type { EntryImplementations, EntryUsedBy, LibraryOS } from '~/types';
 import { apiErrorMessage } from '~/utils/apiError';
 import type { LibraryPickItem } from '~/utils/runKind';
 
@@ -199,6 +225,9 @@ const tags = ref<string[]>([]);
 const message = ref('');
 const drafts = ref<OsDrafts>(blankDrafts());
 
+/** Schedules that run the entry being edited. */
+const usedBy = ref<EntryUsedBy[]>([]);
+
 const readonly = computed(() => !!editing.value?.builtinKey);
 const title = computed(() => {
 	if (readonly.value) return 'Built-in library entry';
@@ -216,6 +245,7 @@ const reset = () => {
 	drafts.value = blankDrafts();
 	activeOs.value = 'linux';
 	editing.value = null;
+	usedBy.value = [];
 	historyOpen.value = false;
 };
 
@@ -239,6 +269,9 @@ const openForEdit = async (entry: Pick<LibraryEntry, 'id' | 'name'>) => {
 	try {
 		fill(await library.load(entry.id));
 		isOpen.value = true;
+		library.usedBy(entry.id).then((list) => {
+			if (editing.value?.id === entry.id) usedBy.value = list;
+		}).catch(() => {});
 	}
 	catch {
 		snackbar.add({ type: 'error', text: `Failed to open ${entry.name}` });

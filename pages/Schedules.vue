@@ -100,8 +100,8 @@
 										</div>
 									</td>
 									<td class="border-b border-app-border-subtle px-3 py-3.5 align-middle">
-										<span :class="['rounded-md px-2 py-[3px] text-xs font-semibold', schedule.type === 'script' ? 'bg-app-purple-bg text-app-purple' : 'bg-app-blue-bg text-app-blue']">
-											{{ schedule.type === 'script' ? 'Script' : 'Command' }}
+										<span :class="['rounded-md px-2 py-[3px] text-xs font-semibold', typeClass(schedule)]">
+											{{ typeLabel(schedule) }}
 										</span>
 									</td>
 									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle font-mono text-[13px] text-app-text">
@@ -158,8 +158,8 @@
 										{{ schedule.schedule }}
 									</p>
 								</div>
-								<span :class="['shrink-0 rounded-md px-2 py-[3px] text-xs font-semibold', schedule.type === 'script' ? 'bg-app-purple-bg text-app-purple' : 'bg-app-blue-bg text-app-blue']">
-									{{ schedule.type === 'script' ? 'Script' : 'Command' }}
+								<span :class="['shrink-0 rounded-md px-2 py-[3px] text-xs font-semibold', typeClass(schedule)]">
+									{{ typeLabel(schedule) }}
 								</span>
 							</div>
 							<p class="text-[13px] text-app-text-2">
@@ -216,16 +216,18 @@ import ScheduleFormModal, { decodeScript } from '~/components/schedules/Schedule
 import LastRun from '~/components/schedules/ScheduleLastRun.vue';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
 import OpSegmented from '~/components/operate/OpSegmented.vue';
+import { useRunLibrary } from '~/composables/useRunLibrary';
 import type { Schedule } from '~/types';
 
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
+const library = useRunLibrary();
 
 const formModal = ref<InstanceType<typeof ScheduleFormModal> | null>(null);
 const deleteConfirmOpen = ref(false);
 const activeSchedule = ref<Schedule | null>(null);
 const search = ref('');
-const typeFilter = ref<'all' | 'command' | 'script'>('all');
+const typeFilter = ref<'all' | 'command' | 'script' | 'library'>('all');
 
 const { data: response, pending, refresh } = useLazyAsyncData('schedules', () => $api.schedules.list());
 const schedules = computed(() => response.value?.data ?? []);
@@ -234,9 +236,29 @@ const typeOptions = computed(() => [
 	{ value: 'all' as const, label: 'All' },
 	{ value: 'command' as const, label: 'Commands' },
 	{ value: 'script' as const, label: 'Scripts' },
+	{ value: 'library' as const, label: 'Library' },
 ]);
 
-const preview = (schedule: Schedule) => ((schedule.type === 'script' ? decodeScript(schedule.script ?? '') : schedule.command) ?? '').split('\n')[0];
+const { data: entryList } = useLazyAsyncData('schedules-library-entries', async () => {
+	try {
+		return await library.listAll();
+	}
+	catch {
+		return [];
+	}
+});
+const entryNames = computed(() => new Map((entryList.value ?? []).map(e => [e.id, e.name])));
+
+const typeLabel = (schedule: Schedule) => ({ script: 'Script', library: 'Library', command: 'Command' })[schedule.type] ?? 'Command';
+const typeClass = (schedule: Schedule) => ({
+	script: 'bg-app-purple-bg text-app-purple',
+	library: 'bg-app-accent/15 text-app-accent',
+	command: 'bg-app-blue-bg text-app-blue',
+})[schedule.type] ?? 'bg-app-blue-bg text-app-blue';
+
+const preview = (schedule: Schedule) => schedule.type === 'library'
+	? `Library: ${entryNames.value.get(schedule.library_entry_id ?? '') ?? 'unknown entry'}`
+	: ((schedule.type === 'script' ? decodeScript(schedule.script ?? '') : schedule.command) ?? '').split('\n')[0];
 
 const filtered = computed(() => {
 	const term = search.value.trim().toLowerCase();
