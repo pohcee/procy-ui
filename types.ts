@@ -185,7 +185,8 @@ export interface Permissions {
 	commands: boolean;
 	monitoring: boolean;
 	scheduler: boolean;
-	scripts: boolean;
+	/** @deprecated Merged into `commands`; only present on older responses. */
+	scripts?: boolean;
 	tunnels: boolean;
 	uploads: boolean;
 	vault: boolean;

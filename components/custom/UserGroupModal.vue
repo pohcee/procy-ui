@@ -30,7 +30,7 @@
 					v-for="permission in permissionKeys"
 					:key="permission"
 					:class="[
-						'flex min-h-[44px] cursor-pointer select-none items-center gap-2.5 rounded-[10px] border px-3 text-sm capitalize transition-colors',
+						'flex min-h-[44px] cursor-pointer select-none items-center gap-2.5 rounded-[10px] border px-3 text-sm first-letter:uppercase transition-colors',
 						permissions[permission]
 							? 'border-app-accent bg-app-blue-bg/60 text-app-text'
 							: 'border-app-border-strong bg-app-surface-2 text-app-text-2 hover:bg-app-hover',
@@ -41,7 +41,7 @@
 						type="checkbox"
 						class="st-check"
 					>
-					{{ permission }}
+					{{ permissionLabels[permission] ?? permission }}
 				</label>
 			</div>
 			<p class="st-help">
@@ -59,7 +59,11 @@ const emit = defineEmits(['saved']);
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 
-const permissionKeys: (keyof Permissions)[] = ['commands', 'monitoring', 'scheduler', 'scripts', 'tunnels', 'uploads', 'vault', 'auditlog'];
+const permissionKeys: (keyof Permissions)[] = ['commands', 'monitoring', 'scheduler', 'tunnels', 'uploads', 'vault', 'auditlog'];
+
+const permissionLabels: Partial<Record<keyof Permissions, string>> = {
+	commands: 'Run commands and scripts',
+};
 
 const isOpen = ref(false);
 const isSaving = ref(false);
@@ -70,7 +74,6 @@ const permissions = reactive<Permissions>({
 	commands: false,
 	monitoring: false,
 	scheduler: false,
-	scripts: false,
 	tunnels: false,
 	uploads: false,
 	vault: false,
