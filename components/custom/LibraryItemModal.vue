@@ -59,7 +59,7 @@
 					v-model="interpreter"
 					label="Interpreter"
 					placeholder="Select…"
-					:options="[{ value: 'default', label: '/bin/sh or shebang' }, { value: 'tacoscript', label: 'Tacoscript' }]"
+					:options="interpreterOptionsWith(interpreter)"
 				/>
 			</div>
 			<div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">

@@ -42,10 +42,14 @@
 					@update:target="onTargetChange"
 				/>
 			</div>
-			<div
-				v-if="showScriptFields"
-				class="grid grid-cols-1 gap-4 sm:grid-cols-2"
-			>
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				<CustomThemedSelect
+					id="scheduleFormInterpreter"
+					v-model="interpreter"
+					label="Interpreter"
+					placeholder="Select…"
+					:options="interpreterOptionsWith(interpreter)"
+				/>
 				<OpField
 					label="Working directory"
 					for-id="scheduleFormCwd"
@@ -54,15 +58,9 @@
 						id="scheduleFormCwd"
 						v-model="cwd"
 						mono
+						placeholder="e.g. /var/www"
 					/>
 				</OpField>
-				<CustomThemedSelect
-					id="scheduleFormInterpreter"
-					v-model="interpreter"
-					label="Interpreter"
-					placeholder="Select…"
-					:options="[{ value: 'default', label: '/bin/sh or shebang' }, { value: 'tacoscript', label: 'Tacoscript' }]"
-				/>
 			</div>
 			<div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-3">
 				<OpField
@@ -73,42 +71,48 @@
 						id="scheduleFormTimeout"
 						v-model="timeoutSec"
 						type="number"
+						min="1"
 					/>
 				</OpField>
 				<div class="flex flex-col sm:col-span-2 sm:flex-row sm:gap-5 sm:pb-1.5">
-					<OpCheckbox
-						v-if="showScriptFields"
-						v-model="isSudo"
-					>
-						Use sudo
+					<OpCheckbox v-model="isSudo">
+						Run with sudo <span class="text-app-text-3">(Unix only)</span>
 					</OpCheckbox>
 					<OpCheckbox v-model="abortOnError">
 						Abort on error
 					</OpCheckbox>
+					<OpCheckbox v-model="oneAtATime">
+						One device at a time
+					</OpCheckbox>
 				</div>
 			</div>
-			<div class="flex flex-col gap-1.5">
-				<span class="text-[13px] font-medium text-app-text-2">Command or script</span>
-				<div class="max-h-[260px] min-h-[160px] overflow-auto rounded-xl border border-app-border bg-[#0F151D]">
-					<CommandEditor
-						v-model="content"
-						class="min-h-[160px]"
-						aria-label="Command or script"
-					/>
-				</div>
-				<p
-					class="text-xs text-app-text-3"
-					aria-live="polite"
-				>
-					<template v-if="isEditing">
-						Runs as a {{ effectiveType }} (fixed once a schedule is created).
-					</template>
-					<template v-else>
-						Runs as a <span class="font-medium text-app-text-2">{{ effectiveType }}</span>. A single full-path command (e.g. /usr/bin/uptime) runs as a command; anything else — pipes, several lines, a working directory, sudo or an interpreter — as a script.
-					</template>
-				</p>
-			</div>
+			<RunEditor
+				v-model:code="content"
+				v-model:kind="kindChoice"
+				:detected-kind="detectedKind"
+				compact
+				@insert="openLoadModal"
+			>
+				<template #footer>
+					<p
+						class="border-t border-[#222B37] bg-[#131B25] px-3.5 py-2.5 text-xs text-[#A9B4C3]"
+						aria-live="polite"
+					>
+						Runs as a <span class="font-medium text-[#E6EBF2]">{{ effectiveType }}</span>.
+						<template v-if="kindChoice === 'auto'">
+							A single full-path command (e.g. /usr/bin/uptime) runs as a command; anything else as a script.
+						</template>
+					</p>
+				</template>
+			</RunEditor>
 		</div>
+		<LibraryLoadModal
+			v-model="isLoadModalOpen"
+			title="Insert from library"
+			:items="libraryItems"
+			@select="loadFromLibrary"
+			@delete="deleteFromLibrary"
+		/>
 		<template #footer>
 			<AppButton
 				variant="secondary"
@@ -133,12 +137,14 @@
 
 <script setup lang="ts">
 import TargetSelector from '~/components/custom/TargetSelector.vue';
-import CommandEditor from '~/components/CommandEditor.vue';
+import LibraryLoadModal from '~/components/custom/LibraryLoadModal.vue';
+import RunEditor from '~/components/run/RunEditor.vue';
 import OpDialog from '~/components/operate/OpDialog.vue';
 import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
 import OpCheckbox from '~/components/operate/OpCheckbox.vue';
-import { libraryKindFor } from '~/composables/useRunLibrary';
+import { useRunLibrary } from '~/composables/useRunLibrary';
+import { detectRunKind, type LibraryPickItem, type RunKind } from '~/utils/runKind';
 import type { JobClientTags, Schedule, SchedulePayload } from '~/types';
 
 const emit = defineEmits(['saved']);
@@ -153,7 +159,7 @@ const editingId = ref<string | null>(null);
 
 const name = ref('');
 const cron = ref('');
-const type = ref<'command' | 'script'>('command');
+const kindChoice = ref<'auto' | RunKind>('auto');
 const clientIds = ref<string[]>([]);
 const groupIds = ref<string[]>([]);
 const tags = ref<JobClientTags | null>(null);
@@ -161,6 +167,7 @@ const cwd = ref('');
 const interpreter = ref('default');
 const isSudo = ref(false);
 const abortOnError = ref(true);
+const oneAtATime = ref(false);
 const timeoutSec = ref(300);
 const content = ref('');
 
@@ -175,7 +182,7 @@ const onTargetChange = (value: { clientIds: string[]; groupIds: string[]; tags: 
 const reset = () => {
 	name.value = '';
 	cron.value = '';
-	type.value = 'command';
+	kindChoice.value = 'auto';
 	clientIds.value = [];
 	groupIds.value = [];
 	tags.value = null;
@@ -183,6 +190,7 @@ const reset = () => {
 	interpreter.value = 'default';
 	isSudo.value = false;
 	abortOnError.value = true;
+	oneAtATime.value = false;
 	timeoutSec.value = 300;
 	content.value = '';
 	editingId.value = null;
@@ -200,7 +208,6 @@ const openForEdit = (schedule: Schedule) => {
 	editingId.value = schedule.id;
 	name.value = schedule.name;
 	cron.value = schedule.schedule;
-	type.value = schedule.type;
 	clientIds.value = schedule.client_ids ?? [];
 	groupIds.value = schedule.group_ids ?? [];
 	tags.value = schedule.tags ?? null;
@@ -208,8 +215,11 @@ const openForEdit = (schedule: Schedule) => {
 	interpreter.value = normalizeInterpreter(schedule.interpreter) || 'default';
 	isSudo.value = schedule.is_sudo;
 	abortOnError.value = schedule.abort_on_error ?? true;
+	oneAtATime.value = schedule.execute_concurrently === false;
 	timeoutSec.value = schedule.timeout_sec;
 	content.value = (schedule.type === 'script' ? decodeScript(schedule.script ?? '') : schedule.command) ?? '';
+	// Keep the saved type; show it as "Auto" when that is what Auto would pick anyway.
+	kindChoice.value = schedule.type === detectRunKind(content.value, interpreterValue.value) ? 'auto' : schedule.type;
 	isOpen.value = true;
 };
 
@@ -217,20 +227,53 @@ const close = () => {
 	isOpen.value = false;
 };
 
-// The schedule's type is fixed once created; for new ones it follows the content.
-const effectiveType = computed<'command' | 'script'>(() => (isEditing.value
-	? type.value
-	: libraryKindFor({
-			name: name.value,
-			tags: [],
-			code: content.value,
-			timeoutSec: Number(timeoutSec.value),
-			cwd: cwd.value,
-			isSudo: isSudo.value,
-			interpreter: interpreter.value === 'default' ? '' : interpreter.value,
-		})));
-// Commands can't carry these; new schedules can use them (which makes them scripts).
-const showScriptFields = computed(() => !isEditing.value || type.value === 'script');
+const interpreterValue = computed(() => (interpreter.value === 'default' ? '' : interpreter.value));
+const detectedKind = computed(() => detectRunKind(content.value, interpreterValue.value));
+const effectiveType = computed<RunKind>(() => (kindChoice.value === 'auto' ? detectedKind.value : kindChoice.value));
+
+// --- library -------------------------------------------------------------------
+const library = useRunLibrary();
+const isLoadModalOpen = ref(false);
+const libraryItems = ref<LibraryPickItem[]>([]);
+
+const openLoadModal = async () => {
+	try {
+		libraryItems.value = (await library.listAll()).map(e => ({ id: e.id, name: e.name, kind: e.kind }));
+		isLoadModalOpen.value = true;
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to load the library' });
+	}
+};
+
+const loadFromLibrary = async (item: LibraryPickItem) => {
+	if (!item.kind) return;
+	try {
+		const entry = await library.load(item.id, item.kind);
+		if (!name.value) name.value = entry.name;
+		content.value = entry.code;
+		timeoutSec.value = entry.timeoutSec || 300;
+		cwd.value = entry.cwd;
+		isSudo.value = entry.isSudo;
+		interpreter.value = normalizeInterpreter(entry.interpreter) || 'default';
+		kindChoice.value = entry.kind === detectRunKind(entry.code, entry.interpreter) ? 'auto' : entry.kind;
+	}
+	catch {
+		snackbar.add({ type: 'error', text: `Failed to load ${item.name}` });
+	}
+};
+
+const deleteFromLibrary = async (item: LibraryPickItem) => {
+	if (!item.kind) return;
+	try {
+		await library.remove(item.id, item.kind);
+		libraryItems.value = libraryItems.value.filter(i => !(i.id === item.id && i.kind === item.kind));
+		snackbar.add({ type: 'success', text: 'Removed from library' });
+	}
+	catch {
+		snackbar.add({ type: 'error', text: `Failed to remove ${item.name}` });
+	}
+};
 
 const save = async () => {
 	if (!canSave.value) return;
@@ -245,12 +288,15 @@ const save = async () => {
 			group_ids: (groupIds.value.length ? groupIds.value : undefined) as unknown as string[],
 			tags: tags.value,
 			timeout_sec: Number(timeoutSec.value),
-			is_sudo: effectiveType.value === 'script' ? isSudo.value : false,
-			execute_concurrently: true,
+			// Like Execute: commands take the working directory, sudo and interpreter too.
+			cwd: cwd.value,
+			interpreter: interpreterValue.value,
+			is_sudo: isSudo.value,
+			execute_concurrently: !oneAtATime.value,
 			abort_on_error: abortOnError.value,
 			overlaps: false,
 			...(effectiveType.value === 'script'
-				? { script: encodeScript(content.value), cwd: cwd.value, interpreter: interpreter.value === 'default' ? '' : interpreter.value }
+				? { script: encodeScript(content.value) }
 				: { command: content.value }),
 		};
 		if (editingId.value) {

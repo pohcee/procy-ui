@@ -8,8 +8,8 @@
  */
 export type RunKind = 'command' | 'script';
 
-/** Interpreters that only make sense for scripts. */
-const SCRIPT_ONLY_INTERPRETERS = new Set(['tacoscript']);
+/** The only interpreters rportd accepts for commands; anything else (tacoscript, a path, an alias) needs a script. */
+const COMMAND_INTERPRETERS = new Set(['', 'cmd', 'powershell']);
 
 /**
  * rport clients' default command filter only allows a full path
@@ -22,7 +22,7 @@ const SHELL_OPERATORS = /[|<>;&,\n]/;
 
 export const detectRunKind = (code: string, interpreter = ''): RunKind => {
 	const text = code.trim();
-	if (SCRIPT_ONLY_INTERPRETERS.has(interpreter)) return 'script';
+	if (!COMMAND_INTERPRETERS.has(interpreter)) return 'script';
 	if (text.startsWith('#!') || text.includes('\n')) return 'script';
 	if (!ABSOLUTE_PATH.test(text) || SHELL_OPERATORS.test(text)) return 'script';
 	return 'command';

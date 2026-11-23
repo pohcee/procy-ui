@@ -40,7 +40,7 @@
 					v-model="interpreter"
 					label="Interpreter"
 					placeholder="Select…"
-					:options="interpreterOptions"
+					:options="interpreterOptionsWith(interpreter)"
 				/>
 				<OpField
 					label="Working directory"
@@ -80,116 +80,79 @@
 
 		<!-- Right: editor + results -->
 		<div class="flex min-w-0 flex-col gap-5">
-			<section
-				aria-label="Code to run"
-				class="overflow-hidden rounded-xl border border-app-border bg-[#0F151D]"
-				@keydown.ctrl.enter.prevent="run"
-				@keydown.meta.enter.prevent="run"
+			<RunEditor
+				v-model:code="code"
+				v-model:kind="kindChoice"
+				:detected-kind="detectedKind"
+				@insert="openLoadModal"
+				@submit="run"
 			>
-				<div class="flex flex-wrap items-center justify-between gap-2.5 border-b border-[#222B37] px-3.5 py-2">
-					<div class="flex min-w-0 flex-1 items-center gap-1.5">
-						<label
-							:for="`${uid}-name`"
-							class="sr-only"
-						>Name (needed to save to the library)</label>
-						<input
-							:id="`${uid}-name`"
-							v-model="name"
-							type="text"
-							autocomplete="off"
-							placeholder="untitled"
-							class="h-9 min-w-[120px] max-w-[260px] rounded-md [field-sizing:content] border border-transparent bg-transparent px-1.5 font-mono text-xs text-[#E6EBF2] placeholder:text-[#7D8796] hover:border-[#2E3947] focus:border-[#3A4656] focus:outline-none"
+				<template #leading>
+					<label
+						:for="`${uid}-name`"
+						class="sr-only"
+					>Name (needed to save to the library)</label>
+					<input
+						:id="`${uid}-name`"
+						v-model="name"
+						type="text"
+						autocomplete="off"
+						placeholder="untitled"
+						class="h-9 min-w-[120px] max-w-[260px] rounded-md [field-sizing:content] border border-transparent bg-transparent px-1.5 font-mono text-xs text-[#E6EBF2] placeholder:text-[#7D8796] hover:border-[#2E3947] focus:border-[#3A4656] focus:outline-none"
+					>
+				</template>
+				<template #footer>
+					<div class="flex flex-wrap items-center justify-end gap-2.5 border-t border-[#222B37] bg-[#131B25] px-3.5 py-3">
+						<span
+							class="mr-auto min-w-0 text-xs text-[#A9B4C3]"
+							aria-live="polite"
 						>
-						<label
-							:for="`${uid}-kind`"
-							class="sr-only"
-						>Run as</label>
-						<select
-							:id="`${uid}-kind`"
-							v-model="kindChoice"
-							class="h-8 shrink-0 cursor-pointer rounded-md border border-[#2E3947] bg-[#131B25] py-0 pl-2 pr-7 font-mono text-xs text-[#C2CAD6] focus:border-[#3A4656] focus:outline-none"
-							title="How this runs on the device"
+							<template v-if="!canExecute">{{ disabledReason }}</template>
+							<template v-else>
+								Runs as a <span class="font-medium text-[#E6EBF2]">{{ effectiveKind }}</span><span class="hidden sm:inline"> · Ctrl/⌘ + Enter</span>
+							</template>
+						</span>
+						<button
+							v-if="clientId"
+							type="button"
+							class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#3A4656] px-3.5 text-[13px] font-medium text-[#E6EBF2] hover:bg-[#18202A] disabled:cursor-not-allowed disabled:opacity-50"
+							:disabled="!code.trim()"
+							@click="openSchedule"
 						>
-							<option value="auto">
-								Auto · {{ detectedKind }}
-							</option>
-							<option value="command">
-								Command
-							</option>
-							<option value="script">
-								Script
-							</option>
-						</select>
+							<Clock
+								class="h-4 w-4"
+								aria-hidden="true"
+							/>
+							Schedule
+						</button>
+						<button
+							type="button"
+							class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#3A4656] px-3.5 text-[13px] font-medium text-[#E6EBF2] hover:bg-[#18202A] disabled:cursor-not-allowed disabled:opacity-50"
+							:disabled="!canSave || isSaving"
+							:title="!canSave ? 'Enter a name and some code to save it to the library' : undefined"
+							@click="saveToLibrary"
+						>
+							<Save
+								class="h-4 w-4"
+								aria-hidden="true"
+							/>
+							{{ loaded ? 'Update in library' : 'Save to library' }}
+						</button>
+						<button
+							type="button"
+							class="inline-flex h-10 items-center gap-2 rounded-[10px] bg-app-accent px-4 text-[13px] font-semibold text-white hover:bg-app-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+							:disabled="!canExecute || isLoading"
+							@click="run"
+						>
+							<Play
+								class="h-3.5 w-3.5 fill-current"
+								aria-hidden="true"
+							/>
+							{{ runLabel }}
+						</button>
 					</div>
-					<button
-						type="button"
-						class="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[#9DC1FF] hover:bg-[#18202A] hover:text-[#C3D9FF]"
-						@click="openLoadModal"
-					>
-						<FolderOpen
-							class="h-4 w-4"
-							aria-hidden="true"
-						/>
-						Insert from library
-					</button>
-				</div>
-				<div class="max-h-[60vh] min-h-[200px] overflow-auto sm:min-h-[260px]">
-					<CommandEditor
-						v-model="code"
-						class="min-h-[200px] sm:min-h-[260px]"
-						aria-label="Command or script"
-					/>
-				</div>
-				<div class="flex flex-wrap items-center justify-end gap-2.5 border-t border-[#222B37] bg-[#131B25] px-3.5 py-3">
-					<span
-						class="mr-auto min-w-0 text-xs text-[#A9B4C3]"
-						aria-live="polite"
-					>
-						<template v-if="!canExecute">{{ disabledReason }}</template>
-						<template v-else>
-							Runs as a <span class="font-medium text-[#E6EBF2]">{{ effectiveKind }}</span><span class="hidden sm:inline"> · Ctrl/⌘ + Enter</span>
-						</template>
-					</span>
-					<button
-						v-if="clientId"
-						type="button"
-						class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#3A4656] px-3.5 text-[13px] font-medium text-[#E6EBF2] hover:bg-[#18202A] disabled:cursor-not-allowed disabled:opacity-50"
-						:disabled="!code.trim()"
-						@click="openSchedule"
-					>
-						<Clock
-							class="h-4 w-4"
-							aria-hidden="true"
-						/>
-						Schedule
-					</button>
-					<button
-						type="button"
-						class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#3A4656] px-3.5 text-[13px] font-medium text-[#E6EBF2] hover:bg-[#18202A] disabled:cursor-not-allowed disabled:opacity-50"
-						:disabled="!canSave || isSaving"
-						:title="!canSave ? 'Enter a name and some code to save it to the library' : undefined"
-						@click="saveToLibrary"
-					>
-						<Save
-							class="h-4 w-4"
-							aria-hidden="true"
-						/>
-						{{ loaded ? 'Update in library' : 'Save to library' }}
-					</button>
-					<button
-						type="button"
-						class="inline-flex h-10 items-center gap-2 rounded-[10px] bg-app-accent px-4 text-[13px] font-semibold text-white hover:bg-app-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
-						:disabled="!canExecute || isLoading"
-						@click="run"
-					>
-						<Play
-							class="h-3.5 w-3.5 fill-current"
-							aria-hidden="true"
-						/>
-						{{ runLabel }}
-					</button>
-				</div>
-			</section>
+				</template>
+			</RunEditor>
 
 			<p
 				v-if="runError"
@@ -268,8 +231,8 @@
 </template>
 
 <script setup lang="ts">
-import { Clock, Download, FolderOpen, Play, RotateCcw, Save } from 'lucide-vue-next';
-import CommandEditor from '~/components/CommandEditor.vue';
+import { Clock, Download, Play, RotateCcw, Save } from 'lucide-vue-next';
+import RunEditor from '~/components/run/RunEditor.vue';
 import CommandResult from '~/components/CommandResult.vue';
 import LibraryLoadModal from '~/components/custom/LibraryLoadModal.vue';
 import TargetSelector from '~/components/custom/TargetSelector.vue';
@@ -291,11 +254,6 @@ const snackbar = useSnackbar();
 const uid = useId();
 const library = useRunLibrary();
 const remote = useRemoteRun();
-
-const interpreterOptions = [
-	{ value: 'default', label: '/bin/sh or shebang' },
-	{ value: 'tacoscript', label: 'Tacoscript' },
-];
 
 const name = ref('');
 const code = ref('');
