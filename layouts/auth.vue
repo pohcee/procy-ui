@@ -18,7 +18,13 @@
 				</div>
 			</main>
 			<footer class="text-xs text-app-text-3">
-				© Procy · Remote management for your fleet
+				© Procy · Remote management for your fleet ·
+				<a
+					href="https://procy.sh/docs/"
+					target="_blank"
+					rel="noopener"
+					class="underline underline-offset-2 hover:text-app-text"
+				>Documentation</a>
 			</footer>
 		</div>
 
