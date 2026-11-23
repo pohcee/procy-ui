@@ -193,7 +193,7 @@
 		</AppPage>
 		<ScheduleFormModal
 			ref="formModal"
-			@saved="refresh"
+			@saved="onSaved"
 		/>
 		<Modal
 			v-model="deleteConfirmOpen"
@@ -239,7 +239,7 @@ const typeOptions = computed(() => [
 	{ value: 'library' as const, label: 'Library' },
 ]);
 
-const { data: entryList } = useLazyAsyncData('schedules-library-entries', async () => {
+const { data: entryList, refresh: refreshEntries } = useLazyAsyncData('schedules-library-entries', async () => {
 	try {
 		return await library.listAll();
 	}
@@ -248,6 +248,10 @@ const { data: entryList } = useLazyAsyncData('schedules-library-entries', async 
 	}
 });
 const entryNames = computed(() => new Map((entryList.value ?? []).map(e => [e.id, e.name])));
+
+const onSaved = async () => {
+	await Promise.all([refresh(), refreshEntries()]);
+};
 
 const typeLabel = (schedule: Schedule) => ({ script: 'Script', library: 'Library', command: 'Command' })[schedule.type] ?? 'Command';
 const typeClass = (schedule: Schedule) => ({
