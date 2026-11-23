@@ -110,12 +110,6 @@
 					placeholder="Shown in the entry’s history"
 				/>
 			</OpField>
-
-			<!-- Task 11: the version History panel goes here. -->
-			<slot
-				name="history"
-				:entry="editing"
-			/>
 		</div>
 
 		<LibraryLoadModal
@@ -124,6 +118,12 @@
 			:items="pickItems"
 			:default-os="activeOs"
 			@select="insertFromLibrary"
+		/>
+		<EntryHistory
+			v-if="editing"
+			v-model="historyOpen"
+			:entry="editing"
+			:on-restore="restoreVersion"
 		/>
 		<EntryConflictDialog
 			v-model="conflictOpen"
@@ -140,6 +140,13 @@
 				@click="close"
 			>
 				{{ readonly ? 'Close' : 'Cancel' }}
+			</AppButton>
+			<AppButton
+				v-if="editing"
+				variant="secondary"
+				@click="historyOpen = true"
+			>
+				History
 			</AppButton>
 			<AppButton
 				v-if="readonly"
@@ -164,6 +171,7 @@
 import ExecutionTags from '~/components/custom/ExecutionTags.vue';
 import LibraryLoadModal from '~/components/custom/LibraryLoadModal.vue';
 import EntryConflictDialog from '~/components/library/EntryConflictDialog.vue';
+import EntryHistory from '~/components/library/EntryHistory.vue';
 import EntryOsTab from '~/components/library/EntryOsTab.vue';
 import { blankDraft, blankDrafts, draftFrom, implementationFromDraft, type OsDrafts } from '~/components/library/entryDraft';
 import OpDialog from '~/components/operate/OpDialog.vue';
@@ -208,6 +216,7 @@ const reset = () => {
 	drafts.value = blankDrafts();
 	activeOs.value = 'linux';
 	editing.value = null;
+	historyOpen.value = false;
 };
 
 const fill = (entry: LibraryEntry) => {
@@ -342,6 +351,29 @@ const copyMine = async () => {
 	}
 	catch {
 		snackbar.add({ type: 'error', text: 'Couldn’t copy to the clipboard' });
+	}
+};
+
+// History: restoring saves a new version on top of the one this editor holds.
+const historyOpen = ref(false);
+
+/** Resolves true when the entry was restored and the editor reloaded; a 409 goes through the save conflict handling. */
+const restoreVersion = async (version: number): Promise<boolean> => {
+	if (!editing.value || readonly.value) return false;
+	try {
+		const restored = await library.restore(editing.value.id, version, editing.value.activeVersion);
+		fill(restored);
+		snackbar.add({ type: 'success', text: `Restored version ${version} as version ${restored.activeVersion}` });
+		emit('saved');
+		return true;
+	}
+	catch (e) {
+		if (isConflict(e)) {
+			historyOpen.value = false;
+			await showConflict(e);
+		}
+		else snackbar.add({ type: 'error', text: apiErrorMessage(e) });
+		return false;
 	}
 };
 

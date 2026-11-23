@@ -139,6 +139,10 @@ export const useRunLibrary = () => {
 		return fromRecord(data);
 	};
 
+	/** A new version with `version`'s content; `baseVersion` is the entry's current `activeVersion` (a stale one rejects with a 409). */
+	const restore = async (id: string, version: number, baseVersion: number): Promise<LibraryEntry> =>
+		fromRecord((await $api.library.restoreVersion(id, version, baseVersion)).data);
+
 	const remove = async (id: string) => {
 		await $api.library.deleteEntry(id);
 	};
@@ -162,5 +166,5 @@ export const useRunLibrary = () => {
 		}
 	};
 
-	return { listAll, load, save, saveContent, remove, undelete, targetOs };
+	return { listAll, load, save, saveContent, restore, remove, undelete, targetOs };
 };
