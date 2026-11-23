@@ -9,7 +9,7 @@ newIssueWelcomeComment: >
   
   A heads-up: **We use Github Issues only for tracking bugs**. Talk about new features is also acceptable. This helps _a lot_ in keeping our focus on improving Backpack. **If you issue is not a bug/feature, please help us out by closing the issue yourself and posting in the appropriate medium (see below)**. If you're not sure where it fits, it's ok, a community member will probably reply to help you with that.
   
-  OpenRPort communication channels:
+  Procy communication channels:
     - Bug Reports, Feature Requests - GitHub Issues (here);
     - Questions, DiscussionsQuick help (_How do I do X_) - [Discord](https://discord.gg/HQ4wMQmzcu)
   
@@ -17,7 +17,7 @@ newIssueWelcomeComment: >
   
   --
   
-  The OpenRPort Robot
+  The Procy Robot
   
 
 # Configuration for new-pr-welcome - https://github.com/behaviorbot/new-pr-welcome
@@ -34,7 +34,7 @@ newPRWelcomeComment: >
   
   --
   
-  The OpenRPort Robot
+  The Procy Robot
 
 # Configuration for first-pr-merge - https://github.com/behaviorbot/first-pr-merge
 
@@ -56,7 +56,7 @@ firstPRMergeComment: >
   
   --
   
-  The OpenRPort Robot
+  The Procy Robot
 
 # It is recommended to include as many gifs and emojis as possible!
 
@@ -74,7 +74,7 @@ requestInfoReplyComment: >
 
   --
   
-  The OpenRPort Robot
+  The Procy Robot
 
 # *OPTIONAL* default titles to check against for lack of descriptiveness
 # MUST BE ALL LOWERCASE

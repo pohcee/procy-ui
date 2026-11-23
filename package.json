@@ -2,23 +2,24 @@
   "name": "openrport-frontend",
   "version": "0.12.1",
   "private": true,
-  "description": "OpenRPort ui is the managing front-end for the backend RMM OpenRPort",
+  "description": "Procy web UI: the front-end for the Procy remote access and maintenance server",
   "repository": {
     "type": "git",
-    "url": "https://github.com/openrport/openrport-ui"
+    "url": "https://github.com/pohcee/openrport-ui"
   },
   "keywords": [
+    "procy",
     "openrport",
     "rmm",
     "remote-monitoring-management",
     "rport",
     "rport-opensource"
   ],
-  "author": "OpenRPort",
+  "author": "Procy",
   "license": "AGPL-3.0",
-  "homepage": "https://github.com/openrport/openrport-ui",
+  "homepage": "https://github.com/pohcee/openrport-ui",
   "bugs": {
-    "url": "https://github.com/openrport/openrport-ui/issues"
+    "url": "https://github.com/pohcee/openrport-ui/issues"
   },
   "type": "module",
   "scripts": {

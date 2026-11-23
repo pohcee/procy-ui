@@ -52,7 +52,7 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
           body: |
-            🚀 Automated alpha release of OpenRPort UI
+            🚀 Automated alpha release of the Procy UI
 
             **Build Information:**
             - Commit: ${{ github.sha }}
