@@ -1,4 +1,4 @@
-import type { EntryImplementation, EntryImplementations, LibraryEntryRecord, LibraryOS } from '~/types';
+import type { EntryContent, EntryImplementation, EntryImplementations, LibraryEntryRecord, LibraryOS } from '~/types';
 import { detectRunKind, type RunKind } from '~/utils/runKind';
 
 /** Order in which an entry's primary implementation is picked. */
@@ -91,8 +91,8 @@ export const useRunLibrary = () => {
 	const { $api } = useNuxtApp();
 
 	/** Everything, sorted by name, without implementations. Use `load` for the full entry before running or editing. */
-	const listAll = async (): Promise<LibraryEntry[]> => {
-		const { data } = await $api.library.listEntries({ 'page[limit]': 500 });
+	const listAll = async (deleted = false): Promise<LibraryEntry[]> => {
+		const { data } = await $api.library.listEntries({ 'page[limit]': 500, ...(deleted ? { 'filter[deleted]': true } : {}) });
 		return (data ?? []).map(fromRecord);
 	};
 
@@ -127,8 +127,24 @@ export const useRunLibrary = () => {
 		return fromRecord(data);
 	};
 
+	/**
+	 * Create (no `existing`) or save an entry with all its implementations at once
+	 * (the editor's tabs). Saving sends `existing.activeVersion` as `base_version`.
+	 */
+	const saveContent = async (content: EntryContent, existing: LibraryEntry | null, message = ''): Promise<LibraryEntry> => {
+		const body = { ...content, message };
+		const { data } = existing
+			? await $api.library.saveEntry(existing.id, { ...body, base_version: existing.activeVersion })
+			: await $api.library.createEntry(body);
+		return fromRecord(data);
+	};
+
 	const remove = async (id: string) => {
 		await $api.library.deleteEntry(id);
+	};
+
+	const undelete = async (id: string) => {
+		await $api.library.undeleteEntry(id);
 	};
 
 	/**
@@ -146,5 +162,5 @@ export const useRunLibrary = () => {
 		}
 	};
 
-	return { listAll, load, save, remove, targetOs };
+	return { listAll, load, save, saveContent, remove, undelete, targetOs };
 };
