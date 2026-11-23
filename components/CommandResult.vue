@@ -65,6 +65,10 @@
 				</span>
 				<span class="min-w-0 flex-1">
 					<span class="block truncate font-mono text-[13px] text-app-text">{{ row.name }}</span>
+					<span
+						v-if="row.entry || row.note"
+						class="block truncate text-xs text-app-text-3"
+					>{{ [row.entry, row.note].filter(Boolean).join(' — ') }}</span>
 					<span class="block truncate font-mono text-xs text-app-text-3 sm:hidden">{{ row.meta }}</span>
 				</span>
 				<span class="hidden shrink-0 font-mono text-xs text-app-text-3 sm:inline">{{ row.meta }}</span>
@@ -121,11 +125,12 @@
 </template>
 
 <script setup lang="ts">
-import { Check, ChevronDown, CircleHelp, Loader2, X } from 'lucide-vue-next';
+import { Check, ChevronDown, CircleHelp, Loader2, SkipForward, X } from 'lucide-vue-next';
 import { useTimeAgo } from '@vueuse/core';
 import type { CommandResult } from '~/types';
+import { LIBRARY_OS_LABELS, toLibraryOs } from '~/composables/useRunLibrary';
 
-type RowState = 'successful' | 'failed' | 'running' | 'unknown';
+type RowState = 'successful' | 'failed' | 'running' | 'skipped' | 'unknown';
 
 const props = defineProps({
 	results: {
@@ -137,6 +142,8 @@ const props = defineProps({
 	code: { type: String, default: undefined },
 	title: { type: String, default: 'Results' },
 	running: { type: Boolean, default: false },
+	/** Name of the library entry when this is a library run (shown on each result). */
+	entryName: { type: String, default: '' },
 	startedAt: { type: Date as PropType<Date | null>, default: null },
 });
 
@@ -144,12 +151,14 @@ const stateMeta = {
 	successful: { label: 'Success', icon: Check, text: 'text-app-ok' },
 	failed: { label: 'Failed', icon: X, text: 'text-app-danger' },
 	running: { label: 'Running', icon: Loader2, text: 'text-app-blue' },
+	skipped: { label: 'Skipped', icon: SkipForward, text: 'text-app-text-3' },
 	unknown: { label: 'Unknown', icon: CircleHelp, text: 'text-app-text-3' },
 } as const;
 
 const toState = (status?: string): RowState => {
 	if (status === 'successful') return 'successful';
 	if (status === 'failed') return 'failed';
+	if (status === 'skipped') return 'skipped';
 	if (!status || status === 'running') return 'running';
 	return 'unknown';
 };
@@ -181,22 +190,31 @@ const rows = computed(() => {
 		if (duration) parts.push(duration);
 		const stdout = result.result?.stdout ?? '';
 		const stderr = result.result?.stderr ?? '';
+		const osLabel = LIBRARY_OS_LABELS[toLibraryOs(result.os) ?? 'linux'];
+		const entry = result.library_entry_id
+			? [props.entryName, result.library_version ? `v${result.library_version}` : '', result.os ? (toLibraryOs(result.os) ? osLabel : result.os) : '']
+					.filter(Boolean).join(' · ')
+			: '';
+		// A skipped device carries the reason ("no macOS implementation") as its summary.
+		const note = state === 'skipped' ? (result.result?.summary || result.error || '') : '';
 		return {
 			key,
 			state,
+			entry,
+			note,
 			name: result.client_name || result.client_id,
 			meta: parts.join(' · ') || (state === 'running' ? 'in progress' : ''),
 			stdout,
 			stderr,
 			error: result.error ?? '',
 			pid: result.pid,
-			hasOutput: !!(stdout || stderr || result.error),
+			hasOutput: !!(stdout || stderr || result.error) && state !== 'skipped',
 		};
 	});
 });
 
 const counts = computed(() => {
-	const c = { successful: 0, failed: 0, running: 0, unknown: 0 };
+	const c = { successful: 0, failed: 0, running: 0, skipped: 0, unknown: 0 };
 	rows.value.forEach(row => c[row.state]++);
 	return c;
 });
@@ -206,6 +224,7 @@ const summary = computed(() => {
 	if (counts.value.successful) parts.push(`${counts.value.successful} succeeded`);
 	if (counts.value.failed) parts.push(`${counts.value.failed} failed`);
 	if (counts.value.running) parts.push(`${counts.value.running} running`);
+	if (counts.value.skipped) parts.push(`${counts.value.skipped} skipped`);
 	if (counts.value.unknown) parts.push(`${counts.value.unknown} unknown`);
 	if (!parts.length) return props.running ? 'Waiting for results' : 'No results';
 	return parts.join(' · ');

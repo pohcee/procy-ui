@@ -35,7 +35,14 @@
 				<h2 class="text-[15px] font-semibold text-app-text">
 					Options
 				</h2>
+				<p
+					v-if="mode === 'library'"
+					class="text-[13px] text-app-text-3"
+				>
+					The entry sets the interpreter, working directory, timeout and sudo for each OS.
+				</p>
 				<CustomThemedSelect
+					v-if="mode === 'code'"
 					:id="`${uid}-interpreter`"
 					v-model="interpreter"
 					label="Interpreter"
@@ -43,6 +50,7 @@
 					:options="interpreterOptionsWith(interpreter)"
 				/>
 				<OpField
+					v-if="mode === 'code'"
 					label="Working directory"
 					:for-id="`${uid}-cwd`"
 				>
@@ -54,6 +62,7 @@
 					/>
 				</OpField>
 				<OpField
+					v-if="mode === 'code'"
 					label="Timeout (seconds)"
 					:for-id="`${uid}-timeout`"
 				>
@@ -65,7 +74,10 @@
 					/>
 				</OpField>
 				<div class="flex flex-col">
-					<OpCheckbox v-model="useSudo">
+					<OpCheckbox
+						v-if="mode === 'code'"
+						v-model="useSudo"
+					>
 						Run with sudo <span class="text-app-text-3">(Unix only)</span>
 					</OpCheckbox>
 					<OpCheckbox
@@ -80,7 +92,86 @@
 
 		<!-- Right: editor + results -->
 		<div class="flex min-w-0 flex-col gap-5">
+			<div
+				role="radiogroup"
+				aria-label="What to run"
+				class="inline-flex w-fit gap-1 rounded-[10px] border border-app-border bg-app-surface p-1"
+			>
+				<button
+					v-for="option in MODE_OPTIONS"
+					:key="option.value"
+					type="button"
+					role="radio"
+					:aria-checked="mode === option.value"
+					:class="[
+						'h-8 rounded-md px-3 text-[13px] font-medium',
+						mode === option.value ? 'bg-app-accent text-white' : 'text-app-text-2 hover:bg-app-hover',
+					]"
+					@click="setMode(option.value)"
+				>
+					{{ option.label }}
+				</button>
+			</div>
+
+			<section
+				v-if="mode === 'library'"
+				class="flex flex-col gap-4 rounded-xl border border-app-border bg-app-surface p-[18px]"
+			>
+				<CustomThemedSelect
+					:id="`${uid}-entry`"
+					v-model="entryId"
+					label="Library entry"
+					placeholder="Select an entry…"
+					:options="entryOptions"
+				/>
+				<dl
+					v-if="selectedEntry"
+					class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[13px]"
+				>
+					<dt class="text-app-text-3">
+						Name
+					</dt>
+					<dd class="text-app-text">
+						{{ selectedEntry.name }}
+					</dd>
+					<dt class="text-app-text-3">
+						Active version
+					</dt>
+					<dd class="text-app-text">
+						v{{ selectedEntry.activeVersion }}
+					</dd>
+					<dt class="text-app-text-3">
+						Implemented for
+					</dt>
+					<dd class="text-app-text">
+						{{ selectedEntry.os.map(os => LIBRARY_OS_LABELS[os]).join(', ') || 'no OS' }}
+					</dd>
+				</dl>
+				<div class="flex flex-wrap items-center justify-end gap-2.5 border-t border-app-border-subtle pt-3">
+					<span
+						class="mr-auto min-w-0 text-[13px] text-app-text-2"
+						aria-live="polite"
+					>
+						<template v-if="!canRunEntry">{{ entryDisabledReason }}</template>
+						<template v-else>{{ splitPreview }}</template>
+					</span>
+					<button
+						type="button"
+						class="inline-flex h-10 items-center gap-2 rounded-[10px] bg-app-accent px-4 text-[13px] font-semibold text-white hover:bg-app-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+						:disabled="!canRunEntry || isLoading"
+						@click="run"
+					>
+						<Play
+							class="h-3.5 w-3.5 fill-current"
+							aria-hidden="true"
+						/>
+						{{ runLabel }}
+					</button>
+				</div>
+			</section>
+
 			<RunEditor
+				v-else
 				v-model:code="code"
 				v-model:kind="kindChoice"
 				:detected-kind="detectedKind"
@@ -183,6 +274,7 @@
 				v-if="hasRun"
 				:results="results"
 				:running="isLoading"
+				:entry-name="ranEntryName"
 				:started-at="startedAt"
 			>
 				<template #actions>
@@ -279,15 +371,16 @@ import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
 import OpCheckbox from '~/components/operate/OpCheckbox.vue';
 import { useRemoteRun } from '~/composables/useRemoteRun';
-import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, implementationFor, isConflict, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
+import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, implementationFor, isConflict, toLibraryOs, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
 import { detectRunKind, isCommandNotAllowed, type LibraryPickItem, type RunKind } from '~/utils/runKind';
-import type { JobClientTags, LibraryOS } from '~/types';
+import type { Client, ClientGroup, JobClientTags, LibraryOS } from '~/types';
 
 const props = defineProps<{
 	/** Run on this one device (device page). Omit to pick targets (Execute page). */
 	clientId?: string;
 }>();
 
+const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 const uid = useId();
 const library = useRunLibrary();
@@ -321,6 +414,79 @@ const interpreterValue = computed(() => (interpreter.value === 'default' ? '' : 
 const detectedKind = computed(() => detectRunKind(code.value, interpreterValue.value));
 const effectiveKind = computed<RunKind>(() => (kindChoice.value === 'auto' ? detectedKind.value : kindChoice.value));
 
+// --- run mode: typed code or a library entry ---------------------------------
+type Mode = 'code' | 'library';
+const MODE_OPTIONS: { value: Mode; label: string }[] = [
+	{ value: 'code', label: 'Code' },
+	{ value: 'library', label: 'Library entry' },
+];
+const mode = ref<Mode>('code');
+const entryId = ref('');
+const entries = ref<LibraryEntry[]>([]);
+const knownClients = ref<Client[]>([]);
+const knownGroups = ref<ClientGroup[]>([]);
+const ranEntryName = ref('');
+
+const entryOptions = computed(() => entries.value.map(e => ({ value: e.id, label: e.name })));
+const selectedEntry = computed(() => entries.value.find(e => e.id === entryId.value) ?? null);
+
+const setMode = async (value: Mode) => {
+	mode.value = value;
+	if (value !== 'library' || entries.value.length) return;
+	try {
+		const [list, clients, groups] = await Promise.all([
+			library.listAll(),
+			props.clientId ? $api.clients.show(props.clientId).then(r => [r.data]) : $api.clients.listClients().then(r => r.data),
+			props.clientId ? Promise.resolve([] as ClientGroup[]) : $api.groups.listGroups().then(r => r.data),
+		]);
+		entries.value = list;
+		knownClients.value = clients;
+		knownGroups.value = groups;
+	}
+	catch {
+		snackbar.add({ type: 'error', text: 'Failed to load the library' });
+	}
+};
+
+/** The targeted devices; `unresolved` counts group members that can't be listed. */
+const resolvedTargets = computed(() => {
+	if (props.clientId) return { clients: knownClients.value.filter(c => c.id === props.clientId), unresolved: 0 };
+	const ids = new Set(target.value.clientIds);
+	let unresolved = 0;
+	knownGroups.value.filter(g => target.value.groupIds.includes(g.id)).forEach((g) => {
+		if (g.clients_ids) g.clients_ids.forEach(id => ids.add(id));
+		else unresolved += g.num_clients ?? 0;
+	});
+	const tags = target.value.tags;
+	const matches = (c: Client) => {
+		const own: string[] = c.tags ?? [];
+		return !!tags && tags.tags.length > 0 && (tags.operator === 'AND' ? tags.tags.every(t => own.includes(t)) : tags.tags.some(t => own.includes(t)));
+	};
+	return { clients: knownClients.value.filter(c => ids.has(c.id) || matches(c)), unresolved };
+});
+
+/** "3 Linux · 1 Windows · 1 macOS skipped": how the targets split by the entry's implementations. */
+const splitPreview = computed(() => {
+	const entry = selectedEntry.value;
+	if (!entry) return '';
+	const { clients, unresolved } = resolvedTargets.value;
+	const counts = new Map<string, number>();
+	clients.forEach((c) => {
+		const os = toLibraryOs(c.os_kernel);
+		const key = os && entry.os.includes(os) ? os : (os ?? 'other');
+		counts.set(key, (counts.get(key) ?? 0) + 1);
+	});
+	const parts: string[] = [];
+	[...LIBRARY_OS_ORDER, 'other'].forEach((key) => {
+		const n = counts.get(key);
+		if (!n) return;
+		const label = key === 'other' ? 'other OS' : LIBRARY_OS_LABELS[key as LibraryOS];
+		parts.push(`${n} ${label}${key === 'other' || !entry.os.includes(key as LibraryOS) ? ' skipped' : ''}`);
+	});
+	if (unresolved) parts.push(`${plural(unresolved)} in groups`);
+	return parts.join(' · ') || 'No matching devices';
+});
+
 // --- running -------------------------------------------------------------
 const hasRun = ref(false);
 const startedAt = ref<Date | null>(null);
@@ -343,6 +509,12 @@ const targetCount = computed(() => (props.clientId
 	: target.value.clientIds.length + target.value.groupIds.length + (target.value.tags ? target.value.tags.tags.length : 0)));
 const hasCode = computed(() => code.value.trim().length > 0);
 const canExecute = computed(() => hasCode.value && targetCount.value > 0);
+const canRunEntry = computed(() => !!selectedEntry.value && targetCount.value > 0);
+const entryDisabledReason = computed(() => {
+	if (!selectedEntry.value && targetCount.value === 0) return 'Pick an entry and at least one target';
+	if (!selectedEntry.value) return 'Pick a library entry to run';
+	return 'Pick at least one target';
+});
 const canSave = computed(() => hasCode.value && name.value.trim().length > 0);
 const disabledReason = computed(() => {
 	if (!hasCode.value && targetCount.value === 0) return 'Enter a command or script and pick at least one target';
@@ -373,8 +545,29 @@ const start = (clientIds: string[], groupIds: string[], tags: JobClientTags | nu
 	});
 };
 
+const startEntry = (clientIds: string[], groupIds: string[], tags: JobClientTags | null) => {
+	if (!selectedEntry.value) return;
+	hasRun.value = true;
+	startedAt.value = new Date();
+	ranEntryName.value = selectedEntry.value.name;
+	remote.runEntry({
+		entryId: selectedEntry.value.id,
+		clientIds,
+		groupIds,
+		tags,
+		abortOnError: abortOnError.value,
+	});
+};
+
 const run = () => {
-	if (!canExecute.value || isLoading.value) return;
+	if (isLoading.value) return;
+	if (mode.value === 'library') {
+		if (!canRunEntry.value) return;
+		if (props.clientId) startEntry([props.clientId], [], null);
+		else startEntry(target.value.clientIds, target.value.groupIds, target.value.tags);
+		return;
+	}
+	if (!canExecute.value) return;
 	if (props.clientId) start([props.clientId], [], null);
 	else start(target.value.clientIds, target.value.groupIds, target.value.tags);
 };
@@ -397,7 +590,12 @@ const rerunAsScript = () => {
 };
 
 const rerunFailed = () => {
-	if (!failedClientIds.value.length || !hasCode.value) return;
+	if (!failedClientIds.value.length) return;
+	if (mode.value === 'library') {
+		startEntry(failedClientIds.value, [], null);
+		return;
+	}
+	if (!hasCode.value) return;
 	start(failedClientIds.value, [], null);
 };
 

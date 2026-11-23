@@ -532,6 +532,11 @@ export interface CommandResult {
 	is_sudo?: boolean;
 	is_script?: boolean;
 	stream_result?: boolean;
+	/** Set on runs of a library entry. */
+	library_entry_id?: string;
+	library_version?: number;
+	/** The OS implementation that ran (a library `os_kernel` value). */
+	os?: string;
 }
 
 export interface Result {

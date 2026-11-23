@@ -18,6 +18,15 @@ export interface RemoteRunOptions {
 	executeConcurrently?: boolean;
 }
 
+export interface RemoteEntryRunOptions {
+	entryId: string;
+	clientIds?: string[];
+	groupIds?: string[];
+	tags?: JobClientTags | null;
+	abortOnError?: boolean;
+	executeConcurrently?: boolean;
+}
+
 /** Base64 of the UTF-8 bytes (plain btoa() throws on non-Latin-1 text). */
 const toBase64 = (text: string) => {
 	const bytes = new TextEncoder().encode(text);
@@ -52,33 +61,18 @@ export const useRemoteRun = () => {
 		ws = null;
 	};
 
-	const run = (options: RemoteRunOptions) => {
-		disconnect();
-		const endpoint = options.kind === 'script' ? 'scripts' : 'commands';
-		const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${readAuthToken() ?? ''}`;
+	// The server treats an empty `client_ids: []` as "targeting by client" and rejects it
+	// next to group or tag targeting, so leave empty lists out entirely.
+	const nonEmpty = (ids?: string[]) => (ids && ids.length ? ids : undefined);
 
-		// The server treats an empty `client_ids: []` as "targeting by client" and rejects it
-		// next to group or tag targeting, so leave empty lists out entirely.
-		const nonEmpty = (ids?: string[]) => (ids && ids.length ? ids : undefined);
-		const payload = {
-			...(options.kind === 'script'
-				? { script: toBase64(options.code) }
-				: { command: options.code }),
-			client_ids: nonEmpty(options.clientIds),
-			group_ids: nonEmpty(options.groupIds),
-			tags: options.tags ?? undefined,
-			cwd: options.cwd || undefined,
-			interpreter: normalizeInterpreter(options.interpreter) || undefined,
-			is_sudo: options.isSudo ?? false,
-			timeout_sec: options.timeoutSec ?? 300,
-			abort_on_error: options.abortOnError ?? true,
-			execute_concurrently: options.executeConcurrently ?? true,
-		};
+	const open = (endpoint: string, payload: object, kind: RunKind | null) => {
+		disconnect();
+		const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${readAuthToken() ?? ''}`;
 
 		results.value = [];
 		error.value = null;
 		isLoading.value = true;
-		lastKind.value = options.kind;
+		lastKind.value = kind;
 
 		const socket = new WebSocket(url);
 		ws = socket;
@@ -97,5 +91,34 @@ export const useRemoteRun = () => {
 		};
 	};
 
-	return { run, disconnect, results, isLoading, error, lastKind };
+	const run = (options: RemoteRunOptions) => {
+		open(options.kind === 'script' ? 'scripts' : 'commands', {
+			...(options.kind === 'script'
+				? { script: toBase64(options.code) }
+				: { command: options.code }),
+			client_ids: nonEmpty(options.clientIds),
+			group_ids: nonEmpty(options.groupIds),
+			tags: options.tags ?? undefined,
+			cwd: options.cwd || undefined,
+			interpreter: normalizeInterpreter(options.interpreter) || undefined,
+			is_sudo: options.isSudo ?? false,
+			timeout_sec: options.timeoutSec ?? 300,
+			abort_on_error: options.abortOnError ?? true,
+			execute_concurrently: options.executeConcurrently ?? true,
+		}, options.kind);
+	};
+
+	/** Runs a library entry (its active version, resolved by the server when the run starts). */
+	const runEntry = (options: RemoteEntryRunOptions) => {
+		open('library-entries', {
+			entry_id: options.entryId,
+			client_ids: nonEmpty(options.clientIds),
+			group_ids: nonEmpty(options.groupIds),
+			tags: options.tags ?? undefined,
+			abort_on_error: options.abortOnError ?? true,
+			execute_concurrently: options.executeConcurrently ?? true,
+		}, null);
+	};
+
+	return { run, runEntry, disconnect, results, isLoading, error, lastKind };
 };
