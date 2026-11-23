@@ -10,21 +10,17 @@
 				class="text-sm text-app-text-2"
 				aria-live="polite"
 			>
-				<template v-if="saved">
-					<span class="font-medium text-app-text">{{ saved.by }}</span> saved version
-					<span class="font-medium text-app-text">{{ saved.version }}</span> on
-					<span class="font-mono text-xs">{{ saved.at }}</span>, after you opened this entry.
-				</template>
-				<template v-else>
-					The entry was saved by someone else after you opened it.
-				</template>
+				<span class="font-medium text-app-text">{{ saved.by || 'Someone' }}</span> saved version
+				<span class="font-medium text-app-text">{{ saved.version }}</span><template v-if="saved.at">
+					on <span class="font-mono text-xs">{{ saved.at }}</span>
+				</template>, after you opened this entry.
 				Your changes were not saved and nothing was overwritten.
 			</p>
 			<p
 				v-if="!diffs.length"
 				class="text-sm text-app-text-3"
 			>
-				The code on the OS tabs is the same; only other settings differ. Reload to see their version.
+				The code is the same on every OS; only the name, description or tags differ. Reload to see their version.
 			</p>
 			<section
 				v-for="diff in diffs"
@@ -35,6 +31,12 @@
 				<h4 class="text-[13px] font-semibold text-app-text">
 					{{ LIBRARY_OS_LABELS[diff.os] }}
 				</h4>
+				<p
+					v-if="diff.settings.length"
+					class="text-xs text-app-text-3"
+				>
+					{{ diff.mine === diff.theirs ? 'The code is the same, but these settings differ' : 'These settings also differ' }}: {{ diff.settings.join(', ') }}.
+				</p>
 				<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 					<div class="min-w-0">
 						<p class="mb-1 text-xs font-medium text-app-text-3">
@@ -77,12 +79,12 @@
 <script setup lang="ts">
 import OpDialog from '~/components/operate/OpDialog.vue';
 import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER } from '~/composables/useRunLibrary';
-import type { EntryImplementations, LibraryOS } from '~/types';
+import type { EntryImplementation, EntryImplementations, LibraryOS } from '~/types';
 
 const props = defineProps<{
 	modelValue: boolean;
-	/** The server's 409 message: who saved which version, and when. */
-	message: string;
+	/** Who saved the current version, and when (from the entry as it is saved now). */
+	saved: { by: string; version: number; at: string };
 	/** The entry as it is saved now (null if it couldn't be fetched). */
 	theirs: EntryImplementations | null;
 	/** What the editor holds. */
@@ -94,16 +96,24 @@ const emit = defineEmits<{
 	(e: 'reload' | 'copy'): void;
 }>();
 
-const saved = computed(() => {
-	const m = /saved by (.+?) at (\S+) \(version (\d+)\)/.exec(props.message);
-	return m ? { by: m[1], at: m[2], version: m[3] } : null;
-});
+const SETTINGS: [keyof EntryImplementation, string][] = [
+	['interpreter', 'interpreter'],
+	['is_sudo', 'sudo'],
+	['cwd', 'working directory'],
+	['timeout_sec', 'timeout'],
+	['kind', 'run as'],
+];
 
 const diffs = computed(() => {
 	const theirs = props.theirs;
 	if (!theirs) return [];
 	return LIBRARY_OS_ORDER
-		.map((os: LibraryOS) => ({ os, mine: props.mine[os]?.code, theirs: theirs[os]?.code }))
-		.filter(d => d.mine !== d.theirs);
+		.map((os: LibraryOS) => {
+			const m = props.mine[os];
+			const t = theirs[os];
+			const settings = m && t ? SETTINGS.filter(([key]) => m[key] !== t[key]).map(([, label]) => label) : [];
+			return { os, mine: m?.code, theirs: t?.code, settings };
+		})
+		.filter(d => d.mine !== d.theirs || d.settings.length);
 });
 </script>

@@ -127,7 +127,7 @@
 		/>
 		<EntryConflictDialog
 			v-model="conflictOpen"
-			:message="conflictMessage"
+			:saved="conflictSaved"
 			:theirs="conflictTheirs"
 			:mine="currentImplementations()"
 			@reload="reloadTheirs"
@@ -297,24 +297,30 @@ const insertFromLibrary = async (item: LibraryPickItem, os?: LibraryOS) => {
 
 // Conflict (409): never overwrite; show theirs next to mine.
 const conflictOpen = ref(false);
-const conflictMessage = ref('');
+const conflictSaved = ref({ by: '', version: 0, at: '' });
 const conflictTheirs = ref<EntryImplementations | null>(null);
 
+/** On a 409, fetch the current entry: a newer version is a conflict, anything else (name taken) shows the server's message. */
 const showConflict = async (err: unknown) => {
-	const msg = apiErrorMessage(err);
-	// Other 409s (the name is taken) have nothing to compare.
-	if (!editing.value || !/saved by .+ at .+\(version \d+\)/.test(msg)) {
-		snackbar.add({ type: 'error', text: msg });
-		return;
+	if (editing.value) {
+		try {
+			const fresh = await library.load(editing.value.id);
+			if (fresh.activeVersion !== editing.value.activeVersion) {
+				conflictSaved.value = {
+					by: fresh.updatedBy ?? '',
+					version: fresh.activeVersion,
+					at: fresh.updatedAt ? String(fresh.updatedAt) : '',
+				};
+				conflictTheirs.value = fresh.implementations;
+				conflictOpen.value = true;
+				return;
+			}
+		}
+		catch {
+			// fall through to the server's message
+		}
 	}
-	conflictMessage.value = msg;
-	try {
-		conflictTheirs.value = (await library.load(editing.value.id)).implementations;
-	}
-	catch {
-		conflictTheirs.value = null;
-	}
-	conflictOpen.value = true;
+	snackbar.add({ type: 'error', text: apiErrorMessage(err) });
 };
 
 const reloadTheirs = async () => {
@@ -332,7 +338,7 @@ const reloadTheirs = async () => {
 const copyMine = async () => {
 	try {
 		await navigator.clipboard.writeText(drafts.value[activeOs.value].code);
-		snackbar.add({ type: 'success', text: `Copied your ${LIBRARY_OS_LABELS[activeOs.value]} code` });
+		snackbar.add({ type: 'success', text: `Copied your ${LIBRARY_OS_LABELS[activeOs.value]} code (only the ${LIBRARY_OS_LABELS[activeOs.value]} tab)` });
 	}
 	catch {
 		snackbar.add({ type: 'error', text: 'Couldn’t copy to the clipboard' });
@@ -355,7 +361,7 @@ const save = async () => {
 	}
 	catch (e) {
 		if (isConflict(e)) await showConflict(e);
-		else snackbar.add({ type: 'error', text: 'Failed to save the library entry' });
+		else snackbar.add({ type: 'error', text: apiErrorMessage(e) });
 	}
 	finally {
 		isSaving.value = false;
