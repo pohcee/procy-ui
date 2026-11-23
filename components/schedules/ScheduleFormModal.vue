@@ -73,14 +73,14 @@
 			<div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-3">
 				<OpField
 					v-if="source === 'code'"
-					label="Timeout (seconds)"
+					label="Timeout (seconds, 0 = server default)"
 					for-id="scheduleFormTimeout"
 				>
 					<OpInput
 						id="scheduleFormTimeout"
 						v-model="timeoutSec"
 						type="number"
-						min="1"
+						min="0"
 					/>
 				</OpField>
 				<div :class="['flex flex-col sm:flex-row sm:gap-5 sm:pb-1.5', source === 'code' ? 'sm:col-span-2' : 'sm:col-span-3']">
