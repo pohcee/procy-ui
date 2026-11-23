@@ -102,6 +102,13 @@
 				>
 					{{ compareError }}
 				</p>
+				<p
+					v-else-if="unavailable.length"
+					class="text-sm text-app-text-3"
+					role="status"
+				>
+					Content unavailable for version {{ unavailable.join(' and ') }}, so it can’t be compared.
+				</p>
 				<template v-else-if="changes">
 					<p
 						v-if="!changes.meta.length && !changes.os.length"
@@ -138,6 +145,18 @@
 							class="text-xs text-app-text-3"
 						>
 							Settings: {{ o.settings.join('; ') }}.
+						</p>
+						<p
+							v-if="o.tooLarge"
+							class="text-xs text-app-text-3"
+						>
+							Too large to compare line by line; all lines of the old code are shown as removed and all lines of the new code as added.
+						</p>
+						<p
+							v-else-if="o.lineEndingsOnly"
+							class="text-xs text-app-text-3"
+						>
+							Only the line endings differ.
 						</p>
 						<pre
 							v-if="o.lines.some(l => l.kind !== 'same')"
@@ -208,7 +227,7 @@ import OpDialog from '~/components/operate/OpDialog.vue';
 import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, type LibraryEntry } from '~/composables/useRunLibrary';
 import type { EntryContent, EntryImplementation, EntryVersion, LibraryOS } from '~/types';
 import { apiErrorMessage } from '~/utils/apiError';
-import { lineDiff, type DiffLine } from '~/utils/lineDiff';
+import { lineDiffInfo, type DiffLine } from '~/utils/lineDiff';
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -246,8 +265,8 @@ const base = ref(0);
 const contents = new Map<number, EntryContent>();
 const isComparing = ref(false);
 const compareError = ref('');
-const from = ref<EntryContent | null>(null);
-const to = ref<EntryContent | null>(null);
+const from = ref<EntryContent | null | undefined>(null);
+const to = ref<EntryContent | null | undefined>(null);
 const confirmOpen = ref(false);
 const isRestoring = ref(false);
 
@@ -259,12 +278,13 @@ const formatTime = (iso: string) => {
 	return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
 };
 
-const content = async (version: number): Promise<EntryContent | null> => {
+/** null for version 0 (nothing), undefined when the server sent no content for that version. */
+const content = async (version: number): Promise<EntryContent | null | undefined> => {
 	if (version === 0) return null;
 	const cached = contents.get(version);
 	if (cached) return cached;
 	const { data } = await $api.library.getVersion(props.entry.id, version);
-	if (!data.content) throw new Error(`Version ${version} has no content`);
+	if (!data.content) return undefined;
 	contents.set(version, data.content);
 	return data.content;
 };
@@ -327,8 +347,16 @@ watch(() => props.modelValue, (open) => {
 
 const describe = (v: unknown) => (v === '' || v === undefined ? '(none)' : String(v));
 
+const unavailable = computed(() => {
+	if (selected.value === null || isComparing.value || compareError.value) return [];
+	return [
+		from.value === undefined ? base.value : null,
+		to.value === undefined ? selected.value : null,
+	].filter((v): v is number => v !== null);
+});
+
 const changes = computed(() => {
-	if (!to.value) return null;
+	if (!to.value || from.value === undefined) return null;
 	const a = from.value;
 	const b = to.value;
 	const meta: string[] = [];
@@ -347,9 +375,10 @@ const changes = computed(() => {
 		const settings = ia && ib
 			? SETTINGS.filter(([k]) => ia[k] !== ib[k]).map(([k, label]) => `${label} ${describe(ia[k])} → ${describe(ib[k])}`)
 			: [];
-		const lines = lineDiff(ia?.code ?? '', ib?.code ?? '');
-		if (ia && ib && !settings.length && lines.every(l => l.kind === 'same')) return [];
-		return [{ os: key, settings, lines, note: !ia ? 'added' : !ib ? 'removed' : '' }];
+		const { lines, tooLarge } = lineDiffInfo(ia?.code ?? '', ib?.code ?? '');
+		const lineEndingsOnly = !tooLarge && !!ia && !!ib && ia.code !== ib.code && lines.every(l => l.kind === 'same');
+		if (ia && ib && !settings.length && !tooLarge && !lineEndingsOnly && ia.code === ib.code) return [];
+		return [{ os: key, settings, lines, tooLarge, lineEndingsOnly, note: !ia ? 'added' : !ib ? 'removed' : '' }];
 	});
 	return { meta, os };
 });
