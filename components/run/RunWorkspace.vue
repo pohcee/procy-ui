@@ -590,35 +590,62 @@ const runLabel = computed(() => {
 	return targetCount.value > 0 && deviceCount.value > 0 ? `Run on ${plural(deviceCount.value)}` : 'Run';
 });
 
-const start = (clientIds: string[], groupIds: string[], tags: JobClientTags | null, kind: RunKind = effectiveKind.value) => {
+// What the last run was started with, so "Re-run failed" repeats it even if the form changed since.
+type LastRun =
+	| { mode: 'library'; entryId: string; entryName: string; abortOnError: boolean }
+	| { mode: 'code'; kind: RunKind; code: string; cwd: string; interpreter: string; isSudo: boolean; timeoutSec: number; abortOnError: boolean };
+const lastRun = ref<LastRun | null>(null);
+
+const execute = (spec: LastRun, clientIds: string[], groupIds: string[], tags: JobClientTags | null) => {
 	hasRun.value = true;
 	startedAt.value = new Date();
+	lastRun.value = spec;
+	if (spec.mode === 'library') {
+		ranEntryName.value = spec.entryName;
+		remote.runEntry({
+			entryId: spec.entryId,
+			clientIds,
+			groupIds,
+			tags,
+			abortOnError: spec.abortOnError,
+		});
+		return;
+	}
 	remote.run({
-		kind,
-		code: code.value,
+		kind: spec.kind,
+		code: spec.code,
 		clientIds,
 		groupIds,
 		tags,
+		cwd: spec.cwd,
+		interpreter: spec.interpreter,
+		isSudo: spec.isSudo,
+		timeoutSec: spec.timeoutSec,
+		abortOnError: spec.abortOnError,
+	});
+};
+
+const start = (clientIds: string[], groupIds: string[], tags: JobClientTags | null, kind: RunKind = effectiveKind.value) => {
+	execute({
+		mode: 'code',
+		kind,
+		code: code.value,
 		cwd: workingDirectory.value,
 		interpreter: interpreterValue.value,
 		isSudo: useSudo.value,
 		timeoutSec: Number(timeoutInSeconds.value),
 		abortOnError: abortOnError.value,
-	});
+	}, clientIds, groupIds, tags);
 };
 
 const startEntry = (clientIds: string[], groupIds: string[], tags: JobClientTags | null) => {
 	if (!selectedEntry.value) return;
-	hasRun.value = true;
-	startedAt.value = new Date();
-	ranEntryName.value = selectedEntry.value.name;
-	remote.runEntry({
+	execute({
+		mode: 'library',
 		entryId: selectedEntry.value.id,
-		clientIds,
-		groupIds,
-		tags,
+		entryName: selectedEntry.value.name,
 		abortOnError: abortOnError.value,
-	});
+	}, clientIds, groupIds, tags);
 };
 
 const run = () => {
@@ -653,12 +680,8 @@ const rerunAsScript = () => {
 
 const rerunFailed = () => {
 	if (!failedClientIds.value.length) return;
-	if (mode.value === 'library') {
-		startEntry(failedClientIds.value, [], null);
-		return;
-	}
-	if (!hasCode.value) return;
-	start(failedClientIds.value, [], null);
+	if (!lastRun.value) return;
+	execute(lastRun.value, failedClientIds.value, [], null);
 };
 
 const downloadOutput = () => {

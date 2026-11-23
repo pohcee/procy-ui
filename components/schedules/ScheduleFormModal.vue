@@ -290,7 +290,7 @@ const openForEdit = (schedule: Schedule) => {
 	abortOnError.value = schedule.abort_on_error ?? true;
 	oneAtATime.value = schedule.execute_concurrently === false;
 	// Library schedules store no timeout (0); keep the form's default for a switch to code.
-	timeoutSec.value = schedule.type === 'library' || !schedule.timeout_sec ? 300 : schedule.timeout_sec;
+	timeoutSec.value = schedule.type === 'library' ? 300 : schedule.timeout_sec ?? 0;
 	if (schedule.type === 'library') {
 		source.value = 'library';
 		entryId.value = schedule.library_entry_id ?? '';
