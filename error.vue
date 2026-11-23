@@ -35,7 +35,7 @@ useTheme();
 const notFound = computed(() => props.error?.statusCode === 404);
 const heading = computed(() => (notFound.value ? 'Page not found' : 'Something went wrong'));
 const detail = computed(() => (notFound.value
-	? 'This page doesn’t exist in OpenRPort2. It may have been removed or the link is out of date.'
+	? 'This page doesn’t exist in Procy. It may have been removed or the link is out of date.'
 	: (props.error?.message || 'An unexpected error occurred.')));
 
 useHead({ title: computed(() => heading.value) });

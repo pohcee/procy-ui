@@ -162,7 +162,7 @@ defineExpose({ open, openForEdit });
 <style src="@vueform/multiselect/themes/default.css"></style>
 
 <style>
-/* @vueform/multiselect themed with the OpenRPort2 tokens (dropdown is not teleported). */
+/* @vueform/multiselect themed with the Procy tokens (dropdown is not teleported). */
 .st-multiselect .multiselect {
 	--ms-bg: rgb(var(--app-surface-2));
 	--ms-border-color: rgb(var(--app-border-strong));

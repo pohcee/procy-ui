@@ -1,7 +1,7 @@
 <template>
 	<SettingsLayout
 		heading="Server info"
-		description="How this OpenRPort2 server is configured, and which versions are running."
+		description="How this Procy server is configured, and which versions are running."
 	>
 		<template #actions>
 			<AppButton

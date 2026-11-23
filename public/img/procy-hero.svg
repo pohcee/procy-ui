@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" role="img" aria-labelledby="t d">
+  <title id="t">Procy</title>
+  <desc id="d">The Procy raccoon sneaks a secure tunnel under a firewall to a server on the other side, at night.</desc>
+  <style>
+    .wm { font-family: Inter, "Helvetica Neue", Arial, sans-serif; font-weight: 700; }
+    .tag { font-family: Inter, "Helvetica Neue", Arial, sans-serif; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; }
+    .tunnel { stroke-dasharray: 2 14; animation: flow 1.2s linear infinite; }
+    .led { animation: blink 2.4s ease-in-out infinite; }
+    .led.b { animation-delay: .8s; }
+    .led.c { animation-delay: 1.6s; }
+    .twinkle { animation: blink 3.6s ease-in-out infinite; }
+    .twinkle.b { animation-delay: 1.2s; }
+    .flame { transform-origin: 930px 168px; animation: flicker 1.6s ease-in-out infinite; }
+    @keyframes flow { to { stroke-dashoffset: -32; } }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+    @keyframes flicker { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(.92, 1.08); } }
+    @media (prefers-reduced-motion: reduce) { .tunnel, .led, .twinkle, .flame { animation: none; } }
+  </style>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B0F14"/>
+      <stop offset="1" stop-color="#1A222D"/>
+    </linearGradient>
+    <clipPath id="frame"><rect width="1280" height="400" rx="24"/></clipPath>
+    <!-- the Procy mark, unchanged, on a 64-unit grid -->
+    <g id="mark">
+      <path d="M9 27 13 6l16 11z" fill="#6B7280" stroke="#6B7280" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M55 27 51 6 35 17z" fill="#6B7280" stroke="#6B7280" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M14 22l2-10 8 6z" fill="#1F2937"/>
+      <path d="M50 22l-2-10-8 6z" fill="#1F2937"/>
+      <ellipse cx="32" cy="37" rx="25" ry="21" fill="#9CA3AF"/>
+      <path d="M32 18v12" stroke="#4B5563" stroke-width="5" stroke-linecap="round"/>
+      <path d="M12 31q9-8 17-3" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M52 31q-9-8-17-3" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M8 36q10-10 21-4 3 2 6 0 11-6 21 4-4 10-15 9-6-1-9-5-3 4-9 5-11 1-15-9z" fill="#1F2937"/>
+      <circle cx="22.5" cy="37" r="4" fill="#FFFFFF"/>
+      <circle cx="41.5" cy="37" r="4" fill="#FFFFFF"/>
+      <circle cx="23.3" cy="37.6" r="2" fill="#111827"/>
+      <circle cx="42.3" cy="37.6" r="2" fill="#111827"/>
+      <ellipse cx="32" cy="49" rx="11" ry="7.5" fill="#F3F4F6"/>
+      <ellipse cx="32" cy="45.5" rx="4" ry="3" fill="#111827"/>
+    </g>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <!-- night sky -->
+    <rect width="1280" height="400" fill="url(#sky)"/>
+    <g fill="#C2CAD6">
+      <circle cx="640" cy="52" r="1.6"/><circle cx="702" cy="118" r="1.2"/><circle cx="760" cy="40" r="1.8" class="twinkle"/>
+      <circle cx="842" cy="96" r="1.2"/><circle cx="905" cy="34" r="1.5"/><circle cx="988" cy="128" r="1.3" class="twinkle b"/>
+      <circle cx="1046" cy="58" r="1.2"/><circle cx="1238" cy="150" r="1.4"/><circle cx="598" cy="150" r="1.1"/>
+      <circle cx="1210" cy="34" r="1.2" class="twinkle"/><circle cx="560" cy="30" r="1.3"/><circle cx="472" cy="62" r="1.1" class="twinkle b"/>
+    </g>
+    <!-- moon -->
+    <circle cx="1150" cy="84" r="38" fill="#F3F4F6"/>
+    <circle cx="1137" cy="74" r="7" fill="#E3E6EB"/>
+    <circle cx="1162" cy="98" r="5" fill="#E3E6EB"/>
+    <circle cx="1166" cy="70" r="3.5" fill="#E3E6EB"/>
+
+    <!-- ground -->
+    <path d="M0 330 H1280 V400 H0z" fill="#121821"/>
+    <path d="M0 330 H1280" stroke="#2E3947" stroke-width="2"/>
+
+    <!-- the tunnel: under the firewall, from the raccoon to the server -->
+    <path d="M806 318 C 820 384, 1040 384, 1100 330" fill="none" stroke="#1D4ED8" stroke-opacity=".35" stroke-width="16" stroke-linecap="round"/>
+    <path class="tunnel" d="M806 318 C 820 384, 1040 384, 1100 330" fill="none" stroke="#60A5FA" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- firewall -->
+    <g>
+      <rect x="896" y="178" width="68" height="152" fill="#2E3947"/>
+      <g stroke="#1A222D" stroke-width="3">
+        <path d="M896 197H964M896 216H964M896 235H964M896 254H964M896 273H964M896 292H964M896 311H964"/>
+        <path d="M930 178v19M913 197v19M947 197v19M930 216v19M913 235v19M947 235v19M930 254v19M913 273v19M947 273v19M930 292v19M913 311v19M947 311v19"/>
+      </g>
+      <path class="flame" d="M930 140c10 12 18 20 14 30-2 6-8 9-14 9s-12-3-14-9c-3-9 3-14 8-20 0 6 2 9 5 10-1-8-1-14 1-20z" fill="#F5A524"/>
+      <path d="M930 160c4 6 7 10 5 14-1 3-3 4-5 4s-5-1-5-4c-1-4 2-8 5-14z" fill="#FEF3C7"/>
+    </g>
+
+    <!-- server on the far side -->
+    <g>
+      <rect x="1060" y="214" width="110" height="116" rx="10" fill="#1A222D" stroke="#3B4452" stroke-width="2"/>
+      <rect x="1072" y="228" width="86" height="24" rx="5" fill="#121821"/>
+      <rect x="1072" y="260" width="86" height="24" rx="5" fill="#121821"/>
+      <rect x="1072" y="292" width="86" height="24" rx="5" fill="#121821"/>
+      <circle class="led" cx="1144" cy="240" r="4" fill="#4ADE80"/>
+      <circle class="led b" cx="1144" cy="272" r="4" fill="#4ADE80"/>
+      <circle class="led c" cx="1144" cy="304" r="4" fill="#4ADE80"/>
+      <path d="M1082 240h34M1082 272h34M1082 304h34" stroke="#3B4452" stroke-width="4" stroke-linecap="round"/>
+    </g>
+
+    <!-- the raccoon -->
+    <g>
+      <!-- ringed tail: one path, fur underneath, mask rings dashed on top -->
+      <path d="M736 318 C 690 312, 676 262, 708 236 C 724 224, 744 232, 742 248" fill="none" stroke="#9CA3AF" stroke-width="26" stroke-linecap="round"/>
+      <path d="M736 318 C 690 312, 676 262, 708 236 C 724 224, 744 232, 742 248" fill="none" stroke="#1F2937" stroke-width="26" stroke-dasharray="12 14" stroke-dashoffset="-6"/>
+      <!-- body -->
+      <ellipse cx="770" cy="292" rx="44" ry="42" fill="#9CA3AF"/>
+      <ellipse cx="772" cy="300" rx="27" ry="28" fill="#E3E6EB"/>
+      <!-- feet -->
+      <ellipse cx="748" cy="330" rx="14" ry="7" fill="#1F2937"/>
+      <ellipse cx="792" cy="330" rx="14" ry="7" fill="#1F2937"/>
+      <!-- arm holding the tunnel's end -->
+      <path d="M794 286 Q 808 300 806 318" fill="none" stroke="#6B7280" stroke-width="13" stroke-linecap="round"/>
+      <circle cx="806" cy="318" r="8" fill="#1F2937"/>
+      <path d="M748 286 Q 738 300 744 312" fill="none" stroke="#6B7280" stroke-width="13" stroke-linecap="round"/>
+      <!-- head: the mark at 1.9x -->
+      <use href="#mark" transform="translate(708 158) scale(1.9)"/>
+    </g>
+
+    <!-- words -->
+    <text x="72" y="168" class="wm" font-size="112" letter-spacing="-4" fill="#E6EBF2">procy</text>
+    <text x="76" y="230" class="tag" font-size="26" fill="#C2CAD6">Remote tunnels and maintenance for your fleet.</text>
+    <text x="76" y="272" class="mono" font-size="18" fill="#7DB2FF">$ ssh -p 2222 edge-07.example.com</text>
+    <text x="76" y="306" class="tag" font-size="16" font-style="italic" fill="#8E99A8">Procyon callidus, the clever raccoon</text>
+  </g>
+</svg>

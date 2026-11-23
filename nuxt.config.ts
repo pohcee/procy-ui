@@ -52,7 +52,7 @@ export default defineNuxtConfig({
 
 	app: {
 		head: {
-			title: 'OpenRPort2',
+			title: 'Procy',
 
 			link: [
 				// SVG first for modern browsers; .ico for older ones.
@@ -67,8 +67,8 @@ export default defineNuxtConfig({
 			],
 			meta: [
 				{ name: 'theme-color', content: '#10161F' },
-				{ name: 'application-name', content: 'OpenRPort2' },
-				{ name: 'apple-mobile-web-app-title', content: 'OpenRPort2' },
+				{ name: 'application-name', content: 'Procy' },
+				{ name: 'apple-mobile-web-app-title', content: 'Procy' },
 			],
 			bodyAttrs: {
 				class: 'min-h-screen h-full',

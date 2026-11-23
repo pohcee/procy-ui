@@ -1,6 +1,6 @@
 <template>
 	<!--
-		Button in the OpenRPort2 style. Renders a NuxtLink when `to` is set.
+		Button in the Procy style. Renders a NuxtLink when `to` is set.
 		variant: primary (accent fill) | secondary (outlined) | ghost | danger (red text)
 		size: md (44px, default) | sm (36px)
 	-->

@@ -1,5 +1,5 @@
 <template>
-	<!-- 44px text/number input in the OpenRPort2 style. Extra attrs (id, placeholder, aria-*…) pass through. -->
+	<!-- 44px text/number input in the Procy style. Extra attrs (id, placeholder, aria-*…) pass through. -->
 	<input
 		v-model="model"
 		:type="type"

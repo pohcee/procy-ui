@@ -11,7 +11,7 @@
 				No clients available
 			</h2>
 			<p class="mt-1.5 max-w-sm text-[13px] text-app-text-3">
-				Quite bleak here. Start by adding a client to your OpenRPort2 server.
+				Quite bleak here. Start by adding a client to your Procy server.
 			</p>
 			<AppButton
 				class="mt-5"

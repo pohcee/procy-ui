@@ -19,5 +19,5 @@
 <script setup lang="ts">
 withDefaults(defineProps<{ size?: number }>(), { size: 36 });
 
-const appName = 'OpenRPort2';
+const appName = 'Procy';
 </script>

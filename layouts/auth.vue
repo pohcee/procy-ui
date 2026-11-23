@@ -10,7 +10,7 @@
 					height="36"
 					class="block h-9 w-9 shrink-0"
 				>
-				<span class="text-[17px] font-bold tracking-tight text-app-text">OpenRPort2</span>
+				<span class="text-[17px] font-bold tracking-tight text-app-text">Procy</span>
 			</header>
 			<main class="flex flex-1 items-center justify-center py-8 sm:py-12">
 				<div class="w-full max-w-[400px]">
@@ -18,7 +18,7 @@
 				</div>
 			</main>
 			<footer class="text-xs text-app-text-3">
-				© OpenRPort2 · Remote management for your fleet
+				© Procy · Remote management for your fleet
 			</footer>
 		</div>
 
@@ -30,7 +30,7 @@
 			<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,rgba(37,99,235,0.45),transparent_65%)]" />
 			<div class="relative">
 				<p class="text-sm font-semibold uppercase tracking-[0.08em] text-[#93B8FF]">
-					OpenRPort2
+					Procy
 				</p>
 				<p class="mt-3 max-w-md text-[28px] font-bold leading-tight tracking-tight">
 					Every device, one secure tunnel away.

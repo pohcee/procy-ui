@@ -1,9 +1,9 @@
 <br>
 <p align="center">
-    <img width="100" height="100" src="./public/img/logo-small.svg" alt="OpenRport logo">
+    <img src="./public/img/procy-hero.svg" alt="Procy: the clever raccoon sneaking a secure tunnel under a firewall to a server" width="100%">
 </p>
 
-<h1 align="center"> OpenRPort UI <sup><em>alpha</em></sup> </h1>
+<h1 align="center"> Procy UI <sup><em>alpha</em></sup> </h1>
 
 <p align="center">
 Manage remote systems with ease
@@ -16,22 +16,23 @@ Manage remote systems with ease
 </p>
 
 <p align="center">
-    <img src="./public/openrport.png" alt="OpenRport screenshoots" width="800" height="auto" />
+    <img src="./public/procy-screenshot.png" alt="Procy screenshot" width="800" height="auto" />
 </p>
 
-# OpenRport UI
+# Procy UI
 
-- [Documentation](https://ui.nuxt.com/pro/getting-started)
-- [OpenRPort](https://github.com/openrport/openrport)
+- [Website and documentation](https://procy.sh/)
+- [Procy server](https://github.com/pohcee/openrport)
 
-Welcome to the new UI of OpenRport, an open-source remote server manager without the hassle of VPNs. This project is designed using Nuxt 3 to create a seamless and responsive user interface for managing remote systems securely.
+Welcome to the web UI of Procy, an open-source remote server manager without the hassle of VPNs. Procy takes its name from *Procyon callidus*, Latin for "the clever raccoon"; read the
+[naming story](https://procy.sh/#why-procy). This project is designed using Nuxt 3 to create a seamless and responsive user interface for managing remote systems securely.
 
 ## Getting started
 ---
 
 ### Install
 ```
-git clone git@github.com:openrport/openrport-ui.git
+git clone git@github.com:pohcee/openrport-ui.git
 cd openrport-ui
 yarn install
 ```
@@ -40,7 +41,7 @@ yarn install
 ### Configuration
 
 Start to fill out your env file. The most import variable is `NUXT_API_URL`
-That should be the url of your OpenRPort instance.
+That should be the URL of your Procy server.
 
 ```
 cp .env.example .env
@@ -50,7 +51,7 @@ yarn dev
 
 #### Cors configuration
 
-During the developement to allow cross-origin resource sharing (CORS) for all domain in the OpenRport back-end, you need to modify rportd.config file. This is useful because in development your front-end is on different domain than your back0end.
+During the developement to allow cross-origin resource sharing (CORS) for all domains in the Procy server, you need to modify rportd.config file. This is useful because in development your front-end is on different domain than your back0end.
 
 1. Open your `rportd.conf` file (path: `/etc/rport/rportd.conf`).
 2. In the `[api]` section, locate or add the cors settings.
@@ -67,7 +68,7 @@ cors = ["*"]
 
 This configuration will enable requests from all domains, which is useful for development purposes. For production, it's recommended to specify a list of allowed domains or leave it empty.
 
-4. Save the changes and restart OpenRport service to apply the new configuration:
+4. Save the changes and restart the `rportd` service to apply the new configuration:
 ```bash
 sudo systemctl restart rportd
 ```
