@@ -77,7 +77,7 @@
 							<thead>
 								<tr class="bg-app-surface-2">
 									<th
-										v-for="col in ['Name', 'Type', 'Tags', 'Timeout', 'Updated']"
+										v-for="col in ['Name', 'OS', 'Tags', 'Updated']"
 										:key="col"
 										scope="col"
 										class="whitespace-nowrap border-b border-app-border px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3 first:pl-4"
@@ -95,7 +95,7 @@
 							<tbody>
 								<tr
 									v-for="item in filteredItems"
-									:key="`${item.kind}:${item.id}`"
+									:key="item.id"
 									class="hover:bg-app-hover"
 								>
 									<td class="w-full max-w-0 border-b border-app-border-subtle py-3.5 pl-4 pr-3 align-middle text-[13px]">
@@ -103,21 +103,19 @@
 											{{ item.name }}
 										</div>
 										<div
-											class="mt-0.5 truncate font-mono text-xs text-app-text-3"
-											:title="preview(item)"
+											v-if="item.description"
+											class="mt-0.5 truncate text-xs text-app-text-3"
+											:title="item.description"
 										>
-											{{ preview(item) }}
+											{{ item.description }}
 										</div>
 									</td>
 									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle">
-										<span class="inline-flex items-center gap-1.5 rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium text-app-text-2">
-											<component
-												:is="item.kind === 'script' ? FileCode2 : SquareTerminal"
-												class="h-3.5 w-3.5"
-												aria-hidden="true"
-											/>
-											{{ runKindLabel(item.kind) }}
-										</span>
+										<span
+											v-for="os in item.os"
+											:key="os"
+											class="mr-1 inline-flex items-center rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium text-app-text-2"
+										>{{ LIBRARY_OS_LABELS[os] }}</span>
 									</td>
 									<td class="border-b border-app-border-subtle px-3 py-3.5 align-middle">
 										<div
@@ -134,9 +132,6 @@
 											v-else
 											class="text-[13px] text-app-text-4"
 										>—</span>
-									</td>
-									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle font-mono text-[13px] text-app-text-2">
-										{{ item.timeoutSec }} s
 									</td>
 									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle text-[13px] text-app-text-2">
 										<span class="font-mono text-xs">{{ formatDate(item.updatedAt, 'YYYY-MM-DD HH:mm') }}</span>
@@ -180,7 +175,7 @@
 					<ul class="divide-y divide-app-border-subtle md:hidden">
 						<li
 							v-for="item in filteredItems"
-							:key="`${item.kind}:${item.id}`"
+							:key="item.id"
 							class="flex flex-col gap-2 px-4 py-3.5"
 						>
 							<div class="min-w-0">
@@ -188,10 +183,17 @@
 									<p class="min-w-0 truncate text-sm font-medium text-app-text">
 										{{ item.name }}
 									</p>
-									<span class="shrink-0 rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium text-app-text-2">{{ runKindLabel(item.kind) }}</span>
+									<span
+										v-for="os in item.os"
+										:key="os"
+										class="shrink-0 rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium text-app-text-2"
+									>{{ LIBRARY_OS_LABELS[os] }}</span>
 								</div>
-								<p class="mt-0.5 truncate font-mono text-xs text-app-text-3">
-									{{ preview(item) }}
+								<p
+									v-if="item.description"
+									class="mt-0.5 truncate text-xs text-app-text-3"
+								>
+									{{ item.description }}
 								</p>
 							</div>
 							<div
@@ -206,7 +208,7 @@
 							</div>
 							<div class="flex items-center justify-between gap-2">
 								<span class="text-xs text-app-text-3">
-									<span class="font-mono">{{ item.timeoutSec }} s</span> timeout · updated {{ formatDate(item.updatedAt, 'YYYY-MM-DD') }}
+									Updated {{ formatDate(item.updatedAt, 'YYYY-MM-DD') }}
 								</span>
 								<div class="flex gap-1">
 									<AppButton
@@ -238,7 +240,7 @@
 		/>
 		<Modal
 			v-model="deleteConfirmOpen"
-			:title="`Delete ${activeItem ? runKindLabel(activeItem.kind).toLowerCase() : 'entry'}?`"
+			:title="'Delete entry?'"
 			ok-text="Delete"
 			cancel-text="Cancel"
 			:show-cancel="true"
@@ -253,11 +255,10 @@
 
 <script setup lang="ts">
 import { formatDate as vueuseFormatDate } from '@vueuse/core';
-import { BookOpen, FileCode2, Pencil, Plus, Search, SquareTerminal, Trash2 } from 'lucide-vue-next';
+import { BookOpen, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import LibraryItemModal from '~/components/custom/LibraryItemModal.vue';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
-import { useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
-import { runKindLabel } from '~/utils/runKind';
+import { LIBRARY_OS_LABELS, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
 
 const snackbar = useSnackbar();
 const library = useRunLibrary();
@@ -290,11 +291,9 @@ const filteredItems = computed(() => {
 	const term = search.value.trim().toLowerCase();
 	if (!term) return items.value;
 	return items.value.filter(item => item.name.toLowerCase().includes(term)
-		|| item.kind.includes(term)
+		|| item.os.some(os => LIBRARY_OS_LABELS[os].toLowerCase().includes(term))
 		|| item.tags.some(tag => tag.toLowerCase().includes(term)));
 });
-
-const preview = (item: LibraryEntry) => item.code.split('\n').find(line => line.trim() && !line.startsWith('#!')) ?? item.code.split('\n')[0] ?? '';
 
 const formatDate = (value: Date | string | undefined, format: string) => {
 	if (!value) return '—';
@@ -310,7 +309,7 @@ const triggerDelete = (item: LibraryEntry) => {
 const confirmDelete = async () => {
 	if (!activeItem.value) return;
 	try {
-		await library.remove(activeItem.value.id, activeItem.value.kind);
+		await library.remove(activeItem.value.id);
 		snackbar.add({ type: 'success', text: 'Deleted from library' });
 		deleteConfirmOpen.value = false;
 		await refresh();

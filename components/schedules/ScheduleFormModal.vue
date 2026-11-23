@@ -110,6 +110,7 @@
 			v-model="isLoadModalOpen"
 			title="Insert from library"
 			:items="libraryItems"
+			:default-os="targetOs"
 			@select="loadFromLibrary"
 			@delete="deleteFromLibrary"
 		/>
@@ -143,9 +144,9 @@ import OpDialog from '~/components/operate/OpDialog.vue';
 import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
 import OpCheckbox from '~/components/operate/OpCheckbox.vue';
-import { useRunLibrary } from '~/composables/useRunLibrary';
+import { implementationFor, useRunLibrary } from '~/composables/useRunLibrary';
 import { detectRunKind, type LibraryPickItem, type RunKind } from '~/utils/runKind';
-import type { JobClientTags, Schedule, SchedulePayload } from '~/types';
+import type { JobClientTags, LibraryOS, Schedule, SchedulePayload } from '~/types';
 
 const emit = defineEmits(['saved']);
 
@@ -235,10 +236,16 @@ const effectiveType = computed<RunKind>(() => (kindChoice.value === 'auto' ? det
 const library = useRunLibrary();
 const isLoadModalOpen = ref(false);
 const libraryItems = ref<LibraryPickItem[]>([]);
+const targetOs = ref<LibraryOS | undefined>(undefined);
 
 const openLoadModal = async () => {
 	try {
-		libraryItems.value = (await library.listAll()).map(e => ({ id: e.id, name: e.name, kind: e.kind }));
+		const [items, os] = await Promise.all([
+			library.listAll(),
+			library.targetOs({ clientIds: clientIds.value, groupIds: groupIds.value, tags: tags.value }),
+		]);
+		libraryItems.value = items.map(e => ({ id: e.id, name: e.name, os: e.os }));
+		targetOs.value = os;
 		isLoadModalOpen.value = true;
 	}
 	catch {
@@ -246,17 +253,22 @@ const openLoadModal = async () => {
 	}
 };
 
-const loadFromLibrary = async (item: LibraryPickItem) => {
-	if (!item.kind) return;
+const loadFromLibrary = async (item: LibraryPickItem, os?: LibraryOS) => {
 	try {
-		const entry = await library.load(item.id, item.kind);
+		const entry = await library.load(item.id);
+		const picked = implementationFor(entry, os);
+		if (!picked) {
+			snackbar.add({ type: 'error', text: `${item.name} has no implementation to insert` });
+			return;
+		}
+		const impl = picked.implementation;
 		if (!name.value) name.value = entry.name;
-		content.value = entry.code;
-		timeoutSec.value = entry.timeoutSec || 300;
-		cwd.value = entry.cwd;
-		isSudo.value = entry.isSudo;
-		interpreter.value = normalizeInterpreter(entry.interpreter) || 'default';
-		kindChoice.value = entry.kind === detectRunKind(entry.code, entry.interpreter) ? 'auto' : entry.kind;
+		content.value = impl.code;
+		timeoutSec.value = impl.timeout_sec || 300;
+		cwd.value = impl.cwd;
+		isSudo.value = impl.is_sudo;
+		interpreter.value = normalizeInterpreter(impl.interpreter) || 'default';
+		kindChoice.value = impl.kind;
 	}
 	catch {
 		snackbar.add({ type: 'error', text: `Failed to load ${item.name}` });
@@ -264,10 +276,9 @@ const loadFromLibrary = async (item: LibraryPickItem) => {
 };
 
 const deleteFromLibrary = async (item: LibraryPickItem) => {
-	if (!item.kind) return;
 	try {
-		await library.remove(item.id, item.kind);
-		libraryItems.value = libraryItems.value.filter(i => !(i.id === item.id && i.kind === item.kind));
+		await library.remove(item.id);
+		libraryItems.value = libraryItems.value.filter(i => i.id !== item.id);
 		snackbar.add({ type: 'success', text: 'Removed from library' });
 	}
 	catch {

@@ -1,78 +1,57 @@
 import { HttpFactory } from '~/repository/factory';
-import type { Command, CommandPayload, CommandResponse, Script, ScriptPayload, ScriptResponse } from '~/types';
+import type { EntryVersion, LibraryEntriesResponse, LibraryEntryPayload, LibraryEntryRecord } from '~/types';
 
 class LibraryModule extends HttpFactory {
-	private RESOURCE = '/api/v1/library';
+	private RESOURCE = '/api/v1/library/entries';
 
-	async listCommand(): Promise<CommandResponse> {
-		return await this.call<CommandResponse>(
+	private entryUrl(id: string) {
+		return `${this.RESOURCE}/${encodeURIComponent(id)}`;
+	}
+
+	/** Entries without their implementations. `params` are query parameters such as `page[limit]` or `filter[deleted]`. */
+	async listEntries(params: Record<string, string | number | boolean> = {}): Promise<LibraryEntriesResponse> {
+		return await this.call<LibraryEntriesResponse>('GET', this.RESOURCE, undefined, { query: params });
+	}
+
+	async getEntry(id: string, includeDeleted = false): Promise<{ data: LibraryEntryRecord }> {
+		return await this.call<{ data: LibraryEntryRecord }>(
 			'GET',
-			`${this.RESOURCE}/commands`,
+			this.entryUrl(id),
 			undefined,
+			includeDeleted ? { query: { include_deleted: true } } : undefined,
 		);
 	}
 
-	async createCommand(command: CommandPayload): Promise<{ data: Command }> {
-		return await this.call<{ data: Command }>(
+	async createEntry(body: LibraryEntryPayload): Promise<{ data: LibraryEntryRecord }> {
+		return await this.call<{ data: LibraryEntryRecord }>('POST', this.RESOURCE, body);
+	}
+
+	/** `body.base_version` must be the entry's current `active_version`; a stale one gives 409. */
+	async saveEntry(id: string, body: LibraryEntryPayload): Promise<{ data: LibraryEntryRecord }> {
+		return await this.call<{ data: LibraryEntryRecord }>('PUT', this.entryUrl(id), body);
+	}
+
+	async deleteEntry(id: string): Promise<void> {
+		return await this.call('DELETE', this.entryUrl(id), undefined);
+	}
+
+	async undeleteEntry(id: string): Promise<{ data: LibraryEntryRecord }> {
+		return await this.call<{ data: LibraryEntryRecord }>('POST', `${this.entryUrl(id)}/undelete`, undefined);
+	}
+
+	async listVersions(id: string): Promise<{ data: EntryVersion[] }> {
+		return await this.call<{ data: EntryVersion[] }>('GET', `${this.entryUrl(id)}/versions`, undefined);
+	}
+
+	async getVersion(id: string, version: number): Promise<{ data: EntryVersion }> {
+		return await this.call<{ data: EntryVersion }>('GET', `${this.entryUrl(id)}/versions/${version}`, undefined);
+	}
+
+	async restoreVersion(id: string, version: number, baseVersion: number): Promise<{ data: LibraryEntryRecord }> {
+		return await this.call<{ data: LibraryEntryRecord }>(
 			'POST',
-			`${this.RESOURCE}/commands`,
-			command,
-		);
-	}
-
-	async deleteCommand(id: string): Promise<void> {
-		return await this.call('DELETE', `${this.RESOURCE}/commands/${id}`, undefined);
-	};
-
-	async showCommand(id: string): Promise<{ data: Command }> {
-		return await this.call<{ data: Command }>(
-			'GET',
-			`${this.RESOURCE}/commands/${id}`,
-			undefined,
-		);
-	}
-
-	async updateCommand(id: string, command: CommandPayload): Promise<{ data: Command }> {
-		return await this.call<{ data: Command }>(
-			'PUT',
-			`${this.RESOURCE}/commands/${id}`,
-			command,
-		);
-	}
-
-	async listScript(): Promise<ScriptResponse> {
-		return await this.call<ScriptResponse>(
-			'GET',
-			`${this.RESOURCE}/scripts`,
-			undefined,
-		);
-	}
-
-	async createScript(script: ScriptPayload): Promise<{ data: Script }> {
-		return await this.call<{ data: Script }>(
-			'POST',
-			`${this.RESOURCE}/scripts`,
-			script,
-		);
-	}
-
-	async deleteScript(id: string): Promise<void> {
-		return await this.call('DELETE', `${this.RESOURCE}/scripts/${id}`, undefined);
-	};
-
-	async showScript(id: string): Promise<{ data: Script }> {
-		return await this.call<{ data: Script }>(
-			'GET',
-			`${this.RESOURCE}/scripts/${id}`,
-			undefined,
-		);
-	}
-
-	async updateScript(id: string, script: ScriptPayload): Promise<{ data: Script }> {
-		return await this.call<{ data: Script }>(
-			'PUT',
-			`${this.RESOURCE}/scripts/${id}`,
-			script,
+			`${this.entryUrl(id)}/versions/${version}/restore`,
+			{ base_version: baseVersion },
 		);
 	}
 }

@@ -1,122 +1,150 @@
-import type { Command, Script } from '~/types';
+import type { EntryImplementation, EntryImplementations, LibraryEntryRecord, LibraryOS } from '~/types';
 import { detectRunKind, type RunKind } from '~/utils/runKind';
 
-/** A saved command or script, in one shape. */
+/** Order in which an entry's primary implementation is picked. */
+export const LIBRARY_OS_ORDER: LibraryOS[] = ['linux', 'windows', 'darwin'];
+
+export const LIBRARY_OS_LABELS: Record<LibraryOS, string> = {
+	linux: 'Linux',
+	windows: 'Windows',
+	darwin: 'macOS',
+};
+
+export const isLibraryOS = (value: unknown): value is LibraryOS => LIBRARY_OS_ORDER.includes(value as LibraryOS);
+
+/** A library entry: one name, with an implementation per OS (only `load` returns them). */
 export interface LibraryEntry {
 	id: string;
-	kind: RunKind;
 	name: string;
+	description: string;
 	tags: string[];
-	code: string;
-	timeoutSec: number;
-	/** Script-only fields (commands are stored without them). */
-	cwd: string;
-	isSudo: boolean;
-	interpreter: string;
+	activeVersion: number;
+	builtinKey?: string | null;
+	/** The OSes that have an implementation. */
+	os: LibraryOS[];
+	implementations: Partial<Record<LibraryOS, EntryImplementation>>;
 	createdBy?: string;
 	updatedBy?: string;
 	updatedAt?: Date | string;
 }
 
+/** What the editor holds for one OS's implementation of an entry. */
 export interface LibraryDraft {
 	name: string;
+	description?: string;
 	tags: string[];
+	os: LibraryOS;
+	kind: 'auto' | RunKind;
 	code: string;
 	timeoutSec: number;
 	cwd: string;
 	isSudo: boolean;
 	interpreter: string;
+	message?: string;
 }
 
-const fromCommand = (c: Command): LibraryEntry => ({
-	id: c.id,
-	kind: 'command',
-	name: c.name,
-	tags: c.tags ?? [],
-	code: c.cmd ?? '',
-	timeoutSec: c.timeout_sec,
-	cwd: '',
-	isSudo: false,
-	interpreter: '',
-	createdBy: c.created_by,
-	updatedBy: c.updated_by,
-	updatedAt: c.updated_at ?? c.created_at,
+const fromRecord = (r: LibraryEntryRecord): LibraryEntry => ({
+	id: r.id,
+	name: r.name,
+	description: r.description ?? '',
+	tags: r.tags ?? [],
+	activeVersion: r.active_version,
+	builtinKey: r.builtin_key ?? null,
+	os: r.os ?? LIBRARY_OS_ORDER.filter(os => r.implementations?.[os]),
+	implementations: r.implementations ?? {},
+	createdBy: r.created_by,
+	updatedBy: r.updated_by,
+	updatedAt: r.updated_at ?? r.created_at,
 });
 
-const fromScript = (s: Script): LibraryEntry => ({
-	id: s.id,
-	kind: 'script',
-	name: s.name,
-	tags: s.tags ?? [],
-	code: s.script ?? '',
-	timeoutSec: s.timeout_sec,
-	cwd: s.cwd ?? '',
-	isSudo: !!s.is_sudo,
-	interpreter: normalizeInterpreter(s.interpreter),
-	createdBy: s.created_by,
-	updatedBy: s.updated_by,
-	updatedAt: s.updated_at ?? s.created_at,
-});
+/** The first of linux, windows, darwin that the entry has. */
+export const primaryOs = (entry: Pick<LibraryEntry, 'os' | 'implementations'>): LibraryOS | undefined =>
+	LIBRARY_OS_ORDER.find(os => entry.implementations[os]) ?? LIBRARY_OS_ORDER.find(os => entry.os.includes(os));
 
-/**
- * Where a new library entry is stored. The command library can't hold a
- * working directory, sudo or interpreter, so anything using those is a script.
- */
-export const libraryKindFor = (draft: LibraryDraft): RunKind => {
-	if (draft.cwd || draft.isSudo || draft.interpreter) return 'script';
-	return detectRunKind(draft.code, draft.interpreter);
+/** The implementation for `os`, or the primary one when `os` is missing or the entry has none for it. */
+export const implementationFor = (
+	entry: Pick<LibraryEntry, 'os' | 'implementations'>,
+	os?: LibraryOS | null,
+): { os: LibraryOS; implementation: EntryImplementation } | null => {
+	const wanted = os && entry.implementations[os] ? os : primaryOs(entry);
+	const implementation = wanted && entry.implementations[wanted];
+	return wanted && implementation ? { os: wanted, implementation } : null;
 };
 
-/** The server keeps saved commands and saved scripts apart; this presents them as one library. */
+/** `auto` resolves like the Execute page does. */
+export const resolveKind = (impl: Pick<EntryImplementation, 'kind' | 'code' | 'interpreter'>): RunKind =>
+	impl.kind === 'auto' ? detectRunKind(impl.code, normalizeInterpreter(impl.interpreter)) : impl.kind;
+
+/** The `os_kernel` of a device as a library OS, if it is one. */
+export const toLibraryOs = (osKernel?: string | null): LibraryOS | undefined => {
+	const os = (osKernel ?? '').toLowerCase();
+	return isLibraryOS(os) ? os : undefined;
+};
+
+/** A save that lost the race: the entry changed since it was loaded. */
+export const isConflict = (e: unknown): boolean => {
+	const err = e as { status?: number; statusCode?: number; response?: { status?: number } } | null;
+	return (err?.statusCode ?? err?.status ?? err?.response?.status) === 409;
+};
+
 export const useRunLibrary = () => {
 	const { $api } = useNuxtApp();
 
-	/** Everything, sorted by name. Use `load` for the full, current entry before running or editing. */
+	/** Everything, sorted by name, without implementations. Use `load` for the full entry before running or editing. */
 	const listAll = async (): Promise<LibraryEntry[]> => {
-		const [commands, scripts] = await Promise.all([
-			$api.library.listCommand(),
-			$api.library.listScript(),
-		]);
-		return [
-			...(commands.data ?? []).map(fromCommand),
-			...(scripts.data ?? []).map(fromScript),
-		].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+		const { data } = await $api.library.listEntries({ 'page[limit]': 500 });
+		return (data ?? []).map(fromRecord);
 	};
 
-	const load = async (id: string, kind: RunKind): Promise<LibraryEntry> => {
-		if (kind === 'script') return fromScript((await $api.library.showScript(id)).data);
-		return fromCommand((await $api.library.showCommand(id)).data);
+	const load = async (id: string): Promise<LibraryEntry> => fromRecord((await $api.library.getEntry(id)).data);
+
+	/**
+	 * Create (no `existing`) or save an entry from one OS's draft. Saving an
+	 * existing entry (a full one, from `load`) replaces that OS's implementation,
+	 * keeps the others and sends `base_version`; a stale one rejects with a 409
+	 * (see `isConflict`).
+	 */
+	const save = async (draft: LibraryDraft, existing?: LibraryEntry | null): Promise<LibraryEntry> => {
+		const implementation: EntryImplementation = {
+			kind: draft.kind,
+			code: draft.code,
+			interpreter: normalizeInterpreter(draft.interpreter),
+			is_sudo: draft.isSudo,
+			cwd: draft.cwd,
+			timeout_sec: Number(draft.timeoutSec),
+		};
+		const implementations: EntryImplementations = { ...(existing?.implementations ?? {}), [draft.os]: implementation };
+		const body = {
+			name: draft.name,
+			description: draft.description ?? existing?.description ?? '',
+			tags: draft.tags,
+			implementations,
+			message: draft.message ?? '',
+		};
+		const { data } = existing
+			? await $api.library.saveEntry(existing.id, { ...body, base_version: existing.activeVersion })
+			: await $api.library.createEntry(body);
+		return fromRecord(data);
+	};
+
+	const remove = async (id: string) => {
+		await $api.library.deleteEntry(id);
 	};
 
 	/**
-	 * Create (no `existing`) or update. Existing entries stay in their own
-	 * store; new ones go wherever `libraryKindFor` says.
+	 * The OS of the targeted devices when exactly one OS is targeted, else undefined
+	 * (groups and tags can't be resolved here, so they count as unknown).
 	 */
-	const save = async (draft: LibraryDraft, existing?: { id: string; kind: RunKind } | null): Promise<{ id: string; kind: RunKind }> => {
-		const kind = existing?.kind ?? libraryKindFor(draft);
-		const common = { name: draft.name, tags: draft.tags, timeout_sec: Number(draft.timeoutSec) };
-		if (kind === 'script') {
-			const payload = { ...common, script: draft.code, cwd: draft.cwd, is_sudo: draft.isSudo, interpreter: draft.interpreter };
-			if (existing) {
-				await $api.library.updateScript(existing.id, payload);
-				return existing;
-			}
-			const { data } = await $api.library.createScript(payload);
-			return { id: data.id, kind };
+	const targetOs = async (target: { clientIds: string[]; groupIds?: string[]; tags?: unknown }): Promise<LibraryOS | undefined> => {
+		if (target.groupIds?.length || target.tags || target.clientIds.length === 0 || target.clientIds.length > 20) return undefined;
+		try {
+			const kernels = await Promise.all(target.clientIds.map(async id => toLibraryOs((await $api.clients.show(id)).data.os_kernel)));
+			return kernels.every(k => k && k === kernels[0]) ? kernels[0] : undefined;
 		}
-		const payload = { ...common, cmd: draft.code };
-		if (existing) {
-			await $api.library.updateCommand(existing.id, payload);
-			return existing;
+		catch {
+			return undefined;
 		}
-		const { data } = await $api.library.createCommand(payload);
-		return { id: data.id, kind };
 	};
 
-	const remove = async (id: string, kind: RunKind) => {
-		if (kind === 'script') await $api.library.deleteScript(id);
-		else await $api.library.deleteCommand(id);
-	};
-
-	return { listAll, load, save, remove };
+	return { listAll, load, save, remove, targetOs };
 };

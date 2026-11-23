@@ -1,3 +1,5 @@
+import type { LibraryOS } from '~/types';
+
 /**
  * The rport server runs code in one of two ways:
  *  - a *command*: one line handed to the shell. Clients only accept commands
@@ -37,5 +39,6 @@ export const runKindLabel = (kind: RunKind) => (kind === 'script' ? 'Script' : '
 export interface LibraryPickItem {
 	id: string;
 	name: string;
-	kind?: RunKind;
+	/** The OSes the entry has an implementation for. */
+	os: LibraryOS[];
 }

@@ -427,56 +427,74 @@ export interface TunnelPayload {
 	'auth_password'?: string;
 }
 
-export interface CommandPayload	{
-	name: string;
-	tags: string[];
-	timeout_sec: number;
-	cmd: string;
-}
+/** The OS keys of a library entry: the client's `os_kernel` values. */
+export type LibraryOS = 'linux' | 'windows' | 'darwin';
 
-export interface Command {
-	id: string;
-	name: string;
-	created_by: string;
-	created_at: Date;
-	updated_by: string;
-	updated_at: Date;
-	cmd: string;
-	tags: string[];
-	timeout_sec: number;
-}
+/** How an implementation runs; `auto` resolves like `utils/runKind.ts` does. */
+export type EntryImplementationKind = 'auto' | 'command' | 'script';
 
-export interface CommandResponse {
-	data: Command[];
-	meta: Meta;
-}
-export interface ScriptPayload {
-	name: string;
-	tags: string[];
-	timeout_sec: number;
-	script: string;
-	cwd: string;
-	is_sudo: boolean;
-	interpreter: string;
-}
-export interface Script {
-	id: string;
-	name: string;
-	created_by: string;
-	created_at: Date;
-	updated_by: string;
-	updated_at: Date;
+export interface EntryImplementation {
+	kind: EntryImplementationKind;
+	code: string;
 	interpreter: string;
 	is_sudo: boolean;
 	cwd: string;
-	script: string;
-	tags: string[];
 	timeout_sec: number;
 }
-export interface ScriptResponse {
-	data: Script[];
-	meta: Meta;
+
+export type EntryImplementations = Partial<Record<LibraryOS, EntryImplementation>>;
+
+/** A library entry as the server returns it (`implementations` is missing from the list). */
+export interface LibraryEntryRecord {
+	id: string;
+	name: string;
+	description: string;
+	tags: string[];
+	active_version: number;
+	builtin_key?: string | null;
+	os: LibraryOS[];
+	created_at: string;
+	created_by: string;
+	updated_at: string;
+	updated_by: string;
+	deleted_at?: string;
+	deleted_by?: string;
+	implementations?: EntryImplementations;
 }
+
+export interface EntryContent {
+	name: string;
+	description: string;
+	tags: string[];
+	implementations: EntryImplementations;
+}
+
+export interface LibraryEntryPayload {
+	name: string;
+	description: string;
+	tags: string[];
+	implementations: EntryImplementations;
+	message?: string;
+	/** Required when saving an existing entry. */
+	base_version?: number;
+}
+
+export interface EntryVersion {
+	entry_id: string;
+	version: number;
+	created_at: string;
+	created_by: string;
+	message: string;
+	changed: string[];
+	/** Only when reading a single version. */
+	content?: EntryContent;
+}
+
+export interface LibraryEntriesResponse {
+	data: LibraryEntryRecord[];
+	meta: { count: number };
+}
+
 export type QueryParams = {
 	[key: string]: string | number | boolean | undefined | null;
 };

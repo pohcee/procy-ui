@@ -130,7 +130,7 @@
 							class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#3A4656] px-3.5 text-[13px] font-medium text-[#E6EBF2] hover:bg-[#18202A] disabled:cursor-not-allowed disabled:opacity-50"
 							:disabled="!canSave || isSaving"
 							:title="!canSave ? 'Enter a name and some code to save it to the library' : undefined"
-							@click="saveToLibrary"
+							@click="openSaveDialog"
 						>
 							<Save
 								class="h-4 w-4"
@@ -219,9 +219,46 @@
 			v-model="isLoadModalOpen"
 			title="Insert from library"
 			:items="libraryItems"
+			:default-os="targetOs"
 			@select="loadFromLibrary"
 			@delete="deleteFromLibrary"
 		/>
+		<OpDialog
+			v-model="isSaveDialogOpen"
+			:title="loaded ? 'Update library entry' : 'Save to library'"
+			description="A library entry holds one version of the code per OS."
+			size="sm"
+			as-form
+			@submit="saveToLibrary"
+		>
+			<CustomThemedSelect
+				:id="`${uid}-save-os`"
+				v-model="saveOs"
+				label="Save as the version for"
+				:options="LIBRARY_OS_OPTIONS"
+			/>
+			<p
+				v-if="loaded"
+				class="mt-3 text-xs text-app-text-3"
+			>
+				Updates “{{ loaded.entry.name }}”. The versions for other OSes stay as they are.
+			</p>
+			<template #footer>
+				<AppButton
+					variant="secondary"
+					@click="isSaveDialogOpen = false"
+				>
+					Cancel
+				</AppButton>
+				<AppButton
+					type="submit"
+					class="ml-auto"
+					:disabled="isSaving"
+				>
+					{{ loaded ? 'Update' : 'Save' }}
+				</AppButton>
+			</template>
+		</OpDialog>
 		<ScheduleModal
 			v-if="clientId"
 			ref="scheduleModal"
@@ -237,13 +274,14 @@ import CommandResult from '~/components/CommandResult.vue';
 import LibraryLoadModal from '~/components/custom/LibraryLoadModal.vue';
 import TargetSelector from '~/components/custom/TargetSelector.vue';
 import ScheduleModal from '~/components/schedules/ScheduleModal.vue';
+import OpDialog from '~/components/operate/OpDialog.vue';
 import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
 import OpCheckbox from '~/components/operate/OpCheckbox.vue';
 import { useRemoteRun } from '~/composables/useRemoteRun';
-import { useRunLibrary } from '~/composables/useRunLibrary';
+import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, implementationFor, isConflict, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
 import { detectRunKind, isCommandNotAllowed, type LibraryPickItem, type RunKind } from '~/utils/runKind';
-import type { JobClientTags } from '~/types';
+import type { JobClientTags, LibraryOS } from '~/types';
 
 const props = defineProps<{
 	/** Run on this one device (device page). Omit to pick targets (Execute page). */
@@ -268,8 +306,13 @@ const target = ref<{ clientIds: string[]; groupIds: string[]; tags: JobClientTag
 const deviceCount = ref(0);
 
 /** The library entry currently in the editor (updates go back to it). */
-const loaded = ref<{ id: string; kind: RunKind; tags: string[] } | null>(null);
+const loaded = ref<{ entry: LibraryEntry; os: LibraryOS } | null>(null);
 const isSaving = ref(false);
+const isSaveDialogOpen = ref(false);
+const saveOs = ref<LibraryOS>('linux');
+const LIBRARY_OS_OPTIONS = LIBRARY_OS_ORDER.map(os => ({ value: os, label: LIBRARY_OS_LABELS[os] }));
+/** The OS the library should prefer when inserting: that of the targeted device(s), when it is one OS. */
+const targetOs = ref<LibraryOS | undefined>(undefined);
 const isLoadModalOpen = ref(false);
 const libraryItems = ref<LibraryPickItem[]>([]);
 const scheduleModal = ref<InstanceType<typeof ScheduleModal> | null>(null);
@@ -378,7 +421,14 @@ const downloadOutput = () => {
 // --- library ---------------------------------------------------------------
 const openLoadModal = async () => {
 	try {
-		libraryItems.value = (await library.listAll()).map(e => ({ id: e.id, name: e.name, kind: e.kind }));
+		const [items, os] = await Promise.all([
+			library.listAll(),
+			props.clientId
+				? library.targetOs({ clientIds: [props.clientId] })
+				: library.targetOs(target.value),
+		]);
+		libraryItems.value = items.map(e => ({ id: e.id, name: e.name, os: e.os }));
+		targetOs.value = os;
 		isLoadModalOpen.value = true;
 	}
 	catch {
@@ -386,19 +436,23 @@ const openLoadModal = async () => {
 	}
 };
 
-const loadFromLibrary = async (item: LibraryPickItem) => {
-	if (!item.kind) return;
+const loadFromLibrary = async (item: LibraryPickItem, os?: LibraryOS) => {
 	try {
-		const entry = await library.load(item.id, item.kind);
-		loaded.value = { id: entry.id, kind: entry.kind, tags: entry.tags };
+		const entry = await library.load(item.id);
+		const picked = implementationFor(entry, os);
+		if (!picked) {
+			snackbar.add({ type: 'error', text: `${item.name} has no implementation to insert` });
+			return;
+		}
+		const impl = picked.implementation;
+		loaded.value = { entry, os: picked.os };
 		name.value = entry.name;
-		code.value = entry.code;
-		timeoutInSeconds.value = entry.timeoutSec || 300;
-		workingDirectory.value = entry.cwd;
-		useSudo.value = entry.isSudo;
-		interpreter.value = normalizeInterpreter(entry.interpreter) || 'default';
-		// Run it the way it was saved; the user can still change this.
-		kindChoice.value = entry.kind === detectRunKind(entry.code, entry.interpreter) ? 'auto' : entry.kind;
+		code.value = impl.code;
+		timeoutInSeconds.value = impl.timeout_sec || 300;
+		workingDirectory.value = impl.cwd;
+		useSudo.value = impl.is_sudo;
+		interpreter.value = normalizeInterpreter(impl.interpreter) || 'default';
+		kindChoice.value = impl.kind;
 	}
 	catch {
 		snackbar.add({ type: 'error', text: `Failed to load ${item.name}` });
@@ -406,11 +460,10 @@ const loadFromLibrary = async (item: LibraryPickItem) => {
 };
 
 const deleteFromLibrary = async (item: LibraryPickItem) => {
-	if (!item.kind) return;
 	try {
-		await library.remove(item.id, item.kind);
-		libraryItems.value = libraryItems.value.filter(i => !(i.id === item.id && i.kind === item.kind));
-		if (loaded.value?.id === item.id && loaded.value.kind === item.kind) loaded.value = null;
+		await library.remove(item.id);
+		libraryItems.value = libraryItems.value.filter(i => i.id !== item.id);
+		if (loaded.value?.entry.id === item.id) loaded.value = null;
 		snackbar.add({ type: 'success', text: 'Removed from library' });
 	}
 	catch {
@@ -418,24 +471,42 @@ const deleteFromLibrary = async (item: LibraryPickItem) => {
 	}
 };
 
+const openSaveDialog = () => {
+	if (!canSave.value) return;
+	saveOs.value = loaded.value?.os ?? 'linux';
+	isSaveDialogOpen.value = true;
+};
+
 const saveToLibrary = async () => {
 	if (!canSave.value) return;
+	const hadLoaded = !!loaded.value;
 	isSaving.value = true;
 	try {
 		const saved = await library.save({
 			name: name.value.trim(),
-			tags: loaded.value?.tags ?? [],
+			tags: loaded.value?.entry.tags ?? [],
+			os: saveOs.value,
+			kind: kindChoice.value,
 			code: code.value,
 			timeoutSec: Number(timeoutInSeconds.value),
 			cwd: workingDirectory.value,
 			isSudo: useSudo.value,
 			interpreter: interpreterValue.value,
-		}, loaded.value);
-		loaded.value = { ...saved, tags: loaded.value?.tags ?? [] };
-		snackbar.add({ type: 'success', text: `Saved to library as a ${saved.kind}` });
+		}, loaded.value?.entry);
+		loaded.value = { entry: saved, os: saveOs.value };
+		isSaveDialogOpen.value = false;
+		snackbar.add({ type: 'success', text: `Saved to library for ${LIBRARY_OS_LABELS[saveOs.value]}` });
 	}
-	catch {
-		snackbar.add({ type: 'error', text: 'Failed to save to library' });
+	catch (e) {
+		isSaveDialogOpen.value = false;
+		snackbar.add({
+			type: 'error',
+			text: isConflict(e)
+				? (hadLoaded
+						? 'Someone else saved this library entry (or took its name) since you loaded it. Insert it again from the library to see their version, then re-apply your changes.'
+						: 'A library entry with this name already exists. Pick another name.')
+				: 'Failed to save to library',
+		});
 	}
 	finally {
 		isSaving.value = false;
@@ -447,7 +518,7 @@ const openSchedule = () => {
 	if (effectiveKind.value === 'script') {
 		scheduleModal.value?.openForScript({
 			scriptName: name.value,
-			tagsValue: loaded.value?.tags ?? [],
+			tagsValue: loaded.value?.entry.tags ?? [],
 			workingDirectory: workingDirectory.value,
 			timeoutInSeconds: Number(timeoutInSeconds.value),
 			scriptContent: code.value,
@@ -459,7 +530,7 @@ const openSchedule = () => {
 	}
 	scheduleModal.value?.openForCommand({
 		commandName: name.value,
-		tagsValue: loaded.value?.tags ?? [],
+		tagsValue: loaded.value?.entry.tags ?? [],
 		timeoutInSeconds: Number(timeoutInSeconds.value),
 		commandText: code.value,
 	});
