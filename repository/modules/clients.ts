@@ -33,6 +33,14 @@ class ClientsModule extends HttpFactory {
 		);
 	}
 
+	/** Up to `limit` devices with the fields needed to match tags and OS (the default list stops at 20). */
+	async listForTargeting(limit = 500): Promise<ClientsResponse> {
+		return this.call<ClientsResponse>('GET',
+			`${this.RESOURCE}?sort=name&fields[clients]=id,name,os_kernel,tags&page[limit]=${limit}&page[offset]=0`,
+			undefined,
+		);
+	}
+
 	async paginate(page = 0, itemsPerPage = 20, filter = '', connectionState = ''): Promise<ClientsResponse> {
 		let params = `?sort=name&fields[clients]=id,name,os,os_full_name,hostname,ipv4,connection_state,disconnected_at,version,tags,updates_status`
 			+ `&page[limit]=${itemsPerPage}&page[offset]=${page * itemsPerPage}`;

@@ -97,20 +97,26 @@
 				aria-label="What to run"
 				class="inline-flex w-fit gap-1 rounded-[10px] border border-app-border bg-app-surface p-1"
 			>
-				<button
+				<label
 					v-for="option in MODE_OPTIONS"
 					:key="option.value"
-					type="button"
-					role="radio"
-					:aria-checked="mode === option.value"
 					:class="[
-						'h-8 rounded-md px-3 text-[13px] font-medium',
+						'inline-flex h-8 cursor-pointer items-center rounded-md px-3 text-[13px] font-medium focus-within:ring-2 focus-within:ring-app-accent',
 						mode === option.value ? 'bg-app-accent text-white' : 'text-app-text-2 hover:bg-app-hover',
+						isLoading ? 'cursor-not-allowed opacity-50' : '',
 					]"
-					@click="setMode(option.value)"
 				>
+					<input
+						type="radio"
+						:name="`${uid}-mode`"
+						class="sr-only"
+						:value="option.value"
+						:checked="mode === option.value"
+						:disabled="isLoading"
+						@change="setMode(option.value)"
+					>
 					{{ option.label }}
-				</button>
+				</label>
 			</div>
 
 			<section
@@ -373,7 +379,7 @@ import OpCheckbox from '~/components/operate/OpCheckbox.vue';
 import { useRemoteRun } from '~/composables/useRemoteRun';
 import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, implementationFor, isConflict, toLibraryOs, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
 import { detectRunKind, isCommandNotAllowed, type LibraryPickItem, type RunKind } from '~/utils/runKind';
-import type { Client, ClientGroup, JobClientTags, LibraryOS } from '~/types';
+import type { Client, JobClientTags, LibraryOS } from '~/types';
 
 const props = defineProps<{
 	/** Run on this one device (device page). Omit to pick targets (Execute page). */
@@ -423,57 +429,100 @@ const MODE_OPTIONS: { value: Mode; label: string }[] = [
 const mode = ref<Mode>('code');
 const entryId = ref('');
 const entries = ref<LibraryEntry[]>([]);
-const knownClients = ref<Client[]>([]);
-const knownGroups = ref<ClientGroup[]>([]);
 const ranEntryName = ref('');
 
 const entryOptions = computed(() => entries.value.map(e => ({ value: e.id, label: e.name })));
 const selectedEntry = computed(() => entries.value.find(e => e.id === entryId.value) ?? null);
 
+const MAX_DEVICE_LOOKUPS = 200;
+const TAG_LIST_LIMIT = 500;
+/** Devices looked up one by one (the list API pages at 20), by id. */
+const devicesById = ref(new Map<string, Client>());
+/** Devices that can match a tag filter (first TAG_LIST_LIMIT). */
+const taggable = ref<Client[]>([]);
+const taggableCapped = ref(false);
+const groupMembers = ref(new Map<string, string[]>());
+const lookupCapped = ref(false);
+
 const setMode = async (value: Mode) => {
 	mode.value = value;
-	if (value !== 'library' || entries.value.length) return;
+	if (value !== 'library') return;
 	try {
-		const [list, clients, groups] = await Promise.all([
-			library.listAll(),
-			props.clientId ? $api.clients.show(props.clientId).then(r => [r.data]) : $api.clients.listClients().then(r => r.data),
-			props.clientId ? Promise.resolve([] as ClientGroup[]) : $api.groups.listGroups().then(r => r.data),
-		]);
-		entries.value = list;
-		knownClients.value = clients;
-		knownGroups.value = groups;
+		if (!entries.value.length) entries.value = await library.listAll();
 	}
 	catch {
 		snackbar.add({ type: 'error', text: 'Failed to load the library' });
 	}
 };
 
-/** The targeted devices; `unresolved` counts group members that can't be listed. */
-const resolvedTargets = computed(() => {
-	if (props.clientId) return { clients: knownClients.value.filter(c => c.id === props.clientId), unresolved: 0 };
-	const ids = new Set(target.value.clientIds);
-	let unresolved = 0;
-	knownGroups.value.filter(g => target.value.groupIds.includes(g.id)).forEach((g) => {
-		if (g.clients_ids) g.clients_ids.forEach(id => ids.add(id));
-		else unresolved += g.num_clients ?? 0;
+/** Fetches what the preview needs for the current targets (devices by id, tag matches, group members). */
+const loadTargets = async () => {
+	try {
+		if (props.clientId) {
+			if (!devicesById.value.has(props.clientId)) {
+				devicesById.value.set(props.clientId, (await $api.clients.show(props.clientId)).data);
+			}
+			return;
+		}
+		const t = target.value;
+		if (t.tags && !taggable.value.length) {
+			const res = await $api.clients.listForTargeting(TAG_LIST_LIMIT);
+			taggable.value = res.data;
+			taggableCapped.value = res.data.length >= TAG_LIST_LIMIT;
+		}
+		const wanted = new Set(t.clientIds);
+		if (t.groupIds.length) {
+			const missing = t.groupIds.filter(id => !groupMembers.value.has(id));
+			if (missing.length) {
+				const res = await $api.groups.listWithMembers(TAG_LIST_LIMIT);
+				res.data.forEach(g => groupMembers.value.set(g.id, g.client_ids ?? g.clients_ids ?? []));
+			}
+			t.groupIds.forEach(id => groupMembers.value.get(id)?.forEach(m => wanted.add(m)));
+		}
+		const todo = [...wanted].filter(id => !devicesById.value.has(id));
+		lookupCapped.value = wanted.size > MAX_DEVICE_LOOKUPS;
+		await Promise.all(todo.slice(0, MAX_DEVICE_LOOKUPS).map(async (id) => {
+			try {
+				devicesById.value.set(id, (await $api.clients.show(id)).data);
+			}
+			catch { /* a device we can't read just isn't counted */ }
+		}));
+	}
+	catch {
+		// The preview is informational; the run itself still works.
+	}
+};
+watch([mode, target, () => props.clientId], () => {
+	if (mode.value === 'library') loadTargets();
+}, { deep: true });
+
+/** The targeted devices, as far as they could be looked up. */
+const resolvedClients = computed<Client[]>(() => {
+	if (props.clientId) return [devicesById.value.get(props.clientId)].filter((c): c is Client => !!c);
+	const t = target.value;
+	const ids = new Set(t.clientIds);
+	t.groupIds.forEach(id => groupMembers.value.get(id)?.forEach(m => ids.add(m)));
+	const found = new Map<string, Client>();
+	ids.forEach((id) => {
+		const c = devicesById.value.get(id);
+		if (c) found.set(id, c);
 	});
-	const tags = target.value.tags;
-	const matches = (c: Client) => {
-		const own: string[] = c.tags ?? [];
-		return !!tags && tags.tags.length > 0 && (tags.operator === 'AND' ? tags.tags.every(t => own.includes(t)) : tags.tags.some(t => own.includes(t)));
-	};
-	return { clients: knownClients.value.filter(c => ids.has(c.id) || matches(c)), unresolved };
+	if (t.tags && t.tags.tags.length) {
+		const own = (c: Client) => (c.tags ?? []) as string[];
+		taggable.value.filter(c => (t.tags!.operator === 'AND' ? t.tags!.tags.every(x => own(c).includes(x)) : t.tags!.tags.some(x => own(c).includes(x))))
+			.forEach(c => found.set(c.id, c));
+	}
+	return [...found.values()];
 });
 
 /** "3 Linux · 1 Windows · 1 macOS skipped": how the targets split by the entry's implementations. */
 const splitPreview = computed(() => {
 	const entry = selectedEntry.value;
 	if (!entry) return '';
-	const { clients, unresolved } = resolvedTargets.value;
 	const counts = new Map<string, number>();
-	clients.forEach((c) => {
+	resolvedClients.value.forEach((c) => {
 		const os = toLibraryOs(c.os_kernel);
-		const key = os && entry.os.includes(os) ? os : (os ?? 'other');
+		const key = os ?? 'other';
 		counts.set(key, (counts.get(key) ?? 0) + 1);
 	});
 	const parts: string[] = [];
@@ -483,8 +532,20 @@ const splitPreview = computed(() => {
 		const label = key === 'other' ? 'other OS' : LIBRARY_OS_LABELS[key as LibraryOS];
 		parts.push(`${n} ${label}${key === 'other' || !entry.os.includes(key as LibraryOS) ? ' skipped' : ''}`);
 	});
-	if (unresolved) parts.push(`${plural(unresolved)} in groups`);
-	return parts.join(' · ') || 'No matching devices';
+	let text = parts.join(' · ') || 'Checking devices…';
+	if (lookupCapped.value) text += ` (first ${MAX_DEVICE_LOOKUPS} devices)`;
+	if (taggableCapped.value && target.value.tags) text += ` (tags matched in the first ${TAG_LIST_LIMIT} devices)`;
+	return text;
+});
+
+/** Single device (Run tab): the entry has nothing for its OS, so the run would be skipped. */
+const singleDeviceBlocked = computed(() => {
+	if (!props.clientId || !selectedEntry.value) return '';
+	const device = resolvedClients.value[0];
+	if (!device) return '';
+	const os = toLibraryOs(device.os_kernel);
+	if (os && selectedEntry.value.os.includes(os)) return '';
+	return `This entry has no ${os ? LIBRARY_OS_LABELS[os] : (device.os_kernel || 'matching')} implementation; the device would be skipped.`;
 });
 
 // --- running -------------------------------------------------------------
@@ -509,10 +570,11 @@ const targetCount = computed(() => (props.clientId
 	: target.value.clientIds.length + target.value.groupIds.length + (target.value.tags ? target.value.tags.tags.length : 0)));
 const hasCode = computed(() => code.value.trim().length > 0);
 const canExecute = computed(() => hasCode.value && targetCount.value > 0);
-const canRunEntry = computed(() => !!selectedEntry.value && targetCount.value > 0);
+const canRunEntry = computed(() => !!selectedEntry.value && targetCount.value > 0 && !singleDeviceBlocked.value);
 const entryDisabledReason = computed(() => {
 	if (!selectedEntry.value && targetCount.value === 0) return 'Pick an entry and at least one target';
 	if (!selectedEntry.value) return 'Pick a library entry to run';
+	if (singleDeviceBlocked.value) return singleDeviceBlocked.value;
 	return 'Pick at least one target';
 });
 const canSave = computed(() => hasCode.value && name.value.trim().length > 0);

@@ -190,9 +190,9 @@ const rows = computed(() => {
 		if (duration) parts.push(duration);
 		const stdout = result.result?.stdout ?? '';
 		const stderr = result.result?.stderr ?? '';
-		const osLabel = LIBRARY_OS_LABELS[toLibraryOs(result.os) ?? 'linux'];
+		const libOs = toLibraryOs(result.os);
 		const entry = result.library_entry_id
-			? [props.entryName, result.library_version ? `v${result.library_version}` : '', result.os ? (toLibraryOs(result.os) ? osLabel : result.os) : '']
+			? [props.entryName, result.library_version ? `v${result.library_version}` : '', libOs ? LIBRARY_OS_LABELS[libOs] : (result.os ?? '')]
 					.filter(Boolean).join(' · ')
 			: '';
 		// A skipped device carries the reason ("no macOS implementation") as its summary.

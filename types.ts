@@ -120,6 +120,7 @@ export interface ClientGroup {
 	description: string;
 	num_clients: number;
 	clients_ids?: string[];
+	client_ids?: string[];
 	params?: ClientGroupParams | null;
 	allowed_user_groups?: string[];
 }
