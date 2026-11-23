@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 286 216 248" role="img" aria-labelledby="t">
+  <title id="t">The Procy raccoon</title>
+  <style>
+    .blink-eyes { transform-origin: 190px 383px; animation: eyes 6s ease-in-out infinite; }
+    @keyframes eyes { 0%, 46%, 50%, 100% { transform: scaleY(1); } 48% { transform: scaleY(.1); } }
+    @media (prefers-reduced-motion: reduce) { .blink-eyes { animation: none; } }
+  </style>
+  <!-- the raccoon -->
+  <g>
+    <!-- ringed tail: fur underneath, mask rings dashed on top -->
+    <path d="M140 512 C 72 506, 52 430, 96 396 C 118 380, 146 392, 142 414" fill="none" stroke="#9CA3AF" stroke-width="34" stroke-linecap="round"/>
+    <path d="M140 512 C 72 506, 52 430, 96 396 C 118 380, 146 392, 142 414" fill="none" stroke="#1F2937" stroke-width="34" stroke-dasharray="15 18" stroke-dashoffset="-8"/>
+    <ellipse cx="190" cy="470" rx="62" ry="58" fill="#9CA3AF"/>
+    <ellipse cx="192" cy="480" rx="38" ry="38" fill="#E3E6EB"/>
+    <ellipse cx="160" cy="521" rx="19" ry="9" fill="#1F2937"/>
+    <ellipse cx="222" cy="521" rx="19" ry="9" fill="#1F2937"/>
+    <path d="M226 460 Q 250 480 252 506" fill="none" stroke="#6B7280" stroke-width="17" stroke-linecap="round"/>
+    <circle cx="252" cy="506" r="11" fill="#1F2937"/>
+    <path d="M154 460 Q 138 480 146 498" fill="none" stroke="#6B7280" stroke-width="17" stroke-linecap="round"/>
+    <!-- head: the Procy mark at 2.5x (translate 110,290) -->
+    <g transform="translate(110 290) scale(2.5)">
+      <path d="M9 27 13 6l16 11z" fill="#6B7280" stroke="#6B7280" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M55 27 51 6 35 17z" fill="#6B7280" stroke="#6B7280" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M14 22l2-10 8 6z" fill="#1F2937"/>
+      <path d="M50 22l-2-10-8 6z" fill="#1F2937"/>
+      <ellipse cx="32" cy="37" rx="25" ry="21" fill="#9CA3AF"/>
+      <path d="M32 18v12" stroke="#4B5563" stroke-width="5" stroke-linecap="round"/>
+      <path d="M12 31q9-8 17-3" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M52 31q-9-8-17-3" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M8 36q10-10 21-4 3 2 6 0 11-6 21 4-4 10-15 9-6-1-9-5-3 4-9 5-11 1-15-9z" fill="#1F2937"/>
+    </g>
+    <!-- eyes, blinking now and then -->
+    <g class="blink-eyes">
+      <circle cx="166.25" cy="382.5" r="10" fill="#FFFFFF"/>
+      <circle cx="213.75" cy="382.5" r="10" fill="#FFFFFF"/>
+      <circle cx="168.25" cy="384" r="5" fill="#111827"/>
+      <circle cx="215.75" cy="384" r="5" fill="#111827"/>
+    </g>
+    <g transform="translate(110 290) scale(2.5)">
+      <ellipse cx="32" cy="49" rx="11" ry="7.5" fill="#F3F4F6"/>
+      <ellipse cx="32" cy="45.5" rx="4" ry="3" fill="#111827"/>
+    </g>
+  </g>
+</svg>

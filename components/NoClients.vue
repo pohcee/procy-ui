@@ -1,12 +1,13 @@
 <template>
 	<div class="flex flex-col gap-4">
 		<section class="flex flex-col items-center rounded-xl border border-app-border bg-app-surface px-4 py-12 text-center">
-			<span
-				class="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-app-muted text-app-text-3"
-				aria-hidden="true"
+			<img
+				src="/img/procy-raccoon.svg"
+				alt=""
+				width="108"
+				height="124"
+				class="block h-[124px] w-[108px]"
 			>
-				<MonitorX class="h-7 w-7" />
-			</span>
 			<h2 class="mt-4 text-[15px] font-semibold text-app-text">
 				No clients available
 			</h2>
@@ -32,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { MonitorX, Plus } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 import AddClientModal from '~/components/clients/AddClientModal.vue';
 
 const { createClientAccess } = useClientAccess();

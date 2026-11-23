@@ -40,11 +40,11 @@
 				</p>
 			</div>
 			<img
-				src="/login.svg"
+				src="/img/procy-night.svg"
 				alt=""
-				width="945"
-				height="787"
-				class="relative -mr-10 ml-auto block h-auto w-[min(100%,760px)]"
+				width="760"
+				height="640"
+				class="relative ml-auto block h-auto w-[min(100%,720px)]"
 			>
 		</aside>
 	</div>

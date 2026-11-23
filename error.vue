@@ -1,11 +1,11 @@
 <template>
 	<div class="flex min-h-[100dvh] flex-col items-center justify-center gap-6 bg-app-bg px-6 text-center font-sans text-app-text">
 		<img
-			src="/favicon.svg"
+			src="/img/procy-raccoon.svg"
 			alt=""
-			width="72"
-			height="72"
-			class="block h-[72px] w-[72px]"
+			width="139"
+			height="160"
+			class="block h-[160px] w-[139px]"
 		>
 		<div>
 			<p class="font-mono text-sm font-medium text-app-text-3">
