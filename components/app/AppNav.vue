@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { ArrowLeftRight, BookOpen, Boxes, Clock, ExternalLink, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
+import { ArrowLeftRight, BookOpen, Clock, ExternalLink, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
 import type { Capability } from '~/composables/useCapabilities';
 
 /** Public documentation; absolute so it also works on servers that don't host the docs. */
@@ -82,7 +82,6 @@ const allSections: NavSection[] = [
 			{ label: 'Schedules', to: '/schedules', icon: Clock, capability: 'scheduled_jobs' },
 			{ label: 'Tunnels', to: '/tunnels', icon: ArrowLeftRight },
 			{ label: 'Script library', to: '/library', icon: BookOpen, capability: 'library' },
-			{ label: 'Inventory', to: '/inventory', icon: Boxes },
 			{ label: 'Audit log', to: '/audits', icon: ListChecks },
 		],
 	},

@@ -41,22 +41,10 @@ class ClientsModule extends HttpFactory {
 		);
 	}
 
-	async paginate(page = 0, itemsPerPage = 20, filter = '', connectionState = ''): Promise<ClientsResponse> {
-		let params = `?sort=name&fields[clients]=id,name,os,os_full_name,hostname,ipv4,connection_state,disconnected_at,version,tags,updates_status`
-			+ `&page[limit]=${itemsPerPage}&page[offset]=${page * itemsPerPage}`;
-		if (filter?.length > 0) {
-			params += `&filter[name]=*${encodeURIComponent(filter)}*`;
-		}
-		if (connectionState?.length > 0) {
-			params += `&filter[connection_state]=${connectionState}`;
-		}
-		return this.call<ClientsResponse>('GET', `${this.RESOURCE}${params}`, undefined);
-	}
-
 	/** One page (max 500, the server's hard limit) of clients with the fields the device list needs. */
 	async listFleet(offset = 0, limit = 500): Promise<ClientsResponse> {
 		return this.call<ClientsResponse>('GET',
-			`${this.RESOURCE}?sort=name&fields[clients]=id,name,hostname,os,os_family,os_kernel,os_full_name,os_arch,ipv4,connection_state,disconnected_at,last_heartbeat_at,tags,labels,groups,updates_status`
+			`${this.RESOURCE}?sort=name&fields[clients]=id,name,hostname,os,os_family,os_kernel,os_full_name,os_arch,num_cpus,mem_total,timezone,ipv4,address,version,connection_state,disconnected_at,last_heartbeat_at,tags,labels,groups,updates_status`
 			+ `&page[limit]=${limit}&page[offset]=${offset}`,
 			undefined,
 		);

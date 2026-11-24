@@ -95,6 +95,9 @@ export default defineNuxtConfig({
 		'/': { redirect: '/dashboard' },
 		'/scripts': { redirect: '/execute' },
 		'/commands': { redirect: '/execute' },
+		// Inventory was folded into the device list.
+		'/inventory': { redirect: '/dashboard' },
+		'/Inventory': { redirect: '/dashboard' },
 	},
 
 	router: {
@@ -116,13 +119,15 @@ export default defineNuxtConfig({
 	// are capitalised (pages/Execute.vue → /Execute/), but the app links to lowercase
 	// URLs, and rportd serves files case-sensitively and only falls back to index.html
 	// for a few known prefixes. Prerender the lowercase paths too so reloads and
-	// bookmarks of every page work.
+	// bookmarks of every page work. Redirected routes (routeRules above) are prerendered
+	// as small redirect pages so old links keep working.
 	nitro: {
 		prerender: {
 			routes: [
-				'/execute', '/schedules', '/tunnels', '/library', '/inventory', '/audits',
+				'/execute', '/schedules', '/tunnels', '/library', '/audits',
 				'/profile', '/users', '/user-groups', '/client-access', '/client-groups',
 				'/vault', '/api-tokens', '/info', '/dashboard', '/auth',
+				'/inventory', '/Inventory',
 			],
 		},
 	},
