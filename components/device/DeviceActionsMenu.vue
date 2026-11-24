@@ -67,6 +67,7 @@ const emit = defineEmits<{
 }>();
 
 const { isFavorite } = useFavoriteDevices();
+const { canCreateTunnels } = useCapabilities();
 
 const items = computed(() => {
 	const fav = isFavorite(props.device?.id);
@@ -74,7 +75,7 @@ const items = computed(() => {
 	if (props.list) {
 		return [
 			{ id: 'command', label: 'Run command', icon: Terminal },
-			{ id: 'tunnel', label: 'Open tunnel', icon: Cable },
+			...(canCreateTunnels.value ? [{ id: 'tunnel', label: 'Open tunnel', icon: Cable }] : []),
 			favItem,
 			{ id: 'copy-id', label: 'Copy client ID', icon: ClipboardCopy },
 		];

@@ -125,6 +125,7 @@ const status = ref<ServerStatus | null>(null);
 const selectedConnectUrl = ref('');
 
 const { isLoading, error: installError, installers, fetchInstaller } = useInstaller();
+const { has } = useCapabilities();
 const { copy } = useClipboard({ legacy: true });
 const snackbar = useSnackbar();
 
@@ -187,6 +188,10 @@ function initializeOptions() {
 
 async function updateInstaller() {
 	if (!client.value?.id || !selectedConnectUrl.value || !status.value?.fingerprint) {
+		return;
+	}
+	if (!has('pairing')) {
+		installError.value = 'This server does not offer client pairing.';
 		return;
 	}
 

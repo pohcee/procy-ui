@@ -7,6 +7,7 @@
 		>
 			<template #actions>
 				<AppButton
+					v-if="canCreateTunnels"
 					size="sm"
 					@click="$emit('addtunnel')"
 				>
@@ -250,6 +251,7 @@ const props = defineProps({
 });
 
 defineEmits(['addtunnel']);
+const { canCreateTunnels } = useCapabilities();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 const { copy } = useClipboard();

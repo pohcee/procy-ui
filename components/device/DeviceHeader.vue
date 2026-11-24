@@ -95,6 +95,7 @@
 				<!-- Desktop actions -->
 				<div class="hidden flex-wrap items-center gap-2.5 md:flex">
 					<AppButton
+						v-if="canCreateTunnels"
 						variant="secondary"
 						@click="emit('action', 'tunnel')"
 					>
@@ -120,7 +121,7 @@
 			</div>
 
 			<!-- Phone actions -->
-			<div class="mt-3.5 grid grid-cols-2 gap-2.5 md:hidden">
+			<div :class="['mt-3.5 grid gap-2.5 md:hidden', canCreateTunnels ? 'grid-cols-2' : 'grid-cols-1']">
 				<button
 					type="button"
 					class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-app-accent text-[15px] font-semibold text-white hover:bg-app-accent-hover"
@@ -133,6 +134,7 @@
 					Run
 				</button>
 				<button
+					v-if="canCreateTunnels"
 					type="button"
 					class="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-app-border-strong bg-app-surface text-[15px] font-medium text-app-text hover:bg-app-hover"
 					@click="emit('action', 'tunnel')"
@@ -161,6 +163,7 @@ const props = defineProps<{
 	device: Client;
 	deviceId?: string;
 }>();
+const { canCreateTunnels } = useCapabilities();
 
 const emit = defineEmits<{
 	(e: 'action', action: string): void;

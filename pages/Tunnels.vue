@@ -18,7 +18,7 @@
 				</AppButton>
 			</template>
 
-			<div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+			<div :class="['grid grid-cols-1 items-start gap-5', canCreateTunnels && 'xl:grid-cols-[minmax(0,1fr)_320px]']">
 				<!-- Active tunnels -->
 				<div class="flex min-w-0 flex-col gap-4">
 					<section
@@ -260,6 +260,7 @@
 
 				<!-- New tunnel -->
 				<section
+					v-if="canCreateTunnels"
 					aria-label="New tunnel"
 					class="flex flex-col gap-4 rounded-xl border border-app-border bg-app-surface p-5"
 				>
@@ -320,6 +321,7 @@ const statusStore = useStatusStore();
 const profileStore = useProfile();
 const tunnelStore = useTunnelStore();
 const { isAddingTunnel } = storeToRefs(tunnelStore);
+const { canCreateTunnels } = useCapabilities();
 const { ip: profileIp } = storeToRefs(profileStore);
 
 const columns = ['Device', 'Service', 'Server port → device', 'Allowed from', 'Closes'];

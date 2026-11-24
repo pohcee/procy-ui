@@ -27,6 +27,18 @@
 			</p>
 		</AppCard>
 
+		<!-- Locked or uninitialized on a server that doesn't unlock the vault by passphrase -->
+		<AppCard
+			v-else-if="(isUninitialized || isLocked) && !has('vault_passphrase')"
+			title="Vault not available"
+		>
+			<p class="text-sm text-app-text-3">
+				{{ isLocked
+					? 'The vault is locked. This server does not unlock it with a passphrase.'
+					: 'The vault is not set up. This server does not set it up with a passphrase.' }}
+			</p>
+		</AppCard>
+
 		<!-- Uninitialized: init form -->
 		<AppCard
 			v-else-if="isUninitialized"
@@ -154,7 +166,9 @@
 			description="The vault is unlocked."
 		>
 			<template #actions>
+				<!-- Without passphrase unlocking, a locked vault could not be reopened from here. -->
 				<AppButton
+					v-if="has('vault_passphrase')"
 					variant="secondary"
 					size="sm"
 					:disabled="lockLoading"
@@ -395,6 +409,7 @@ const MAX_PASS_LENGTH = 32;
 
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
+const { has } = useCapabilities();
 
 const statusLoading = ref(true);
 const vaultStatus = ref<VaultStatus | null>(null);

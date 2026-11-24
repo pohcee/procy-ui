@@ -157,6 +157,25 @@ export interface ServerStatus {
 	used_ports: Array<string>;
 	users_auth_source: string;
 	version: string;
+	capabilities?: Partial<ServerCapabilities>;
+}
+/**
+ * Features the server offers (GET /api/v1/status → capabilities). A missing object or
+ * field (older servers) means available; use useCapabilities() rather than reading it directly.
+ */
+export interface ServerCapabilities {
+	vault_passphrase: boolean;
+	port_tunnels: boolean;
+	http_proxy_tunnels: boolean;
+	subdomain_tunnels: boolean;
+	browser_vnc: boolean;
+	browser_rdp: boolean;
+	monitoring: boolean;
+	alerting: boolean;
+	pairing: boolean;
+	file_upload: boolean;
+	scheduled_jobs: boolean;
+	library: boolean;
 }
 export interface TwoFa {
 	send_to: string;
@@ -246,6 +265,7 @@ export interface Status {
 	used_ports: string[];
 	users_auth_source: string;
 	version: string;
+	capabilities?: Partial<ServerCapabilities>;
 }
 
 export interface Auditlog {

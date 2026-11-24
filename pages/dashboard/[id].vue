@@ -145,24 +145,28 @@ import RunWorkspace from '~/components/run/RunWorkspace.vue';
 import TagsLabelDialog from '~/components/device/TagsLabelDialog.vue';
 import { useFavoriteDevices } from '~/components/device/deviceHelpers';
 import { useClientDetail } from '~/composables/useClientDetail';
+import type { Capability } from '~/composables/useCapabilities';
 
 definePageMeta({
 	// Re-create the page when switching devices (the detail composable reads the id once).
 	key: route => String(route.params.id),
 });
 
-const tabs = [
+const allTabs: { id: string; label: string; capability?: Capability }[] = [
 	{ id: 'overview', label: 'Overview' },
-	{ id: 'monitoring', label: 'Monitoring' },
+	{ id: 'monitoring', label: 'Monitoring', capability: 'monitoring' },
 	{ id: 'run', label: 'Run' },
-	{ id: 'files', label: 'Files' },
+	{ id: 'files', label: 'Files', capability: 'file_upload' },
 	{ id: 'tunnels', label: 'Tunnels' },
 	{ id: 'inventory', label: 'Inventory' },
-	{ id: 'schedules', label: 'Schedules' },
+	{ id: 'schedules', label: 'Schedules', capability: 'scheduled_jobs' },
 	{ id: 'audit', label: 'Audit' },
 	{ id: 'meta-data', label: 'Meta-data' },
 ];
-const tabIds = tabs.map(t => t.id);
+const { has } = useCapabilities();
+// Tabs for features the server doesn't offer are hidden.
+const tabs = computed(() => allTabs.filter(t => !t.capability || has(t.capability)));
+const tabIds = computed(() => tabs.value.map(t => t.id));
 
 const route = useRoute();
 const router = useRouter();
@@ -179,13 +183,13 @@ const legacyTabs: Record<string, string> = { commands: 'run', scripts: 'run' };
 const queryTab = () => {
 	const raw = String(route.query.tab ?? '');
 	const tab = legacyTabs[raw] ?? raw;
-	return tabIds.includes(tab) ? tab : 'overview';
+	return tabIds.value.includes(tab) ? tab : 'overview';
 };
 const selectedTab = ref(queryTab());
 const isTagsOpen = ref(false);
 const tablistEl = ref<HTMLElement | null>(null);
 
-watch(() => route.query.tab, () => {
+watch([() => route.query.tab, tabIds], () => {
 	selectedTab.value = queryTab();
 });
 
@@ -199,16 +203,16 @@ function selectTab(tab: string) {
 }
 
 function onTabKeydown(event: KeyboardEvent) {
-	const index = tabIds.indexOf(selectedTab.value);
+	const index = tabIds.value.indexOf(selectedTab.value);
 	let next = -1;
-	if (event.key === 'ArrowRight') next = (index + 1) % tabIds.length;
-	else if (event.key === 'ArrowLeft') next = (index - 1 + tabIds.length) % tabIds.length;
+	if (event.key === 'ArrowRight') next = (index + 1) % tabIds.value.length;
+	else if (event.key === 'ArrowLeft') next = (index - 1 + tabIds.value.length) % tabIds.value.length;
 	else if (event.key === 'Home') next = 0;
-	else if (event.key === 'End') next = tabIds.length - 1;
+	else if (event.key === 'End') next = tabIds.value.length - 1;
 	if (next < 0) return;
 	event.preventDefault();
-	selectTab(tabIds[next]);
-	nextTick(() => tablistEl.value?.querySelector<HTMLElement>(`#device-tab-${tabIds[next]}`)?.focus());
+	selectTab(tabIds.value[next]);
+	nextTick(() => tablistEl.value?.querySelector<HTMLElement>(`#device-tab-${tabIds.value[next]}`)?.focus());
 }
 
 async function onAction(action: string) {

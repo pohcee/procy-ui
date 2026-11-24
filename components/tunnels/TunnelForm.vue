@@ -100,20 +100,23 @@
 			</div>
 
 			<!-- Service extras -->
-			<OpCheckbox v-if="formState.service === 'rdp'">
+			<OpCheckbox v-if="formState.service === 'rdp' && has('browser_rdp')">
 				Enable RDP via browser
 			</OpCheckbox>
 			<div
-				v-if="formState.service === 'vnc'"
+				v-if="formState.service === 'vnc' && has('browser_vnc')"
 				class="flex flex-col gap-1"
 			>
 				<OpCheckbox>Enable NoVNC (VNC via browser)</OpCheckbox>
 			</div>
 			<div
-				v-if="formState.service === 'http' || formState.service === 'https'"
+				v-if="(formState.service === 'http' || formState.service === 'https') && has('http_proxy_tunnels')"
 				class="flex flex-col gap-3"
 			>
-				<OpCheckbox v-model="formState.http_proxy">
+				<OpCheckbox
+					v-if="!proxyOnly"
+					v-model="formState.http_proxy"
+				>
 					Open in browser via built-in HTTP proxy
 				</OpCheckbox>
 				<div
@@ -365,12 +368,23 @@ const SHORT_LABELS: Record<string, string> = {
 	other: 'Other',
 	forwarding: 'Forwarding',
 };
-const serviceCards = computed(() => TUNNEL_OPTIONS.map(option => ({
+const { has } = useCapabilities();
+// Without server-port tunnels, only HTTP(S) through the built-in proxy can be created.
+const PROXY_SERVICES = ['http', 'https'];
+const proxyOnly = computed(() => !has('port_tunnels'));
+const offeredOptions = computed(() => TUNNEL_OPTIONS.filter(option => !proxyOnly.value || PROXY_SERVICES.includes(option.id)));
+watchEffect(() => {
+	if (!proxyOnly.value) return;
+	if (!PROXY_SERVICES.includes(formState.service)) formState.service = 'http';
+	formState.http_proxy = true;
+});
+
+const serviceCards = computed(() => offeredOptions.value.map(option => ({
 	id: option.id,
 	label: SHORT_LABELS[option.id] ?? option.label,
 	ports: option.id === 'other' || option.id === 'realvnc' ? '' : option.ports,
 })));
-const forwardingServiceOptions = computed(() => TUNNEL_OPTIONS
+const forwardingServiceOptions = computed(() => offeredOptions.value
 	.filter(option => option.id !== 'forwarding')
 	.map(option => ({ value: option.id, label: option.label })));
 const protocolOptions = [
