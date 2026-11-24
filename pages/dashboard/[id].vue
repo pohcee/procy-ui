@@ -130,6 +130,12 @@
 			</div>
 		</div>
 
+		<DeleteDevicesDialog
+			v-if="device"
+			v-model="isDeleteOpen"
+			:devices="[device]"
+			@deleted="navigateTo('/dashboard')"
+		/>
 		<TagsLabelDialog
 			v-model="isTagsOpen"
 			v-model:model-value-client="device"
@@ -139,6 +145,7 @@
 
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core';
+import DeleteDevicesDialog from '~/components/device/DeleteDevicesDialog.vue';
 import DeviceHeader from '~/components/device/DeviceHeader.vue';
 import DeviceOverviewTab from '~/components/device/DeviceOverviewTab.vue';
 import RunWorkspace from '~/components/run/RunWorkspace.vue';
@@ -187,6 +194,7 @@ const queryTab = () => {
 };
 const selectedTab = ref(queryTab());
 const isTagsOpen = ref(false);
+const isDeleteOpen = ref(false);
 const tablistEl = ref<HTMLElement | null>(null);
 
 watch([() => route.query.tab, tabIds], () => {
@@ -243,6 +251,9 @@ async function onAction(action: string) {
 			break;
 		case 'client-access':
 			navigateTo(`/client-access#${device.value?.client_auth_id}`);
+			break;
+		case 'delete':
+			isDeleteOpen.value = true;
 			break;
 	}
 }

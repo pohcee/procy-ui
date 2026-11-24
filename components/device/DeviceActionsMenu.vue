@@ -33,12 +33,16 @@
 				>
 					<button
 						type="button"
-						:class="['flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm text-app-text', active ? 'bg-app-hover' : '']"
+						:class="[
+							'flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm',
+							item.danger ? 'text-app-danger' : 'text-app-text',
+							active ? 'bg-app-hover' : '',
+						]"
 						@click="emit('action', item.id)"
 					>
 						<component
 							:is="item.icon"
-							class="h-4 w-4 shrink-0 text-app-text-3"
+							:class="['h-4 w-4 shrink-0', item.danger ? 'text-app-danger' : 'text-app-text-3']"
 							aria-hidden="true"
 						/>
 						{{ item.label }}
@@ -50,7 +54,8 @@
 </template>
 
 <script setup lang="ts">
-import { Cable, ClipboardCopy, FileClock, KeyRound, MoreHorizontal, RefreshCw, Star, Tags, Terminal } from 'lucide-vue-next';
+import type { Component } from 'vue';
+import { Cable, ClipboardCopy, FileClock, KeyRound, MoreHorizontal, RefreshCw, Star, Tags, Terminal, Trash2 } from 'lucide-vue-next';
 import type { Client } from '~/types';
 import { useFavoriteDevices } from '~/components/device/deviceHelpers';
 
@@ -69,15 +74,19 @@ const emit = defineEmits<{
 const { isFavorite } = useFavoriteDevices();
 const { canCreateTunnels } = useCapabilities();
 
-const items = computed(() => {
+interface MenuItem { id: string; label: string; icon: Component; danger?: boolean }
+
+const items = computed<MenuItem[]>(() => {
 	const fav = isFavorite(props.device?.id);
 	const favItem = { id: 'favorite', label: fav ? 'Remove from favorites' : 'Add to favorites', icon: Star };
+	const deleteItem = { id: 'delete', label: 'Delete device…', icon: Trash2, danger: true };
 	if (props.list) {
 		return [
 			{ id: 'command', label: 'Run command', icon: Terminal },
 			...(canCreateTunnels.value ? [{ id: 'tunnel', label: 'Open tunnel', icon: Cable }] : []),
 			favItem,
 			{ id: 'copy-id', label: 'Copy client ID', icon: ClipboardCopy },
+			deleteItem,
 		];
 	}
 	return [
@@ -87,6 +96,7 @@ const items = computed(() => {
 		{ id: 'copy-id', label: 'Copy client ID', icon: ClipboardCopy },
 		{ id: 'audit', label: 'View audit log', icon: FileClock },
 		...(props.device?.client_auth_id ? [{ id: 'client-access', label: 'Client access credentials', icon: KeyRound }] : []),
+		deleteItem,
 	];
 });
 </script>
