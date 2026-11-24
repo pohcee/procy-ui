@@ -55,10 +55,13 @@ export const useRemoteRun = () => {
 	const isLoading = ref(false);
 	const error = ref<string | null>(null);
 	const lastKind = ref<RunKind | null>(null);
+	/** The socket is connected: results (and streamed output) can still arrive on it. */
+	const isOpen = ref(false);
 
 	const disconnect = () => {
 		ws?.close();
 		ws = null;
+		isOpen.value = false;
 	};
 
 	// The server treats an empty `client_ids: []` as "targeting by client" and rejects it
@@ -84,19 +87,24 @@ export const useRemoteRun = () => {
 			return;
 		}
 		isLoading.value = true;
+		isOpen.value = true;
 		ws = socket;
 		socket.onopen = () => socket.send(JSON.stringify(payload));
 		socket.onmessage = (event) => {
+			if (ws !== socket) return;
 			results.value.push(JSON.parse(event.data) as CommandResult);
 			isLoading.value = false;
 		};
 		socket.onerror = () => {
+			if (ws !== socket) return;
 			error.value = 'Could not reach the server to run this. Check your connection and try again.';
 			isLoading.value = false;
 			socket.close();
 		};
 		socket.onclose = () => {
+			if (ws !== socket) return;
 			isLoading.value = false;
+			isOpen.value = false;
 		};
 	};
 
@@ -129,5 +137,5 @@ export const useRemoteRun = () => {
 		}, null);
 	};
 
-	return { run, runEntry, disconnect, results, isLoading, error, lastKind };
+	return { run, runEntry, disconnect, results, isLoading, isOpen, error, lastKind };
 };
