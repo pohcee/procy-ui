@@ -34,6 +34,8 @@ export interface Client {
 	id: string;
 	name: string;
 	address?: string;
+	/** Hostname the client connected with (Host header of its connection). */
+	connected_host?: string;
 	hostname?: string;
 	os: string;
 	os_full_name: string;

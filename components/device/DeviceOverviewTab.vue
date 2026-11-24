@@ -268,6 +268,13 @@
 			<AppCard title="Network">
 				<div class="flex flex-col">
 					<div
+						v-if="device?.connected_host"
+						class="flex justify-between gap-3 border-b border-app-border-subtle py-2.5"
+					>
+						<span class="text-[13px] text-app-text-3">Connected via</span>
+						<span class="break-all text-right font-mono text-[13px] text-app-text">{{ device.connected_host }}</span>
+					</div>
+					<div
 						v-if="device?.address"
 						class="flex justify-between gap-3 border-b border-app-border-subtle py-2.5"
 					>
