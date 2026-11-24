@@ -25,6 +25,26 @@
 			</div>
 		</AppCard>
 
+		<!-- Locked or not set up on a server that doesn't unlock the vault by passphrase -->
+		<AppCard v-else-if="(state === 'uninitialized' || state === 'locked') && !has('vault_passphrase')">
+			<div class="flex flex-col items-center px-4 py-10 text-center">
+				<span class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-app-muted text-app-text-2">
+					<Lock
+						class="h-6 w-6"
+						aria-hidden="true"
+					/>
+				</span>
+				<h3 class="mt-4 text-lg font-semibold text-app-text">
+					The vault isn’t available
+				</h3>
+				<p class="mt-1.5 max-w-md text-sm text-app-text-3">
+					{{ state === 'locked'
+						? 'The vault is locked. This server does not unlock it with a passphrase.'
+						: 'The vault is not set up. This server does not set it up with a passphrase.' }}
+				</p>
+			</div>
+		</AppCard>
+
 		<!-- Vault not set up yet -->
 		<AppCard v-else-if="state === 'uninitialized'">
 			<div class="flex flex-col items-center px-4 py-10 text-center">
@@ -235,6 +255,7 @@ const props = defineProps<{
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 const { copy } = useClipboard();
+const { has } = useCapabilities();
 
 type State = 'loading' | 'error' | 'uninitialized' | 'locked' | 'unlocked';
 const state = ref<State>('loading');
