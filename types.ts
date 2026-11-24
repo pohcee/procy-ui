@@ -19,6 +19,8 @@ export interface UpdatesStatus {
 export interface VaultStatus {
 	init: 'uninitialized' | 'setup-completed';
 	status: 'locked' | 'unlocked' | '';
+	/** True when the server manages the vault key: no passphrase is needed. Absent otherwise. */
+	managed?: boolean;
 }
 
 export interface ClientAuth {
