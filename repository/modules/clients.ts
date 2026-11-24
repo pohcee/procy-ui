@@ -44,10 +44,15 @@ class ClientsModule extends HttpFactory {
 	/** One page (max 500, the server's hard limit) of clients with the fields the device list needs. */
 	async listFleet(offset = 0, limit = 500): Promise<ClientsResponse> {
 		return this.call<ClientsResponse>('GET',
-			`${this.RESOURCE}?sort=name&fields[clients]=id,name,hostname,os,os_family,os_kernel,os_full_name,os_arch,num_cpus,mem_total,timezone,ipv4,address,version,connection_state,disconnected_at,last_heartbeat_at,tags,labels,groups,updates_status`
+			`${this.RESOURCE}?sort=name&fields[clients]=id,name,hostname,os,os_family,os_kernel,os_full_name,os_arch,num_cpus,mem_total,timezone,ipv4,address,version,client_auth_id,connection_state,disconnected_at,last_heartbeat_at,tags,labels,groups,updates_status`
 			+ `&page[limit]=${limit}&page[offset]=${offset}`,
 			undefined,
 		);
+	}
+
+	/** Deletes a device. The server only deletes offline devices (400 for a connected one). */
+	async delete(id: string): Promise<void> {
+		await this.call('DELETE', `${this.RESOURCE}/${encodeURIComponent(id)}`, undefined);
 	}
 
 	async getClientsName(clientsIds: Array<string>): Promise<ClientsResponse> {

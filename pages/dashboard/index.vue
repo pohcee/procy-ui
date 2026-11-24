@@ -15,13 +15,6 @@
 					/>
 					Add device
 				</AppButton>
-				<AppButton to="/execute">
-					<Terminal
-						class="h-4 w-4"
-						aria-hidden="true"
-					/>
-					Run command
-				</AppButton>
 			</template>
 
 			<NoClients v-if="loaded && totalCount === 0 && !loadError" />
@@ -339,6 +332,19 @@
 								v-if="selectedOffline"
 								class="text-app-text-3"
 							>{{ selectedOnlineIds.length ? `${selectedOffline} offline ${selectedOffline === 1 ? 'device is' : 'devices are'} left out` : 'All selected devices are offline' }}</span>
+							<AppButton
+								variant="secondary"
+								size="sm"
+								:title="selectedOffline ? undefined : 'Only offline devices can be deleted'"
+								:disabled="!selectedOffline"
+								@click="openDelete(selectedClients)"
+							>
+								<Trash2
+									class="h-4 w-4"
+									aria-hidden="true"
+								/>
+								Delete{{ selectedOffline ? ` ${selectedOffline} offline` : '' }}
+							</AppButton>
 							<AppButton
 								size="sm"
 								:disabled="!selectedOnlineIds.length"
@@ -725,6 +731,11 @@
 			</template>
 		</AppPage>
 
+		<DeleteDevicesDialog
+			v-model="deleteOpen"
+			:devices="deleteTargets"
+			@deleted="onDeleted"
+		/>
 		<AddClientModal
 			ref="addClientModal"
 			@save="handleCreateClientAccess"
@@ -752,12 +763,14 @@ import {
 	SlidersHorizontal,
 	Star,
 	Terminal,
+	Trash2,
 	X,
 } from 'lucide-vue-next';
 import AddClientModal from '~/components/clients/AddClientModal.vue';
 import InstallClientModal from '~/components/clients/InstallClientModal.vue';
 import ThemedSelect from '~/components/custom/ThemedSelect.vue';
 import ClientIcon from '~/components/device/ClientIcon.vue';
+import DeleteDevicesDialog from '~/components/device/DeleteDevicesDialog.vue';
 import DeviceActionsMenu from '~/components/device/DeviceActionsMenu.vue';
 import DeviceGroupPicker from '~/components/device/DeviceGroupPicker.vue';
 import DeviceRowDetails from '~/components/device/DeviceRowDetails.vue';
@@ -1085,7 +1098,29 @@ async function onRowAction(client: Client, action: string) {
 			await copy(client.id);
 			snackbar.add({ type: 'success', text: 'Client ID copied' });
 			break;
+		case 'delete':
+			openDelete([client]);
+			break;
 	}
+}
+
+// --- deleting devices (offline only; see DeleteDevicesDialog) ---
+const deleteOpen = ref(false);
+const deleteTargets = ref<Client[]>([]);
+const selectedClients = computed(() => clients.value.filter(c => selectedSet.value.has(c.id)));
+
+function openDelete(devices: Client[]) {
+	deleteTargets.value = devices;
+	deleteOpen.value = true;
+}
+
+function onDeleted(ids: string[]) {
+	const gone = new Set(ids);
+	clients.value = clients.value.filter(c => !gone.has(c.id));
+	totalCount.value = Math.max(0, totalCount.value - ids.length);
+	selectedIds.value = selectedIds.value.filter(id => !gone.has(id));
+	expandedIds.value = expandedIds.value.filter(id => !gone.has(id));
+	loadGroups();
 }
 
 const refreshedLabel = computed(() => {
