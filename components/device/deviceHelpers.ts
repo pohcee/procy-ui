@@ -1,12 +1,11 @@
 import { useLocalStorage } from '@vueuse/core';
 import type { Ref } from 'vue';
 import type { Client } from '~/types';
+import { isOnline, type DeviceLike } from '~/utils/deviceList';
 
 /** A client counts as online when the server reports it connected (falls back to disconnected_at). */
 export function isClientOnline(client: Partial<Client> | null | undefined): boolean {
-	if (!client) return false;
-	if (client.connection_state) return client.connection_state === 'connected';
-	return client.disconnected_at == null;
+	return !!client && isOnline(client as DeviceLike);
 }
 
 export function relativeTime(value: string | Date | null | undefined): string {

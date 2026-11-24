@@ -70,6 +70,23 @@
 							{{ stats.security }}
 						</div>
 					</div>
+					<button
+						v-if="newest"
+						type="button"
+						class="rounded-xl border border-app-border bg-app-surface px-[18px] py-4 text-left hover:bg-app-hover"
+						:title="`Show devices whose client is older than ${newest}`"
+						@click="filters.version = 'outdated'"
+					>
+						<div class="text-[13px] font-medium text-app-text-3">
+							Outdated clients
+						</div>
+						<div :class="['mt-1.5 text-[28px] font-bold tracking-tight', stats.outdated ? 'text-app-warn' : 'text-app-text']">
+							{{ stats.outdated }}
+						</div>
+						<div class="mt-0.5 text-xs text-app-text-3">
+							newest is <span class="font-mono">{{ newest }}</span>
+						</div>
+					</button>
 				</div>
 
 				<!-- Device list card -->
@@ -78,128 +95,262 @@
 					class="rounded-xl border border-app-border bg-app-surface"
 				>
 					<!-- Toolbar -->
-					<div class="flex flex-col gap-3 border-b border-app-border px-4 py-3.5 xl:flex-row xl:items-center xl:justify-between">
-						<div
-							role="group"
-							aria-label="Filter by group"
-							class="scrollbar-hide order-2 -mx-4 flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
-						>
-							<button
-								v-for="pill in pills"
-								:key="pill.id"
-								type="button"
-								:aria-pressed="group === pill.id"
-								:title="pill.description || undefined"
-								:class="[
-									'inline-flex h-9 flex-none items-center gap-2 rounded-full border px-3 text-[13px] font-medium transition-colors',
-									group === pill.id
-										? 'border-app-accent bg-app-accent text-white'
-										: 'border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover',
-								]"
-								@click="setGroup(pill.id)"
+					<div class="flex flex-wrap items-center gap-2.5 border-b border-app-border px-4 py-3.5">
+						<div class="flex h-10 min-w-0 flex-1 basis-full items-center gap-2 rounded-[10px] border border-app-border-strong bg-app-surface px-3 sm:flex-none sm:basis-[200px] xl:basis-[220px] 2xl:basis-[280px]">
+							<Search
+								class="h-4 w-4 flex-none text-app-text-3"
+								aria-hidden="true"
+							/>
+							<label
+								for="device-filter"
+								class="sr-only"
+							>Search by name, ID, IP, group, tag, OS or client version</label>
+							<input
+								id="device-filter"
+								v-model="filters.q"
+								type="search"
+								placeholder="Search name, ID, IP, tag…"
+								class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-none placeholder:text-app-text-4 focus:ring-0"
 							>
-								<Star
-									v-if="pill.id === 'favorites'"
+						</div>
+						<DeviceGroupPicker
+							v-model="filters.group"
+							:options="groupOptions"
+						/>
+						<OpSegmented
+							v-model="filters.status"
+							:options="statusOptions"
+							label="Filter by status"
+							size="sm"
+						/>
+						<button
+							type="button"
+							:aria-expanded="panelOpen"
+							aria-controls="device-filter-panel"
+							:class="[
+								'inline-flex h-10 items-center gap-2 rounded-[10px] border px-3 text-[13px] font-medium transition-colors',
+								panelOpen || panelCount
+									? 'border-app-accent bg-app-accent/10 text-app-text hover:bg-app-accent/15'
+									: 'border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover',
+							]"
+							@click="panelOpen = !panelOpen"
+						>
+							<SlidersHorizontal
+								class="h-4 w-4"
+								aria-hidden="true"
+							/>
+							Filters
+							<span
+								v-if="panelCount"
+								class="rounded-md bg-app-accent px-1.5 text-xs font-semibold text-white"
+							>{{ panelCount }}</span>
+							<ChevronDown
+								:class="['h-4 w-4 text-app-text-3 transition-transform', panelOpen ? 'rotate-180' : '']"
+								aria-hidden="true"
+							/>
+						</button>
+						<div class="ml-auto flex items-center gap-2.5">
+							<button
+								type="button"
+								aria-label="Reload the device list (filters are kept)"
+								title="Reload the device list (filters are kept)"
+								class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover"
+								@click="refresh"
+							>
+								<RefreshCw
+									:class="['h-4 w-4', loading ? 'animate-spin' : '']"
+									aria-hidden="true"
+								/>
+							</button>
+							<HeadlessMenu
+								as="div"
+								class="relative"
+							>
+								<HeadlessMenuButton
+									aria-label="Device list settings"
+									title="Device list settings"
+									class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover"
+								>
+									<Settings2
+										class="h-4 w-4"
+										aria-hidden="true"
+									/>
+								</HeadlessMenuButton>
+								<HeadlessMenuItems class="absolute right-0 z-40 mt-2 w-60 rounded-xl border border-app-border bg-app-surface p-1.5 shadow-lg focus:outline-none">
+									<div class="px-2.5 pb-1 pt-1.5 text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3">
+										Row density
+									</div>
+									<HeadlessMenuItem
+										v-for="option in densityOptions"
+										:key="option.id"
+										v-slot="{ active }"
+									>
+										<button
+											type="button"
+											role="menuitemradio"
+											:aria-checked="density === option.id"
+											:class="['flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm text-app-text', active ? 'bg-app-hover' : '']"
+											@click="density = option.id"
+										>
+											<Check
+												:class="['h-4 w-4', density === option.id ? 'text-app-accent' : 'invisible']"
+												aria-hidden="true"
+											/>
+											{{ option.label }}
+										</button>
+									</HeadlessMenuItem>
+								</HeadlessMenuItems>
+							</HeadlessMenu>
+						</div>
+					</div>
+
+					<!-- More filters (expandable) -->
+					<div
+						v-show="panelOpen"
+						id="device-filter-panel"
+						class="grid gap-x-8 gap-y-4 border-b border-app-border bg-app-surface-2 px-4 py-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]"
+					>
+						<fieldset class="min-w-0">
+							<legend class="mb-1.5 text-[13px] font-medium text-app-text-2">
+								Platform
+							</legend>
+							<div class="flex flex-wrap gap-1.5">
+								<button
+									v-for="p in platformOptions"
+									:key="p.value"
+									type="button"
+									:aria-pressed="filters.platforms.includes(p.value)"
+									:class="toggleChipClass(filters.platforms.includes(p.value))"
+									@click="toggleIn('platforms', p.value)"
+								>
+									{{ p.label }}<span class="text-xs opacity-80">{{ p.count }}</span>
+								</button>
+							</div>
+						</fieldset>
+						<div class="min-w-0">
+							<ThemedSelect
+								id="device-version-filter"
+								:model-value="filters.version || 'any'"
+								:options="versionOptions"
+								label="Client version"
+								@update:model-value="filters.version = $event === 'any' ? '' : String($event)"
+							/>
+						</div>
+						<div class="min-w-0">
+							<ThemedSelect
+								id="device-updates-filter"
+								:model-value="filters.updates"
+								:options="updatesOptions"
+								label="Updates"
+								@update:model-value="filters.updates = $event"
+							/>
+						</div>
+						<fieldset class="min-w-0">
+							<legend class="mb-1.5 text-[13px] font-medium text-app-text-2">
+								Tags <span class="font-normal text-app-text-3">(devices with all selected)</span>
+							</legend>
+							<div
+								v-if="tagOptions.length"
+								class="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto"
+							>
+								<button
+									v-for="t in tagOptions"
+									:key="t.value"
+									type="button"
+									:aria-pressed="filters.tags.includes(t.value)"
+									:class="toggleChipClass(filters.tags.includes(t.value))"
+									@click="toggleIn('tags', t.value)"
+								>
+									{{ t.value }}<span class="text-xs opacity-80">{{ t.count }}</span>
+								</button>
+							</div>
+							<p
+								v-else
+								class="text-[13px] text-app-text-3"
+							>
+								No device has tags.
+							</p>
+						</fieldset>
+					</div>
+
+					<!-- Active filters -->
+					<div
+						v-if="chips.length"
+						class="flex flex-wrap items-center gap-1.5 border-b border-app-border-subtle px-4 py-2.5"
+						role="group"
+						aria-label="Active filters"
+					>
+						<span
+							v-for="chip in chips"
+							:key="chip.key"
+							class="inline-flex h-7 max-w-full items-center gap-1 rounded-lg bg-app-chip pl-2.5 pr-1 text-xs font-medium text-app-text"
+						>
+							<span class="truncate">{{ chip.label }}</span>
+							<button
+								type="button"
+								class="inline-flex h-5 w-5 flex-none items-center justify-center rounded text-app-text-2 hover:bg-app-hover hover:text-app-text"
+								:aria-label="`Remove filter ${chip.label}`"
+								@click="Object.assign(filters, removeFilterChip(filters, chip))"
+							>
+								<X
 									class="h-3.5 w-3.5"
 									aria-hidden="true"
 								/>
-								{{ pill.label }}
-								<span class="text-xs opacity-80">{{ pill.count }}</span>
 							</button>
-						</div>
-						<div class="order-1 flex flex-wrap items-center gap-2.5 xl:order-3">
-							<div
-								role="group"
-								aria-label="Filter by status"
-								class="order-2 flex w-full rounded-[10px] bg-app-muted p-[3px] sm:order-1 sm:inline-flex sm:w-auto"
+						</span>
+						<button
+							type="button"
+							class="ml-1 text-xs font-medium text-app-link hover:underline"
+							@click="clearFilters"
+						>
+							Clear all
+						</button>
+					</div>
+
+					<!-- Selection bar -->
+					<div
+						v-if="selectedIds.length"
+						class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-app-border bg-app-accent/5 px-4 py-2.5 text-[13px]"
+						role="region"
+						aria-label="Selected devices"
+					>
+						<span class="font-semibold text-app-text">{{ selectedIds.length }} selected</span>
+						<span
+							v-if="hiddenSelectedCount"
+							class="text-app-text-3"
+						>{{ hiddenSelectedCount }} hidden by filters</span>
+						<button
+							v-if="!allVisibleSelected && rows.length"
+							type="button"
+							class="font-medium text-app-link hover:underline"
+							@click="selectVisible(true)"
+						>
+							Select all {{ rows.length }} shown
+						</button>
+						<button
+							type="button"
+							class="font-medium text-app-link hover:underline"
+							@click="selectedIds = []"
+						>
+							Clear selection
+						</button>
+						<span class="ml-auto flex flex-wrap items-center gap-3">
+							<span
+								v-if="selectedOffline"
+								class="text-app-text-3"
+							>{{ selectedOnlineIds.length ? `${selectedOffline} offline ${selectedOffline === 1 ? 'device is' : 'devices are'} left out` : 'All selected devices are offline' }}</span>
+							<AppButton
+								size="sm"
+								:disabled="!selectedOnlineIds.length"
+								@click="runOnSelection"
 							>
-								<button
-									v-for="option in statusOptions"
-									:key="option.id"
-									type="button"
-									:aria-pressed="status === option.id"
-									:class="[
-										'h-[34px] flex-1 rounded-lg px-3 text-[13px] font-medium transition-colors sm:flex-none',
-										status === option.id
-											? 'bg-app-raised text-app-text shadow-[0_1px_2px_rgba(16,22,31,0.12)]'
-											: 'text-app-text-3 hover:text-app-text',
-									]"
-									@click="status = option.id"
-								>
-									{{ option.label }}
-								</button>
-							</div>
-							<div class="order-1 flex w-full items-center gap-2.5 sm:order-2 sm:w-auto">
-								<div class="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-[10px] border border-app-border-strong bg-app-surface px-3 sm:h-10 sm:w-[260px] sm:flex-none">
-									<ListFilter
-										class="h-4 w-4 flex-none text-app-text-3"
-										aria-hidden="true"
-									/>
-									<label
-										for="device-filter"
-										class="sr-only"
-									>Filter by name, IP, group or OS</label>
-									<input
-										id="device-filter"
-										v-model="query"
-										type="search"
-										placeholder="Filter by name, IP or group"
-										class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-none placeholder:text-app-text-4 focus:ring-0"
-									>
-								</div>
-								<button
-									type="button"
-									aria-label="Reload the device list (filters are kept)"
-									title="Reload the device list (filters are kept)"
-									class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover"
-									@click="refresh"
-								>
-									<RefreshCw
-										:class="['h-4 w-4', loading ? 'animate-spin' : '']"
-										aria-hidden="true"
-									/>
-								</button>
-								<HeadlessMenu
-									as="div"
-									class="relative"
-								>
-									<HeadlessMenuButton
-										aria-label="Device list settings"
-										title="Device list settings"
-										class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover"
-									>
-										<Settings2
-											class="h-4 w-4"
-											aria-hidden="true"
-										/>
-									</HeadlessMenuButton>
-									<HeadlessMenuItems class="absolute right-0 z-40 mt-2 w-60 rounded-xl border border-app-border bg-app-surface p-1.5 shadow-lg focus:outline-none">
-										<div class="px-2.5 pb-1 pt-1.5 text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3">
-											Row density
-										</div>
-										<HeadlessMenuItem
-											v-for="option in densityOptions"
-											:key="option.id"
-											v-slot="{ active }"
-										>
-											<button
-												type="button"
-												role="menuitemradio"
-												:aria-checked="density === option.id"
-												:class="['flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm text-app-text', active ? 'bg-app-hover' : '']"
-												@click="density = option.id"
-											>
-												<Check
-													:class="['h-4 w-4', density === option.id ? 'text-app-accent' : 'invisible']"
-													aria-hidden="true"
-												/>
-												{{ option.label }}
-											</button>
-										</HeadlessMenuItem>
-									</HeadlessMenuItems>
-								</HeadlessMenu>
-							</div>
-						</div>
+								<Terminal
+									class="h-4 w-4"
+									aria-hidden="true"
+								/>
+								Run command on {{ selectedOnlineIds.length }}
+							</AppButton>
+						</span>
 					</div>
 
 					<!-- Phone summary line -->
@@ -221,126 +372,241 @@
 							<thead>
 								<tr class="bg-app-surface-2 text-left">
 									<th
+										scope="col"
+										class="w-10 border-b border-app-border py-2.5 pl-4 pr-1"
+									>
+										<input
+											type="checkbox"
+											class="h-[18px] w-[18px] cursor-pointer rounded align-middle accent-app-accent"
+											:checked="allVisibleSelected"
+											:indeterminate="someVisibleSelected && !allVisibleSelected"
+											:aria-label="allVisibleSelected ? 'Deselect the devices shown' : 'Select the devices shown'"
+											@change="selectVisible(!allVisibleSelected)"
+										>
+									</th>
+									<th
 										v-for="col in columns"
 										:key="col.id"
 										scope="col"
-										:class="['border-b border-app-border px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3 first:pl-4', col.class]"
+										:aria-sort="col.sort && sort.key === col.sort ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined"
+										:class="['whitespace-nowrap border-b border-app-border px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3', col.class]"
 									>
-										<span :class="col.id === 'actions' ? 'sr-only' : ''">{{ col.label }}</span>
+										<button
+											v-if="col.sort"
+											type="button"
+											:class="['group inline-flex items-center gap-1 align-middle uppercase tracking-[0.04em] hover:text-app-text', sort.key === col.sort ? 'text-app-text' : '', col.align === 'right' ? 'flex-row-reverse' : '']"
+											:title="`Sort by ${col.label.toLowerCase()}`"
+											@click="toggleSort(col.sort)"
+										>
+											{{ col.label }}
+											<component
+												:is="sort.key !== col.sort ? ChevronsUpDown : sort.dir === 'asc' ? ArrowUp : ArrowDown"
+												:class="['h-3.5 w-3.5', sort.key === col.sort ? '' : 'opacity-0 group-hover:opacity-60']"
+												aria-hidden="true"
+											/>
+										</button>
+										<span
+											v-else
+											:class="col.id === 'actions' ? 'sr-only' : ''"
+										>{{ col.label }}</span>
 									</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr
+								<template
 									v-for="row in rows"
 									:key="row.client.id"
-									class="hover:bg-app-hover"
 								>
-									<td :class="['w-full max-w-0 border-b border-app-border-subtle pl-4 pr-3', cellPad]">
-										<div class="flex min-w-0 items-center gap-3">
-											<ClientIcon
-												:os-full-name="row.client.os_full_name"
-												:os-kernel="row.client.os_kernel"
-												:os-family="row.client.os_family"
-												:os="row.client.os"
-												:tile="density === 'condensed' ? 28 : 36"
-											/>
-											<div class="min-w-0">
-												<div class="flex items-center gap-1.5">
-													<NuxtLink
-														:to="`/dashboard/${row.client.id}`"
-														class="truncate font-mono text-sm font-medium text-app-text hover:text-app-link hover:underline"
+									<tr :class="['hover:bg-app-hover', row.selected ? 'bg-app-accent/5' : '']">
+										<td :class="['border-b border-app-border-subtle pl-4 pr-1', cellPad, row.expanded ? 'border-b-0' : '']">
+											<input
+												type="checkbox"
+												class="h-[18px] w-[18px] cursor-pointer rounded align-middle accent-app-accent"
+												:checked="row.selected"
+												:aria-label="`Select ${row.client.name || row.client.id}`"
+												@change="toggleSelected(row.client.id)"
+											>
+										</td>
+										<td :class="['w-full min-w-[160px] max-w-0 xl:min-w-[180px] border-b border-app-border-subtle px-3', cellPad, row.expanded ? 'border-b-0' : '']">
+											<div class="flex min-w-0 items-center gap-3">
+												<ClientIcon
+													:os-full-name="row.client.os_full_name"
+													:os-kernel="row.client.os_kernel"
+													:os-family="row.client.os_family"
+													:os="row.client.os"
+													:tile="density === 'condensed' ? 28 : 36"
+												/>
+												<div class="min-w-0">
+													<div class="flex items-center gap-1.5">
+														<NuxtLink
+															:to="`/dashboard/${row.client.id}`"
+															class="truncate font-mono text-sm font-medium text-app-text hover:text-app-link hover:underline"
+															:title="`ID ${row.client.id}`"
+														>
+															{{ row.client.name || row.client.id }}
+														</NuxtLink>
+														<Star
+															v-if="row.favorite"
+															class="h-3.5 w-3.5 flex-none fill-[#D97706] text-[#D97706]"
+															role="img"
+															aria-label="Favorite"
+														/>
+													</div>
+													<div
+														v-if="density !== 'condensed'"
+														class="mt-0.5 truncate text-xs text-app-text-3"
+														:title="row.os || undefined"
 													>
-														{{ row.client.name || row.client.id }}
-													</NuxtLink>
-													<Star
-														v-if="row.favorite"
-														class="h-3.5 w-3.5 flex-none fill-[#D97706] text-[#D97706]"
-														role="img"
-														aria-label="Favorite"
-													/>
-												</div>
-												<div
-													v-if="density !== 'condensed'"
-													class="mt-0.5 truncate text-xs text-app-text-3"
-													:title="row.os || undefined"
-												>
-													{{ row.os || '—' }}
-												</div>
-												<div
-													v-if="density === 'spacious' && row.client.tags?.length"
-													class="mt-1 flex flex-wrap gap-1"
-												>
-													<span
-														v-for="tag in row.client.tags"
-														:key="tag"
-														class="rounded border border-app-border-strong px-1.5 text-[11px] text-app-text-3"
-													>{{ tag }}</span>
+														{{ row.os || '—' }}
+													</div>
+													<div
+														v-if="density === 'spacious' && row.client.tags?.length"
+														class="mt-1 flex flex-wrap gap-1"
+													>
+														<span
+															v-for="tag in row.client.tags"
+															:key="tag"
+															class="rounded border border-app-border-strong px-1.5 text-[11px] text-app-text-3"
+														>{{ tag }}</span>
+													</div>
 												</div>
 											</div>
-										</div>
-									</td>
-									<td :class="['whitespace-nowrap border-b border-app-border-subtle px-3', cellPad]">
-										<span :class="['inline-flex items-center gap-2 text-[13px] font-medium', row.online ? 'text-app-ok' : 'text-app-text-3']">
-											<span
-												aria-hidden="true"
-												:class="['h-2 w-2 rounded-full', row.online ? 'bg-[#22C55E]' : 'border-2 border-app-text-4']"
-											/>
-											{{ row.statusText }}
-										</span>
-										<div
-											v-if="row.updates.tone === 'security' || row.updates.tone === 'pending'"
-											:class="['mt-0.5 text-xs xl:hidden', updatesToneClass[row.updates.tone]]"
-										>
-											{{ row.updates.text }}
-										</div>
-									</td>
-									<td :class="['whitespace-nowrap border-b border-app-border-subtle px-3 font-mono text-[13px] text-app-text-2', cellPad]">
-										{{ row.ip || '—' }}
-									</td>
-									<td :class="['hidden border-b border-app-border-subtle px-3 xl:table-cell', cellPad]">
-										<div class="flex min-w-[9rem] max-w-[16rem] flex-wrap gap-1.5">
-											<button
-												v-for="g in row.client.groups ?? []"
-												:key="g"
-												type="button"
-												:aria-label="`Show group ${g}`"
-												class="whitespace-nowrap rounded-md bg-app-chip px-2 py-[3px] text-xs font-medium text-app-text-2 hover:text-app-link"
-												@click="setGroup(g)"
+										</td>
+										<td :class="['whitespace-nowrap border-b border-app-border-subtle px-3', cellPad, row.expanded ? 'border-b-0' : '']">
+											<span :class="['inline-flex items-center gap-2 text-[13px] font-medium', row.online ? 'text-app-ok' : 'text-app-text-3']">
+												<span
+													aria-hidden="true"
+													:class="['h-2 w-2 rounded-full', row.online ? 'bg-[#22C55E]' : 'border-2 border-app-text-4']"
+												/>
+												{{ row.statusText }}
+											</span>
+											<div
+												v-if="row.updates.tone === 'security' || row.updates.tone === 'pending'"
+												:class="['mt-0.5 text-xs xl:hidden', updatesToneClass[row.updates.tone]]"
 											>
-												{{ g }}
-											</button>
+												{{ row.updates.text }}
+											</div>
+										</td>
+										<td :class="['whitespace-nowrap border-b border-app-border-subtle px-3 font-mono text-[13px] text-app-text-2', cellPad, row.expanded ? 'border-b-0' : '']">
+											{{ row.ip || '—' }}
+										</td>
+										<td :class="['hidden border-b border-app-border-subtle px-3 min-[1400px]:table-cell', cellPad, row.expanded ? 'border-b-0' : '']">
+											<div class="flex max-w-[10rem] items-center gap-1.5 2xl:max-w-[14rem]">
+												<button
+													v-if="row.firstGroup"
+													type="button"
+													:aria-label="`Show group ${row.firstGroup}`"
+													:title="row.firstGroup"
+													class="min-w-0 truncate whitespace-nowrap rounded-md bg-app-chip px-2 py-[3px] font-mono text-xs font-medium text-app-text-2 hover:text-app-link"
+													@click="filters.group = row.firstGroup"
+												>
+													{{ row.firstGroup }}
+												</button>
+												<button
+													v-if="row.moreGroups.length"
+													type="button"
+													:title="row.moreGroups.join(', ')"
+													:aria-label="`${row.moreGroups.length} more groups: ${row.moreGroups.join(', ')}. Show details`"
+													class="flex-none whitespace-nowrap rounded-md border border-app-border-strong px-1.5 py-[2px] text-xs font-medium text-app-text-3 hover:text-app-text"
+													@click="toggleExpanded(row.client.id)"
+												>
+													+{{ row.moreGroups.length }}
+												</button>
+												<span
+													v-if="!row.firstGroup"
+													class="text-[13px] text-app-text-4"
+												>—</span>
+											</div>
+										</td>
+										<td :class="['hidden whitespace-nowrap border-b border-app-border-subtle px-3 font-mono text-[13px] lg:table-cell', cellPad, row.expanded ? 'border-b-0' : '']">
 											<span
-												v-if="!row.client.groups?.length"
-												class="text-[13px] text-app-text-4"
-											>—</span>
-										</div>
-									</td>
-									<td :class="['hidden whitespace-nowrap border-b border-app-border-subtle px-3 text-[13px] xl:table-cell', cellPad, updatesToneClass[row.updates.tone]]">
-										{{ row.updates.text }}
-									</td>
-									<td :class="['whitespace-nowrap border-b border-app-border-subtle pl-3 pr-4 text-right', cellPad]">
-										<div class="inline-flex items-center">
-											<NuxtLink
-												:to="`/dashboard/${row.client.id}?tab=run`"
-												:aria-label="`Run a command on ${row.client.name || row.client.id}`"
-												:title="`Run a command on ${row.client.name || row.client.id}`"
-												class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-app-text-2 hover:bg-app-hover hover:text-app-text"
+												v-if="row.client.version"
+												:class="['inline-flex items-center gap-1', row.outdated ? 'font-medium text-app-warn' : 'text-app-text-2']"
+												:title="row.outdated ? `Older than the newest client in this fleet (${newest})` : undefined"
 											>
-												<Terminal
-													class="h-4 w-4"
+												<CircleArrowUp
+													v-if="row.outdated"
+													class="h-3.5 w-3.5"
 													aria-hidden="true"
 												/>
-											</NuxtLink>
-											<DeviceActionsMenu
-												:device="row.client"
-												list
-												small
-												@action="onRowAction(row.client, $event)"
+												{{ row.client.version }}
+												<span
+													v-if="row.outdated"
+													class="sr-only"
+												>(outdated)</span>
+											</span>
+											<span
+												v-else
+												class="text-app-text-4"
+											>—</span>
+										</td>
+										<td :class="['hidden whitespace-nowrap border-b border-app-border-subtle px-3 text-right xl:table-cell', cellPad, row.expanded ? 'border-b-0' : '']">
+											<span
+												v-if="!row.client.updates_status"
+												class="text-[13px] text-app-text-4"
+												:title="row.updates.text"
+											>n/a</span>
+											<UpdatesCount
+												v-else
+												:count="row.updates.pending"
+												kind="updates"
 											/>
-										</div>
-									</td>
-								</tr>
+										</td>
+										<td :class="['hidden whitespace-nowrap border-b border-app-border-subtle px-3 text-right xl:table-cell', cellPad, row.expanded ? 'border-b-0' : '']">
+											<span
+												v-if="!row.client.updates_status"
+												class="text-[13px] text-app-text-4"
+												:title="row.updates.text"
+											>n/a</span>
+											<UpdatesCount
+												v-else
+												:count="row.updates.security"
+												kind="security"
+											/>
+										</td>
+										<td :class="['whitespace-nowrap border-b border-app-border-subtle pl-3 pr-4 text-right', cellPad, row.expanded ? 'border-b-0' : '']">
+											<div class="inline-flex items-center">
+												<button
+													type="button"
+													:aria-expanded="row.expanded"
+													:aria-label="`${row.expanded ? 'Hide' : 'Show'} details of ${row.client.name || row.client.id}`"
+													:title="row.expanded ? 'Hide details' : 'Show details'"
+													class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-app-text-2 hover:bg-app-hover hover:text-app-text"
+													@click="toggleExpanded(row.client.id)"
+												>
+													<ChevronDown
+														:class="['h-4 w-4 transition-transform', row.expanded ? 'rotate-180' : '']"
+														aria-hidden="true"
+													/>
+												</button>
+												<DeviceActionsMenu
+													:device="row.client"
+													list
+													small
+													@action="onRowAction(row.client, $event)"
+												/>
+											</div>
+										</td>
+									</tr>
+									<tr
+										v-if="row.expanded"
+										:class="row.selected ? 'bg-app-accent/5' : ''"
+									>
+										<td class="border-b border-app-border-subtle" />
+										<td
+											:colspan="columns.length"
+											class="border-b border-app-border-subtle px-3 pb-4 pt-1"
+										>
+											<DeviceRowDetails
+												:client="row.client"
+												:newest="newest"
+												@copy-id="onRowAction(row.client, 'copy-id')"
+												@group="filters.group = $event"
+												@tag="addTagFilter"
+											/>
+										</td>
+									</tr>
+								</template>
 							</tbody>
 						</table>
 					</div>
@@ -381,10 +647,22 @@
 											class="font-mono"
 										>{{ row.ip }} · </span>{{ row.os }}
 									</span>
-									<span
-										v-if="row.updates.tone !== 'none'"
-										:class="['text-xs', updatesToneClass[row.updates.tone]]"
-									>{{ row.updates.text }}</span>
+									<span class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-app-text-3">
+										<span
+											v-if="row.client.version"
+											:class="['font-mono', row.outdated ? 'font-medium text-app-warn' : '']"
+										>v{{ row.client.version }}</span>
+										<UpdatesCount
+											:count="row.updates.pending"
+											kind="updates"
+											labelled
+										/>
+										<UpdatesCount
+											:count="row.updates.security"
+											kind="security"
+											labelled
+										/>
+									</span>
 								</span>
 								<span :class="['inline-flex flex-none items-center gap-1.5 whitespace-nowrap text-xs font-medium', row.online ? 'text-app-ok' : 'text-app-text-3']">
 									<span
@@ -427,7 +705,7 @@
 								No devices match these filters
 							</div>
 							<p class="mb-4 mt-1.5 text-[13px] text-app-text-3">
-								{{ group === 'favorites' && !favorites.length ? 'Mark devices as favorites with the star on their page.' : 'Try another group or status, or clear the filter text.' }}
+								{{ filters.group === 'favorites' && !favorites.length ? 'Mark devices as favorites with the star on their page.' : 'Try another group or status, or clear the search text.' }}
 							</p>
 							<AppButton
 								variant="secondary"
@@ -460,11 +738,31 @@
 
 <script setup lang="ts">
 import { useClipboard, useIntervalFn, useLocalStorage } from '@vueuse/core';
-import { Check, ListFilter, Plus, RefreshCw, Settings2, Star, Terminal } from 'lucide-vue-next';
+import {
+	ArrowDown,
+	ArrowUp,
+	Check,
+	ChevronDown,
+	ChevronsUpDown,
+	CircleArrowUp,
+	Plus,
+	RefreshCw,
+	Search,
+	Settings2,
+	SlidersHorizontal,
+	Star,
+	Terminal,
+	X,
+} from 'lucide-vue-next';
 import AddClientModal from '~/components/clients/AddClientModal.vue';
 import InstallClientModal from '~/components/clients/InstallClientModal.vue';
+import ThemedSelect from '~/components/custom/ThemedSelect.vue';
 import ClientIcon from '~/components/device/ClientIcon.vue';
 import DeviceActionsMenu from '~/components/device/DeviceActionsMenu.vue';
+import DeviceGroupPicker from '~/components/device/DeviceGroupPicker.vue';
+import DeviceRowDetails from '~/components/device/DeviceRowDetails.vue';
+import OpSegmented from '~/components/operate/OpSegmented.vue';
+import UpdatesCount from '~/components/operate/UpdatesCount.vue';
 import {
 	isClientOnline,
 	osLabel,
@@ -473,9 +771,28 @@ import {
 	updatesToneClass,
 	useFavoriteDevices,
 } from '~/components/device/deviceHelpers';
+import {
+	DEFAULT_FILTERS,
+	activeFilterChips,
+	compareVersions,
+	defaultSortDir,
+	filtersFromQuery,
+	filtersToQuery,
+	isOutdated,
+	matchesFilters,
+	newestVersion,
+	panelFilterCount,
+	platformOf,
+	removeFilterChip,
+	sortClients,
+	type DeviceFilters,
+	type DeviceSort,
+	type SortKey,
+	type StatusFilter,
+	type UpdatesFilter,
+} from '~/utils/deviceList';
 import type { Client, ClientAuth } from '~/types';
 
-type Status = 'any' | 'online' | 'offline';
 type Density = 'condensed' | 'comfortable' | 'spacious';
 
 const { $api } = useNuxtApp();
@@ -499,30 +816,45 @@ useIntervalFn(() => {
 	now.value = Date.now();
 }, 30000);
 
-const group = ref(String(route.query.group ?? 'all'));
-const status = ref<Status>('any');
-const query = ref('');
+// Filters and sort live in the URL query (keys in utils/deviceList.ts), so views can be bookmarked.
+const initial = filtersFromQuery(route.query);
+const filters = reactive<DeviceFilters>(initial.filters);
+const sort = ref<DeviceSort>(initial.sort);
+const panelOpen = ref(panelFilterCount(initial.filters) > 0);
 const density = useLocalStorage<Density>('openrport-device-list-density', 'comfortable');
 
-const statusOptions: { id: Status; label: string }[] = [
-	{ id: 'any', label: 'Any status' },
-	{ id: 'online', label: 'Online' },
-	{ id: 'offline', label: 'Offline' },
+const statusOptions: { value: StatusFilter; label: string }[] = [
+	{ value: 'any', label: 'Any status' },
+	{ value: 'online', label: 'Online' },
+	{ value: 'offline', label: 'Offline' },
+];
+const updatesOptions: { value: UpdatesFilter; label: string }[] = [
+	{ value: 'any', label: 'Any' },
+	{ value: 'pending', label: 'Updates pending' },
+	{ value: 'security', label: 'Security updates pending' },
+	{ value: 'unreported', label: 'Not reported' },
 ];
 const densityOptions: { id: Density; label: string }[] = [
 	{ id: 'condensed', label: 'Condensed, single line' },
 	{ id: 'comfortable', label: 'Comfortable, with OS' },
 	{ id: 'spacious', label: 'Spacious, with tags' },
 ];
-const columns = [
-	{ id: 'device', label: 'Device', class: '' },
-	{ id: 'status', label: 'Status', class: '' },
-	{ id: 'ip', label: 'IP address', class: '' },
-	{ id: 'groups', label: 'Groups', class: 'hidden xl:table-cell' },
-	{ id: 'updates', label: 'Updates', class: 'hidden xl:table-cell' },
+const columns: { id: string; label: string; class: string; sort?: SortKey; align?: 'right' }[] = [
+	{ id: 'device', label: 'Device', class: '', sort: 'name' },
+	{ id: 'status', label: 'Status', class: '', sort: 'status' },
+	{ id: 'ip', label: 'IP address', class: '', sort: 'ip' },
+	{ id: 'groups', label: 'Groups', class: 'hidden min-[1400px]:table-cell', sort: 'groups' },
+	{ id: 'version', label: 'Client', class: 'hidden lg:table-cell', sort: 'version' },
+	{ id: 'updates', label: 'Updates', class: 'hidden text-right xl:table-cell', sort: 'updates', align: 'right' },
+	{ id: 'security', label: 'Security', class: 'hidden text-right xl:table-cell', sort: 'security', align: 'right' },
 	{ id: 'actions', label: 'Actions', class: 'w-[96px]' },
 ];
 const cellPad = computed(() => (density.value === 'condensed' ? 'py-2' : 'py-3'));
+
+// --- selection and expansion (kept by client ID across filtering and sorting) ---
+const selectedIds = ref<string[]>([]);
+const selectedSet = computed(() => new Set(selectedIds.value));
+const expandedIds = ref<string[]>([]);
 
 async function loadClients() {
 	loading.value = true;
@@ -540,6 +872,9 @@ async function loadClients() {
 		clients.value = all;
 		totalCount.value = count;
 		loadError.value = '';
+		// Forget selected devices that are gone.
+		const ids = new Set(all.map(c => c.id));
+		selectedIds.value = selectedIds.value.filter(id => ids.has(id));
 	}
 	catch (e) {
 		console.error('Error loading clients:', e);
@@ -568,22 +903,33 @@ async function refresh() {
 
 onMounted(refresh);
 
-const inGroup = (client: Client, id: string) => {
-	if (id === 'all') return true;
-	if (id === 'favorites') return isFavorite(client.id);
-	return (client.groups ?? []).includes(id);
-};
+const newest = computed(() => newestVersion(clients.value.map(c => c.version)));
 
-const pills = computed(() => [
-	{ id: 'all', label: 'All', count: totalCount.value, description: '' },
+/** Counts of distinct values. */
+function tally(values: string[]): Map<string, number> {
+	const counts = new Map<string, number>();
+	values.forEach(v => counts.set(v, (counts.get(v) ?? 0) + 1));
+	return counts;
+}
+
+const groupOptions = computed(() => [
+	{ id: 'all', label: 'All devices', count: totalCount.value },
 	{ id: 'favorites', label: 'Favorites', count: clients.value.filter(c => isFavorite(c.id)).length, description: 'Devices you starred in this browser' },
 	...clientStore.groups.map(g => ({
 		id: g.id,
 		label: g.id,
-		count: clients.value.filter(c => inGroup(c, g.id)).length || g.num_clients || 0,
+		count: clients.value.filter(c => (c.groups ?? []).includes(g.id)).length || g.num_clients || 0,
 		description: g.description,
 	})),
 ]);
+
+const PLATFORM_LABELS: Record<string, string> = { linux: 'Linux', windows: 'Windows', darwin: 'macOS', freebsd: 'FreeBSD', unknown: 'Unknown' };
+const platformLabel = (p: string) => PLATFORM_LABELS[p] ?? p.charAt(0).toUpperCase() + p.slice(1);
+const platformOptions = computed(() => {
+	const counts = tally(clients.value.map(platformOf));
+	filters.platforms.forEach(p => counts.set(p, counts.get(p) ?? 0));
+	return [...counts].sort((a, b) => b[1] - a[1]).map(([value, count]) => ({ value, label: platformLabel(value), count }));
+});
 
 const stats = computed(() => {
 	const online = clients.value.filter(c => isClientOnline(c)).length;
@@ -593,56 +939,135 @@ const stats = computed(() => {
 		offline: clients.value.length - online,
 		reportingUpdates: clients.value.some(c => !!c.updates_status),
 		security: clients.value.reduce((n, c) => n + (c.updates_status?.security_updates_available ?? 0), 0),
+		outdated: clients.value.filter(c => isOutdated(c.version, newest.value)).length,
 	};
 });
 
-const rows = computed(() => {
-	const q = query.value.trim().toLowerCase();
-	return clients.value
-		.filter(c => inGroup(c, group.value))
-		.filter(c => status.value === 'any' || (status.value === 'online') === isClientOnline(c))
-		.filter((c) => {
-			if (!q) return true;
-			const haystack = [
-				c.name, c.id, c.hostname, osLabel(c), c.os_kernel,
-				...(c.ipv4 ?? []), ...(c.groups ?? []), ...(c.tags ?? []),
-			].filter(Boolean).join(' ').toLowerCase();
-			return haystack.includes(q);
-		})
-		.map((c) => {
-			const online = isClientOnline(c);
-			const seen = relativeTime(c.disconnected_at);
-			return {
-				client: c,
-				online,
-				favorite: isFavorite(c.id),
-				os: osLabel(c),
-				ip: c.ipv4?.[0] ?? '',
-				statusText: online ? 'Online' : `Offline${seen ? ` · ${seen}` : ''}`,
-				updates: updatesInfo(c),
-			};
-		});
+const versionOptions = computed(() => {
+	const counts = tally(clients.value.map(c => c.version).filter((v): v is string => !!v));
+	if (filters.version && filters.version !== 'outdated') counts.set(filters.version, counts.get(filters.version) ?? 0);
+	const versions = [...counts].sort((a, b) => compareVersions(b[0], a[0]));
+	return [
+		{ value: 'any', label: 'Any version' },
+		...(newest.value ? [{ value: 'outdated', label: `Older than ${newest.value} (${stats.value.outdated})` }] : []),
+		...versions.map(([v, n]) => ({ value: v, label: `${v} (${n})` })),
+	];
 });
 
-const refreshedLabel = computed(() => {
-	void now.value;
-	return relativeTime(lastRefreshed.value);
+const tagOptions = computed(() => {
+	const counts = tally(clients.value.flatMap(c => c.tags ?? []));
+	filters.tags.forEach(t => counts.set(t, counts.get(t) ?? 0));
+	return [...counts].sort((a, b) => a[0].localeCompare(b[0])).map(([value, count]) => ({ value, count }));
 });
 
-function setGroup(id: string) {
-	group.value = id;
+const toggleChipClass = (on: boolean) => [
+	'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition-colors',
+	on ? 'border-app-accent bg-app-accent text-white' : 'border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover',
+];
+
+function toggleIn(field: 'platforms' | 'tags', value: string) {
+	filters[field] = filters[field].includes(value)
+		? filters[field].filter(v => v !== value)
+		: [...filters[field], value];
 }
-watch(group, (value) => {
-	router.replace({ query: { ...route.query, group: value === 'all' ? undefined : value } });
+
+function addTagFilter(tag: string) {
+	if (!filters.tags.includes(tag)) filters.tags = [...filters.tags, tag];
+}
+
+const chips = computed(() => activeFilterChips(filters, { platformLabel }));
+const panelCount = computed(() => panelFilterCount(filters));
+
+const rows = computed(() => {
+	const ctx = { isFavorite, newest: newest.value };
+	const expanded = new Set(expandedIds.value);
+	const matching = clients.value.filter(c => matchesFilters(c, filters, ctx));
+	return sortClients(matching, sort.value.key, sort.value.dir).map((c) => {
+		const online = isClientOnline(c);
+		const seen = relativeTime(c.disconnected_at);
+		const groups = c.groups ?? [];
+		return {
+			client: c,
+			online,
+			favorite: isFavorite(c.id),
+			selected: selectedSet.value.has(c.id),
+			expanded: expanded.has(c.id),
+			outdated: isOutdated(c.version, ctx.newest),
+			os: osLabel(c),
+			ip: c.ipv4?.[0] ?? '',
+			firstGroup: groups[0] ?? '',
+			moreGroups: groups.slice(1),
+			statusText: online ? 'Online' : `Offline${seen ? ` · ${seen}` : ''}`,
+			updates: updatesInfo(c),
+		};
+	});
 });
-watch(() => route.query.group, (value) => {
-	group.value = String(value ?? 'all');
+
+const allVisibleSelected = computed(() => rows.value.length > 0 && rows.value.every(r => r.selected));
+const someVisibleSelected = computed(() => rows.value.some(r => r.selected));
+const hiddenSelectedCount = computed(() => {
+	const shown = new Set(rows.value.map(r => r.client.id));
+	return selectedIds.value.filter(id => !shown.has(id)).length;
+});
+const selectedOnlineIds = computed(() => clients.value
+	.filter(c => selectedSet.value.has(c.id) && isClientOnline(c))
+	.map(c => c.id));
+const selectedOffline = computed(() => selectedIds.value.length - selectedOnlineIds.value.length);
+
+function toggleSelected(id: string) {
+	selectedIds.value = selectedSet.value.has(id)
+		? selectedIds.value.filter(s => s !== id)
+		: [...selectedIds.value, id];
+}
+
+function selectVisible(on: boolean) {
+	const visible = rows.value.map(r => r.client.id);
+	if (on) {
+		selectedIds.value = [...new Set([...selectedIds.value, ...visible])];
+	}
+	else {
+		const drop = new Set(visible);
+		selectedIds.value = selectedIds.value.filter(id => !drop.has(id));
+	}
+}
+
+function toggleExpanded(id: string) {
+	expandedIds.value = expandedIds.value.includes(id)
+		? expandedIds.value.filter(e => e !== id)
+		: [...expandedIds.value, id];
+}
+
+/** Opens Execute with the selected online devices as targets (pick code or a library entry there). */
+function runOnSelection() {
+	if (!selectedOnlineIds.value.length) return;
+	navigateTo({ path: '/execute', query: { clients: selectedOnlineIds.value } });
+}
+
+function toggleSort(key: SortKey) {
+	sort.value = sort.value.key === key
+		? { key, dir: sort.value.dir === 'asc' ? 'desc' : 'asc' }
+		: { key, dir: defaultSortDir(key) };
+}
+
+// Keep the URL query and the filters/sort in step, both ways (typing, back/forward).
+const queryKey = (q: typeof route.query) => {
+	const parsed = filtersFromQuery(q);
+	return JSON.stringify(filtersToQuery(parsed.filters, parsed.sort));
+};
+watch([filters, sort], () => {
+	const next = filtersToQuery(filters, sort.value);
+	if (queryKey(route.query) === JSON.stringify(next)) return;
+	router.replace({ query: { ...route.query, ...next } });
+}, { deep: true });
+watch(() => route.query, (query) => {
+	if (queryKey(query) === JSON.stringify(filtersToQuery(filters, sort.value))) return;
+	const parsed = filtersFromQuery(query);
+	Object.assign(filters, parsed.filters);
+	sort.value = parsed.sort;
 });
 
 function clearFilters() {
-	group.value = 'all';
-	status.value = 'any';
-	query.value = '';
+	Object.assign(filters, { ...DEFAULT_FILTERS, platforms: [], tags: [] });
 }
 
 async function onRowAction(client: Client, action: string) {
@@ -662,6 +1087,11 @@ async function onRowAction(client: Client, action: string) {
 			break;
 	}
 }
+
+const refreshedLabel = computed(() => {
+	void now.value;
+	return relativeTime(lastRefreshed.value);
+});
 
 // Add device = create client credentials, then show the install commands for them.
 const addClientModal = ref<InstanceType<typeof AddClientModal> | null>(null);

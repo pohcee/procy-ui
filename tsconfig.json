@@ -1,4 +1,9 @@
 {
     // https://nuxt.com/docs/guide/concepts/typescript
-    "extends": "./.nuxt/tsconfig.json"
+    "extends": "./.nuxt/tsconfig.json",
+    "compilerOptions": {
+        // Unit tests run directly under `node --test --experimental-strip-types`, which
+        // needs explicit .ts extensions in relative imports.
+        "allowImportingTsExtensions": true
+    }
 }

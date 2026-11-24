@@ -30,6 +30,9 @@ jobs:
 #      - name: Check for Changes After Format
 #        run: git diff --exit-code
 
+      - name: Test Ui
+        run: yarn test
+
       - name: Build Ui
         run: yarn generate
 # trigger workflow registration

@@ -29,7 +29,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "node --test --experimental-strip-types \"tests/**/*.test.ts\""
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.1.67",
