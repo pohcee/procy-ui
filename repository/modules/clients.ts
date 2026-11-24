@@ -64,7 +64,7 @@ class ClientsModule extends HttpFactory {
 
 	async getClientsName(clientsIds: Array<string>): Promise<ClientsResponse> {
 		return this.call<ClientsResponse>('GET',
-			`${this.RESOURCE}?sort=name&fields[clients]=name,id&page[limit]=${clientsIds.length}&page[offset]=0&filter[id]=${clientsIds.join(',')}`,
+			`${this.RESOURCE}?sort=name&fields[clients]=name,id,connection_state,disconnected_at&page[limit]=${clientsIds.length}&page[offset]=0&filter[id]=${clientsIds.join(',')}`,
 			undefined,
 		);
 	}

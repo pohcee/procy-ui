@@ -26,6 +26,7 @@
 					<span class="text-[13px] text-app-text-3">{{ deviceCountLabel }}</span>
 				</div>
 				<TargetSelector
+					:initial="initialClientIds?.length ? { clientIds: initialClientIds, groupIds: [], tags: null } : null"
 					@update:target="target = $event"
 					@update:device-count="deviceCount = $event"
 				/>
@@ -384,6 +385,8 @@ import type { Client, JobClientTags, LibraryOS } from '~/types';
 const props = defineProps<{
 	/** Run on this one device (device page). Omit to pick targets (Execute page). */
 	clientId?: string;
+	/** Execute page: devices to start with as targets (e.g. a selection from the device list). */
+	initialClientIds?: string[];
 }>();
 
 const { $api } = useNuxtApp();

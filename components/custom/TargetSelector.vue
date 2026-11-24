@@ -211,6 +211,18 @@ onMounted(async () => {
 	clients.value = clientsResponse.data;
 	groups.value = groupsResponse.data;
 	loaded.value = true;
+	// Preselected devices beyond the first page of the list: look up their names for the chips.
+	const known = new Set(clients.value.map(c => c.id));
+	const missing = selectedClientIds.value.filter(id => !known.has(id));
+	if (missing.length) {
+		try {
+			const extra = await $api.clients.getClientsName(missing.slice(0, 500));
+			clients.value = [...clients.value, ...(extra.data ?? [])];
+		}
+		catch (e) {
+			console.error('Error looking up preselected devices:', e);
+		}
+	}
 });
 
 const isOnline = (client: Client) => client.connection_state === 'connected' || !client.disconnected_at;
