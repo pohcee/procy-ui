@@ -67,14 +67,23 @@ export const useRemoteRun = () => {
 
 	const open = (endpoint: string, payload: object, kind: RunKind | null) => {
 		disconnect();
-		const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${readAuthToken() ?? ''}`;
-
 		results.value = [];
 		error.value = null;
-		isLoading.value = true;
 		lastKind.value = kind;
 
-		const socket = new WebSocket(url);
+		let socket: WebSocket;
+		try {
+			const url = `${socketBase(config.public.apiUrl)}/api/v1/ws/${endpoint}?access_token=${encodeURIComponent(readAuthToken() ?? '')}`;
+			socket = new WebSocket(url);
+		}
+		catch (e) {
+			// Never fail silently: the run was not sent.
+			console.error('[run] could not open the websocket', e);
+			error.value = 'The run could not be started (the server address could not be used). Reload the page and try again.';
+			isLoading.value = false;
+			return;
+		}
+		isLoading.value = true;
 		ws = socket;
 		socket.onopen = () => socket.send(JSON.stringify(payload));
 		socket.onmessage = (event) => {

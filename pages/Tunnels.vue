@@ -313,6 +313,7 @@ import { ArrowLeftRight, Check, Copy, RefreshCw, TriangleAlert } from 'lucide-vu
 import OpEmpty from '~/components/operate/OpEmpty.vue';
 import TunnelActions, { type TunnelRow } from '~/components/tunnels/TunnelActions.vue';
 import type { Client, Tunnel } from '~/types';
+import { apiBaseUrl } from '~/utils/apiBase';
 
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
@@ -377,7 +378,7 @@ const deviceOptions = computed(() => clients.value.map(c => ({
 const serverHost = computed(() => {
 	if (statusStore.status?.tunnel_host) return statusStore.status.tunnel_host;
 	try {
-		return new URL(String(config.public.apiUrl)).hostname;
+		return apiBaseUrl(config.public.apiUrl).hostname;
 	}
 	catch {
 		return window.location.hostname;
