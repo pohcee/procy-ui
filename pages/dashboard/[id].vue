@@ -94,10 +94,20 @@
 					:metrics="metrics"
 					:disk-history="diskHistory"
 				/>
-				<RunWorkspace
+				<div
 					v-else-if="selectedTab === 'run' && device?.id"
-					:client-id="device.id"
-				/>
+					class="flex flex-col gap-5"
+				>
+					<RunWorkspace
+						:client-id="device.id"
+						@run-started="refreshHistorySoon"
+						@run-finished="runHistory?.refresh()"
+					/>
+					<RunHistory
+						ref="runHistory"
+						:client-id="device.id"
+					/>
+				</div>
 				<DeviceFilesTab
 					v-else-if="selectedTab === 'files'"
 					:device="device"
@@ -149,6 +159,7 @@ import DeleteDevicesDialog from '~/components/device/DeleteDevicesDialog.vue';
 import DeviceHeader from '~/components/device/DeviceHeader.vue';
 import DeviceOverviewTab from '~/components/device/DeviceOverviewTab.vue';
 import RunWorkspace from '~/components/run/RunWorkspace.vue';
+import RunHistory from '~/components/run/RunHistory.vue';
 import TagsLabelDialog from '~/components/device/TagsLabelDialog.vue';
 import { useFavoriteDevices } from '~/components/device/deviceHelpers';
 import { useClientDetail } from '~/composables/useClientDetail';
@@ -196,6 +207,9 @@ const selectedTab = ref(queryTab());
 const isTagsOpen = ref(false);
 const isDeleteOpen = ref(false);
 const tablistEl = ref<HTMLElement | null>(null);
+const runHistory = ref<InstanceType<typeof RunHistory> | null>(null);
+// The new run shows up in the history once the device has started it.
+const refreshHistorySoon = () => setTimeout(() => runHistory.value?.refresh(), 3000);
 
 watch([() => route.query.tab, tabIds], () => {
 	selectedTab.value = queryTab();

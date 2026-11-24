@@ -111,9 +111,29 @@
 										{{ targetSummary(schedule) }}
 									</td>
 									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle text-[13px]">
-										<LastRun :schedule="schedule" />
+										<button
+											type="button"
+											class="-mx-1.5 rounded-md px-1.5 py-1 text-left hover:bg-app-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent"
+											:aria-label="`Run history of ${schedule.name}`"
+											title="Show run history"
+											@click="openHistory(schedule)"
+										>
+											<LastRun :schedule="schedule" />
+										</button>
 									</td>
 									<td class="whitespace-nowrap border-b border-app-border-subtle py-3.5 pl-3 pr-4 text-right align-middle">
+										<AppButton
+											variant="ghost"
+											size="sm"
+											:aria-label="`Run history of ${schedule.name}`"
+											@click="openHistory(schedule)"
+										>
+											<History
+												class="h-4 w-4"
+												aria-hidden="true"
+											/>
+											History
+										</AppButton>
 										<AppButton
 											variant="ghost"
 											size="sm"
@@ -165,9 +185,24 @@
 							<p class="text-[13px] text-app-text-2">
 								{{ targetSummary(schedule) }}
 							</p>
-							<div class="flex items-center justify-between gap-2 text-[13px]">
-								<LastRun :schedule="schedule" />
+							<div class="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+								<button
+									type="button"
+									class="-mx-1.5 rounded-md px-1.5 py-1 text-left hover:bg-app-hover"
+									:aria-label="`Run history of ${schedule.name}`"
+									@click="openHistory(schedule)"
+								>
+									<LastRun :schedule="schedule" />
+								</button>
 								<div class="flex gap-1">
+									<AppButton
+										variant="secondary"
+										size="sm"
+										:aria-label="`Run history of ${schedule.name}`"
+										@click="openHistory(schedule)"
+									>
+										History
+									</AppButton>
 									<AppButton
 										variant="secondary"
 										size="sm"
@@ -195,6 +230,31 @@
 			ref="formModal"
 			@saved="onSaved"
 		/>
+		<OpDialog
+			:model-value="!!historySchedule"
+			:title="historySchedule ? `Run history: ${historySchedule.name}` : 'Run history'"
+			:description="historySchedule ? `${typeLabel(historySchedule)} · ${historySchedule.schedule} · ${targetSummary(historySchedule)}` : undefined"
+			size="xl"
+			@update:model-value="value => !value && closeHistory()"
+		>
+			<RunHistory
+				v-if="historySchedule"
+				:schedule-id="historySchedule.id"
+				:latest-run-error="historySchedule.last_execution?.error ?? ''"
+				title="Runs"
+				description="Every run of this schedule, newest first. Open one for the result and output of each device."
+				:per-page="10"
+			/>
+			<template #footer>
+				<AppButton
+					variant="secondary"
+					class="ml-auto"
+					@click="closeHistory"
+				>
+					Close
+				</AppButton>
+			</template>
+		</OpDialog>
 		<Modal
 			v-model="deleteConfirmOpen"
 			title="Delete schedule?"
@@ -211,11 +271,14 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarClock, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { CalendarClock, History, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import ScheduleFormModal, { decodeScript } from '~/components/schedules/ScheduleFormModal.vue';
 import LastRun from '~/components/schedules/ScheduleLastRun.vue';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
 import OpSegmented from '~/components/operate/OpSegmented.vue';
+import OpDialog from '~/components/operate/OpDialog.vue';
+import RunHistory from '~/components/run/RunHistory.vue';
+import { codeExcerpt, scheduleKind, type ScheduleKind } from '~/utils/runHistory';
 import { useRunLibrary } from '~/composables/useRunLibrary';
 import type { Schedule } from '~/types';
 
@@ -227,15 +290,15 @@ const formModal = ref<InstanceType<typeof ScheduleFormModal> | null>(null);
 const deleteConfirmOpen = ref(false);
 const activeSchedule = ref<Schedule | null>(null);
 const search = ref('');
-const typeFilter = ref<'all' | 'command' | 'script' | 'library'>('all');
+const typeFilter = ref<'all' | ScheduleKind>('all');
 
 const { data: response, pending, refresh } = useLazyAsyncData('schedules', () => $api.schedules.list());
 const schedules = computed(() => response.value?.data ?? []);
 
+// Matches the editor: a schedule runs code (a command or a script) or a library entry.
 const typeOptions = computed(() => [
 	{ value: 'all' as const, label: 'All' },
-	{ value: 'command' as const, label: 'Commands' },
-	{ value: 'script' as const, label: 'Scripts' },
+	{ value: 'code' as const, label: 'Code' },
 	{ value: 'library' as const, label: 'Library' },
 ]);
 
@@ -253,21 +316,19 @@ const onSaved = async () => {
 	await Promise.all([refresh(), refreshEntries()]);
 };
 
-const typeLabel = (schedule: Schedule) => ({ script: 'Script', library: 'Library', command: 'Command' })[schedule.type] ?? 'Command';
-const typeClass = (schedule: Schedule) => ({
-	script: 'bg-app-purple-bg text-app-purple',
-	library: 'bg-app-accent/15 text-app-accent',
-	command: 'bg-app-blue-bg text-app-blue',
-})[schedule.type] ?? 'bg-app-blue-bg text-app-blue';
+const typeLabel = (schedule: Schedule) => (scheduleKind(schedule.type) === 'library' ? 'Library' : 'Code');
+const typeClass = (schedule: Schedule) => (scheduleKind(schedule.type) === 'library'
+	? 'bg-app-accent/15 text-app-accent'
+	: 'bg-app-blue-bg text-app-blue');
 
 const preview = (schedule: Schedule) => schedule.type === 'library'
 	? `Library: ${entryNames.value.get(schedule.library_entry_id ?? '') ?? 'unknown entry'}`
-	: ((schedule.type === 'script' ? decodeScript(schedule.script ?? '') : schedule.command) ?? '').split('\n')[0];
+	: codeExcerpt((schedule.type === 'script' ? decodeScript(schedule.script ?? '') : schedule.command) ?? '', 200);
 
 const filtered = computed(() => {
 	const term = search.value.trim().toLowerCase();
 	return schedules.value.filter((schedule) => {
-		if (typeFilter.value !== 'all' && schedule.type !== typeFilter.value) return false;
+		if (typeFilter.value !== 'all' && scheduleKind(schedule.type) !== typeFilter.value) return false;
 		if (!term) return true;
 		return schedule.name.toLowerCase().includes(term) || preview(schedule).toLowerCase().includes(term);
 	});
@@ -279,6 +340,21 @@ const targetSummary = (schedule: Schedule) => {
 	if (schedule.group_ids?.length) parts.push(`${schedule.group_ids.length} group${schedule.group_ids.length === 1 ? '' : 's'}`);
 	if (schedule.tags?.tags?.length) parts.push(`tags: ${schedule.tags.tags.join(schedule.tags.operator === 'OR' ? ' or ' : ' and ')}`);
 	return parts.join(', ') || '—';
+};
+
+// ?history=<schedule id> opens its run history (linked from run rows that came from a schedule).
+const route = useRoute();
+const router = useRouter();
+const historySchedule = computed(() => {
+	const id = String(route.query.history ?? '');
+	return id ? schedules.value.find(s => s.id === id) ?? null : null;
+});
+const openHistory = (schedule: Schedule) => {
+	router.push({ query: { ...route.query, history: schedule.id } });
+};
+const closeHistory = () => {
+	const { history: _history, ...rest } = route.query;
+	router.replace({ query: rest });
 };
 
 const triggerDelete = (schedule: Schedule) => {

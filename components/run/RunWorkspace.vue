@@ -280,9 +280,11 @@
 			<CommandResult
 				v-if="hasRun"
 				:results="results"
-				:running="isLoading"
+				:running="isRunning"
 				:entry-name="ranEntryName"
 				:started-at="startedAt"
+				:now="tracker.now.value"
+				:empty-message="emptyMessage"
 			>
 				<template #actions>
 					<AppButton
@@ -378,6 +380,7 @@ import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
 import OpCheckbox from '~/components/operate/OpCheckbox.vue';
 import { useRemoteRun } from '~/composables/useRemoteRun';
+import { useRunTracker } from '~/composables/useRunTracker';
 import { LIBRARY_OS_LABELS, LIBRARY_OS_ORDER, implementationFor, isConflict, toLibraryOs, useRunLibrary, type LibraryEntry } from '~/composables/useRunLibrary';
 import { detectRunKind, isCommandNotAllowed, type LibraryPickItem, type RunKind } from '~/utils/runKind';
 import type { Client, JobClientTags, LibraryOS } from '~/types';
@@ -389,11 +392,17 @@ const props = defineProps<{
 	initialClientIds?: string[];
 }>();
 
+const emit = defineEmits<{
+	/** A run was started, or the current run has finished (all devices reported, or given up on). */
+	(e: 'run-started' | 'run-finished'): void;
+}>();
+
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 const uid = useId();
 const library = useRunLibrary();
 const remote = useRemoteRun();
+const tracker = useRunTracker(remote.results, remote.isOpen);
 
 const name = ref('');
 const code = ref('');
@@ -554,13 +563,17 @@ const singleDeviceBlocked = computed(() => {
 // --- running -------------------------------------------------------------
 const hasRun = ref(false);
 const startedAt = ref<Date | null>(null);
-const results = computed(() => remote.results.value);
+/** One row per device: socket results merged with what the server lists for the run. */
+const results = computed(() => tracker.jobs.value);
 const isLoading = computed(() => remote.isLoading.value);
+/** Devices are still running, or the run is still being looked up. */
+const isRunning = computed(() => !runError.value && !tracker.notRecorded.value
+	&& (remote.isOpen.value || tracker.anyRunning.value || (tracker.isTracking.value && !results.value.length)));
 
 // Request-level errors arrive on the socket as `{ errors: [...] }` instead of a job.
 const runError = computed(() => {
 	if (!hasRun.value) return null;
-	const rejected = (results.value as unknown as { errors?: { title?: string; detail?: string }[] }[])
+	const rejected = (remote.results.value as unknown as { errors?: { title?: string; detail?: string }[] }[])
 		.flatMap(r => r.errors ?? [])
 		.map(e => e.detail || e.title)
 		.filter(Boolean);
@@ -599,10 +612,26 @@ type LastRun =
 	| { mode: 'code'; kind: RunKind; code: string; cwd: string; interpreter: string; isSudo: boolean; timeoutSec: number; abortOnError: boolean };
 const lastRun = ref<LastRun | null>(null);
 
+const emptyMessage = computed(() => {
+	if (runError.value) return 'The run didn’t start (see the message above).';
+	if (tracker.notRecorded.value) return 'The server has no record of this run: it was not accepted, or the connection dropped before it started. Check the run history below and try again.';
+	return '';
+});
+
+// A rejected run won't show up on the server; stop looking for it.
+watch(runError, (value) => {
+	if (value) tracker.stop();
+});
+watch(() => tracker.isTracking.value, (tracking, was) => {
+	if (was && !tracking) emit('run-finished');
+});
+
 const execute = (spec: LastRun, clientIds: string[], groupIds: string[], tags: JobClientTags | null) => {
 	hasRun.value = true;
 	startedAt.value = new Date();
 	lastRun.value = spec;
+	tracker.start();
+	emit('run-started');
 	if (spec.mode === 'library') {
 		ranEntryName.value = spec.entryName;
 		remote.runEntry({
@@ -664,11 +693,7 @@ const run = () => {
 	else start(target.value.clientIds, target.value.groupIds, target.value.tags);
 };
 
-const latestByJob = computed(() => {
-	const map = new Map<string, (typeof results.value)[number]>();
-	results.value.forEach(result => map.set(result.jid || result.client_id, result));
-	return [...map.values()];
-});
+const latestByJob = computed(() => results.value);
 const failedClientIds = computed(() => [...new Set(latestByJob.value.filter(r => r.status === 'failed').map(r => r.client_id))]);
 
 // Devices that rejected the last run because of their [remote-commands] allow/deny filters.
