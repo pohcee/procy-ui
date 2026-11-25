@@ -190,6 +190,8 @@ export interface ServerCapabilities {
 	organizations?: boolean;
 	/** Self-service signup is on (Postgres with [signup] enabled). Reported only when true. */
 	signup?: boolean;
+	/** Billing plans and limits are on (Postgres with [billing] enabled): GET /billing, operator billing. Reported only when true. */
+	billing?: boolean;
 }
 export interface TwoFa {
 	send_to: string;

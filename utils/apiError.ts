@@ -1,5 +1,12 @@
-/** A readable message from an API error (rportd answers { errors: [{ title, detail }] }). */
+import { apiErrorCode, billingErrorMessage } from './billing.ts';
+
+/**
+ * A readable message from an API error (rportd answers { errors: [{ code, title, detail }] }). The billing refusals
+ * (a read-only organization, the transfer limit) get a clear explanation instead of the server's text.
+ */
 export const apiErrorMessage = (err: unknown): string => {
+	const billing = billingErrorMessage(apiErrorCode(err));
+	if (billing) return billing;
 	const e = err as { data?: { errors?: { title?: string; detail?: string }[] }; message?: string } | null;
 	const first = e?.data?.errors?.[0];
 	return first?.title || first?.detail || e?.message || 'unknown error';

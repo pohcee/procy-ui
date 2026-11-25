@@ -23,6 +23,7 @@ import UsageModule from '~/repository/modules/usage';
 import MembershipModule from '~/repository/modules/membership';
 import SignupModule from '~/repository/modules/signup';
 import BillingModule from '~/repository/modules/billing';
+import { noteBillingRefusal } from '~/composables/useBilling';
 
 interface IApiInstance {
 	auth: AuthModule;
@@ -83,6 +84,8 @@ export default defineNuxtPlugin(() => {
 			console.log('[fetch request error]', request, error);
 		},
 		async onResponseError({ response }): Promise<void> {
+			// A read-only organization or the transfer limit: remembered for the app-wide banner and its toast.
+			noteBillingRefusal(response.status, response._data);
 			if (response.status === 401) {
 				// Clear the cookies now so the auth middleware doesn't see the stale token.
 				setAuthCookies(null);

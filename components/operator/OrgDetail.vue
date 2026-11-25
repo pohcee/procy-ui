@@ -135,6 +135,11 @@
 			</dl>
 		</AppCard>
 
+		<OrgBilling
+			v-if="shown && billing"
+			:id="id"
+		/>
+
 		<OrgMembers
 			v-if="shown"
 			:id="id"
@@ -166,6 +171,7 @@
 <script setup lang="ts">
 import { ChevronLeft, CirclePause, Gauge, Pause, Play, UserPlus } from 'lucide-vue-next';
 import OrgDeviceLimit from '~/components/operator/OrgDeviceLimit.vue';
+import OrgBilling from '~/components/operator/OrgBilling.vue';
 import OrgMembers from '~/components/operator/OrgMembers.vue';
 import OrgStatusPill from '~/components/operator/OrgStatusPill.vue';
 import UsageMonthPicker from '~/components/usage/UsageMonthPicker.vue';
@@ -184,7 +190,7 @@ const emit = defineEmits<{
 }>();
 
 const { $api } = useNuxtApp();
-const { usage } = useCapabilities();
+const { usage, billing } = useCapabilities();
 
 const fetched = ref<Organization | null>(null);
 const loadError = ref<string | null>(null);

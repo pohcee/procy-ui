@@ -25,5 +25,8 @@ export const useCapabilities = () => {
 	/** Logins may belong to several organizations: invitations and members (opt-in, Postgres servers). */
 	const organizations = computed(() => statusStore.isEnabled('organizations'));
 
-	return { has, canCreateTunnels, operator, usage, organizations };
+	/** Billing plans and limits are on (opt-in: only an explicit `billing: true` counts). */
+	const billing = computed(() => statusStore.isEnabled('billing'));
+
+	return { has, canCreateTunnels, operator, usage, organizations, billing };
 };

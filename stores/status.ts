@@ -14,10 +14,10 @@ export const useStatusStore = defineStore('status', {
 		hasCapability: state => (name: keyof ServerCapabilities): boolean =>
 			state.status?.capabilities?.[name] !== false,
 		/**
-		 * Whether an opt-in feature is on (`operator`, `usage`, `organizations`, `signup`): only an explicit true counts, so servers that
+		 * Whether an opt-in feature is on (`operator`, `usage`, `organizations`, `signup`, `billing`): only an explicit true counts, so servers that
 		 * don't report it (standalone, older) show nothing new.
 		 */
-		isEnabled: state => (name: 'operator' | 'usage' | 'organizations' | 'signup'): boolean =>
+		isEnabled: state => (name: 'operator' | 'usage' | 'organizations' | 'signup' | 'billing'): boolean =>
 			state.status?.capabilities?.[name] === true,
 	},
 	actions: {
