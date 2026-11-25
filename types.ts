@@ -2,8 +2,10 @@ export interface ILoginInput {
 	username: string;
 	password: string;
 	remember_me: string;
-	/** The organization picked at login when the user belongs to several (membership API, not final). */
+	/** The organization picked at login when the user belongs to several (Postgres servers). */
 	organization?: string;
+	/** A new password, when the server says the current one has expired (sent with POST /login). */
+	new_password?: string;
 }
 export interface UpdateSummary {
 	title: string;
@@ -184,6 +186,10 @@ export interface ServerCapabilities {
 	operator?: boolean;
 	/** Usage metering is on (GET /usage). Reported only when true. */
 	usage?: boolean;
+	/** A login may belong to several organizations (Postgres): membership, invitations. Reported only when true. */
+	organizations?: boolean;
+	/** Self-service signup is on (Postgres with [signup] enabled). Reported only when true. */
+	signup?: boolean;
 }
 export interface TwoFa {
 	send_to: string;
@@ -196,7 +202,7 @@ export interface ApiLoginResponse {
 export interface ILoginResponse {
 	token: string;
 	two_fa: TwoFa;
-	/** Several organizations and no token: the user must pick one (membership API, not final). */
+	/** Several organizations and no token: the user must pick one (Postgres servers). */
 	organizations?: { id: string; name: string }[];
 }
 export interface ProfileResponse {

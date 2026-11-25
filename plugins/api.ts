@@ -21,6 +21,8 @@ import JobsModule from '~/repository/modules/jobs';
 import OperatorModule from '~/repository/modules/operator';
 import UsageModule from '~/repository/modules/usage';
 import MembershipModule from '~/repository/modules/membership';
+import SignupModule from '~/repository/modules/signup';
+import BillingModule from '~/repository/modules/billing';
 
 interface IApiInstance {
 	auth: AuthModule;
@@ -42,6 +44,8 @@ interface IApiInstance {
 	operator: OperatorModule;
 	usage: UsageModule;
 	membership: MembershipModule;
+	signup: SignupModule;
+	billing: BillingModule;
 }
 
 /**
@@ -109,6 +113,9 @@ export default defineNuxtPlugin(() => {
 		operator: new OperatorModule(apiFetcher),
 		usage: new UsageModule(apiFetcher),
 		membership: new MembershipModule(apiFetcher),
+		// Public routes: no session header, and a 401 there is no reason to leave the page.
+		signup: new SignupModule(authFetcher),
+		billing: new BillingModule(apiFetcher),
 	};
 
 	return {

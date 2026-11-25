@@ -1,4 +1,5 @@
 import { readAuthToken } from '~/utils/authToken';
+import { isPublicPath } from '~/utils/signup';
 
 export default defineNuxtRouteMiddleware(async (to) => {
 	// const isLoggedIn = false;
@@ -17,7 +18,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
 	if (token.value && to?.name === 'auth') {
 		return navigateTo('/dashboard');
 	}
-	if (!token.value && to?.name !== 'auth') {
+	// The sign-in page and the signup pages (and the links of their emails) need no session.
+	if (!token.value && to?.name !== 'auth' && !isPublicPath(to.path)) {
 		abortNavigation();
 		return navigateTo('/auth');
 	}

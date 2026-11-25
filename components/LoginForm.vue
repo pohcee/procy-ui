@@ -101,6 +101,17 @@
 			>Signing in…</span>
 			Sign in
 		</button>
+
+		<p
+			v-if="signupOpen"
+			class="-mt-2 text-center text-sm text-app-text-3"
+		>
+			New to Procy?
+			<NuxtLink
+				to="/signup"
+				class="font-medium text-app-accent underline-offset-2 hover:underline"
+			>Create an organization</NuxtLink>
+		</p>
 	</form>
 </template>
 
@@ -109,11 +120,14 @@ import { ref } from 'vue';
 import { ChevronDown, CircleAlert, LoaderCircle } from 'lucide-vue-next';
 import type { ILoginInput } from '~/types';
 
+const props = defineProps<{ initialUsername?: string }>();
+
 const store = useTokenStore();
+const { $api } = useNuxtApp();
 
 const { errors, loading } = storeToRefs(store);
 const user = ref<ILoginInput>({
-	username: 'admin',
+	username: props.initialUsername || 'admin',
 	password: '',
 	remember_me: '3600',
 });
@@ -125,6 +139,17 @@ const rememberMeOptions = [
 	{ value: String(3600 * 24 * 30), label: '30 days' },
 ];
 const inputClass = 'h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 text-[15px] text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25 sm:text-sm';
+
+// Servers with self-service signup ([signup] enabled) get a link to it; others answer 404 and nothing changes.
+const signupOpen = ref(false);
+onMounted(async () => {
+	try {
+		signupOpen.value = !!(await $api.signup.config());
+	}
+	catch {
+		signupOpen.value = false;
+	}
+});
 
 const emit = defineEmits(['login']);
 const login = async () => {

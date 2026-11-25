@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<AppInvitationsLink @navigate="emit('navigate')" />
 		<AppOrgSwitcher />
 		<div class="flex items-center gap-2.5 border-t border-[#222B37] px-2.5 pt-3">
 			<span

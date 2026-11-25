@@ -135,6 +135,11 @@
 			</dl>
 		</AppCard>
 
+		<OrgMembers
+			v-if="shown"
+			:id="id"
+		/>
+
 		<template v-if="usage">
 			<div class="flex flex-wrap items-center justify-between gap-3 pt-2">
 				<h2 class="text-lg font-semibold text-app-text">
@@ -161,6 +166,7 @@
 <script setup lang="ts">
 import { ChevronLeft, CirclePause, Gauge, Pause, Play, UserPlus } from 'lucide-vue-next';
 import OrgDeviceLimit from '~/components/operator/OrgDeviceLimit.vue';
+import OrgMembers from '~/components/operator/OrgMembers.vue';
 import OrgStatusPill from '~/components/operator/OrgStatusPill.vue';
 import UsageMonthPicker from '~/components/usage/UsageMonthPicker.vue';
 import UsageReportView from '~/components/usage/UsageReportView.vue';

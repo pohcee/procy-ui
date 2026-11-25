@@ -22,5 +22,8 @@ export const useCapabilities = () => {
 	/** Usage metering is on (opt-in: only an explicit `usage: true` counts). */
 	const usage = computed(() => statusStore.isEnabled('usage'));
 
-	return { has, canCreateTunnels, operator, usage };
+	/** Logins may belong to several organizations: invitations and members (opt-in, Postgres servers). */
+	const organizations = computed(() => statusStore.isEnabled('organizations'));
+
+	return { has, canCreateTunnels, operator, usage, organizations };
 };

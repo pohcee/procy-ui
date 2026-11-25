@@ -1,4 +1,5 @@
 import { HttpFactory } from '~/repository/factory';
+import { parseMembers, type OrgMember } from '~/utils/membership';
 import type { OrgUsageRow, UsageReport } from '~/utils/usage';
 
 /** An organization as platform operators see it (GET /operator/organizations). */
@@ -65,6 +66,11 @@ class OperatorModule extends HttpFactory {
 
 	async addAdmin(id: string, body: { username: string; two_fa_send_to?: string }): Promise<OrganizationAdmin> {
 		return (await this.call<{ data: OrganizationAdmin }>('POST', `${org(id)}/admins`, body)).data;
+	}
+
+	/** The organization's members, with their groups and how many organizations each belongs to. */
+	async members(id: string): Promise<OrgMember[]> {
+		return parseMembers(await this.call<unknown>('GET', `${org(id)}/members`));
 	}
 
 	async orgUsage(id: string, params: { from?: string; to?: string; granularity?: 'hour' | 'day' | 'month' }): Promise<UsageReport> {

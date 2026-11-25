@@ -9,68 +9,14 @@
 		@submit="submit"
 	>
 		<!-- Step 2: the one-time password -->
-		<div
+		<OneTimePassword
 			v-if="created"
-			class="flex flex-col gap-4"
-		>
-			<div
-				role="alert"
-				class="flex items-start gap-2.5 rounded-[10px] border border-app-warn/30 bg-app-warn-bg p-3 text-[13px] text-app-warn"
-			>
-				<TriangleAlert
-					class="mt-px h-[18px] w-[18px] shrink-0"
-					aria-hidden="true"
-				/>
-				<span>
-					<span class="font-semibold">Copy the password now: it is shown only this once.</span>
-					It can't be shown again; if it's lost, create another administrator. Send it over a trusted channel.
-				</span>
-			</div>
-			<dl class="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-x-3 gap-y-3 text-sm">
-				<dt class="text-app-text-3">
-					Organization
-				</dt>
-				<dd class="font-mono text-app-text">
-					{{ created.organization }}
-				</dd>
-				<dt class="text-app-text-3">
-					Username
-				</dt>
-				<dd class="font-mono text-app-text">
-					{{ created.username }}
-				</dd>
-				<dt class="text-app-text-3">
-					Password
-				</dt>
-				<dd class="flex min-w-0 items-center gap-1.5">
-					<code
-						class="min-w-0 flex-1 select-all break-all rounded-lg border border-app-border-strong bg-app-surface-2 px-3 py-2 font-mono text-[13px] text-app-text"
-						data-testid="one-time-password"
-					>{{ created.password }}</code>
-					<button
-						type="button"
-						:aria-label="copied ? 'Password copied' : 'Copy password'"
-						:title="copied ? 'It’s in your clipboard' : 'Copy to clipboard'"
-						class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-app-border-strong text-app-text-2 hover:bg-app-hover hover:text-app-text"
-						@click="copyPassword"
-					>
-						<Check
-							v-if="copied"
-							class="h-4 w-4 text-app-ok"
-							aria-hidden="true"
-						/>
-						<Copy
-							v-else
-							class="h-4 w-4"
-							aria-hidden="true"
-						/>
-					</button>
-				</dd>
-			</dl>
-			<p class="text-[13px] text-app-text-3">
-				They must set a new password when they first sign in.
-			</p>
-		</div>
+			v-model:copied="copied"
+			:organization="created.organization"
+			:username="created.username"
+			:password="created.password"
+			lost-hint="It can't be shown again; if it's lost, create another administrator."
+		/>
 
 		<!-- Step 1: the form -->
 		<div
@@ -141,11 +87,10 @@
 </template>
 
 <script setup lang="ts">
-import { useClipboard } from '@vueuse/core';
-import { Check, Copy, TriangleAlert } from 'lucide-vue-next';
 import OpDialog from '~/components/operate/OpDialog.vue';
 import OpField from '~/components/operate/OpField.vue';
 import OpInput from '~/components/operate/OpInput.vue';
+import OneTimePassword from '~/components/users/OneTimePassword.vue';
 import type { Organization, OrganizationAdmin } from '~/repository/modules/operator';
 
 const props = defineProps<{ org: Organization | null }>();
@@ -155,8 +100,6 @@ const emit = defineEmits<{
 }>();
 
 const { $api } = useNuxtApp();
-const snackbar = useSnackbar();
-const { copy, isSupported } = useClipboard({ legacy: true });
 
 const username = ref('');
 const twoFaSendTo = ref('');
@@ -198,16 +141,6 @@ const submit = async () => {
 	finally {
 		saving.value = false;
 	}
-};
-
-const copyPassword = async () => {
-	if (!created.value) return;
-	if (!isSupported.value) {
-		snackbar.add({ type: 'error', text: 'Clipboard is not available; select the password and copy it.' });
-		return;
-	}
-	await copy(created.value.password);
-	copied.value = true;
 };
 
 const close = () => {
