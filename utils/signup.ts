@@ -167,8 +167,8 @@ export const checkoutPlanFromQuery = (value: unknown): string | null => {
 	return v;
 };
 
-/** Routes reachable without signing in (/auth/confirm-email asks to sign in itself, then comes back). */
-const PUBLIC_PATHS = ['/auth', '/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email'];
+/** Routes reachable without signing in (/auth/confirm-email asks to sign in itself, then comes back; /auth/oidc finishes a Google sign-in). */
+const PUBLIC_PATHS = ['/auth', '/auth/oidc', '/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email'];
 
 /**
  * Where to go after signing in (`?next=`): only a path of this site (no scheme, no host, no `//`, no backslash),

@@ -57,6 +57,11 @@ class UsersModule extends HttpFactory {
 		);
 	}
 
+	/** Unpins the user's Google account (its next Google sign-in links one again). */
+	public async unlinkOidc(username: string): Promise<void> {
+		await this.call('DELETE', `${this.RESOURCE}/${encodeURIComponent(username)}/oidc-identity`, undefined);
+	}
+
 	public async delete(user_id: string): Promise<void> {
 		return this.call(
 			'DELETE',

@@ -147,6 +147,73 @@
 			</dl>
 		</AppCard>
 
+		<!-- Sign-in: whether the members must sign in with Google (servers that report require_oidc). -->
+		<AppCard
+			v-if="shown && typeof shown.require_oidc === 'boolean'"
+			title="Sign-in"
+		>
+			<div class="flex flex-col gap-3">
+				<div class="flex items-start justify-between gap-4">
+					<div class="min-w-0">
+						<p
+							id="op-require-oidc-label"
+							class="text-sm font-medium text-app-text"
+						>
+							Require Google sign-in
+						</p>
+						<p
+							id="op-require-oidc-help"
+							class="mt-0.5 text-[13px] text-app-text-3"
+						>
+							<template v-if="systemOrg">
+								Platform operators always sign in with Google only.
+							</template>
+							<template v-else-if="!oidcEnabled && !shown.require_oidc">
+								Google sign-in isn’t enabled on this server, so it can’t be required.
+							</template>
+							<template v-else-if="shown.require_oidc">
+								Members sign in with their Google account only; passwords don’t work here.
+							</template>
+							<template v-else>
+								Members sign in with a password or Google, as each member’s sign-in setting allows.
+							</template>
+						</p>
+					</div>
+					<button
+						type="button"
+						role="switch"
+						:aria-checked="shown.require_oidc || systemOrg"
+						aria-labelledby="op-require-oidc-label"
+						aria-describedby="op-require-oidc-help"
+						:disabled="systemOrg || savingSignIn || (!oidcEnabled && !shown.require_oidc)"
+						:class="[
+							'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent disabled:cursor-not-allowed disabled:opacity-50',
+							shown.require_oidc || systemOrg ? 'bg-app-accent' : 'bg-app-border-strong',
+						]"
+						@click="toggleRequireOidc"
+					>
+						<span
+							:class="['inline-block h-5 w-5 rounded-full bg-white shadow transition-transform', shown.require_oidc || systemOrg ? 'translate-x-[22px]' : 'translate-x-0.5']"
+							aria-hidden="true"
+						/>
+					</button>
+				</div>
+			</div>
+		</AppCard>
+		<Modal
+			v-model="confirmRequireOidc"
+			title="Require Google sign-in?"
+			ok-text="Require Google sign-in"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="saveRequireOidc(true)"
+		>
+			<p class="text-sm text-app-text-2">
+				Members of {{ shown?.name || id }} with only a password will no longer be able to sign in. Their password
+				sessions end, and they must sign in with the Google account of their email address. API tokens keep working.
+			</p>
+		</Modal>
+
 		<OrgBilling
 			v-if="shown && billing"
 			:id="id"
@@ -186,6 +253,8 @@ import OrgDeviceLimit from '~/components/operator/OrgDeviceLimit.vue';
 import OrgBilling from '~/components/operator/OrgBilling.vue';
 import OrgMembers from '~/components/operator/OrgMembers.vue';
 import OrgStatusPill from '~/components/operator/OrgStatusPill.vue';
+import Modal from '~/components/Modal.vue';
+import { isSystemOrg } from '~/utils/oidc';
 import UsageMonthPicker from '~/components/usage/UsageMonthPicker.vue';
 import UsageReportView from '~/components/usage/UsageReportView.vue';
 import type { Organization } from '~/repository/modules/operator';
@@ -220,6 +289,35 @@ const exportOrg = async () => {
 	finally {
 		exporting.value = false;
 	}
+};
+
+// ---- Sign-in (PUT …/sign-in { require_oidc } → the organization) ----
+const statusStore = useStatusStore();
+const oidcEnabled = computed(() => statusStore.status?.oidc_enabled !== false);
+const systemOrg = computed(() => isSystemOrg(props.id));
+const savingSignIn = ref(false);
+const confirmRequireOidc = ref(false);
+const saveRequireOidc = async (value: boolean) => {
+	confirmRequireOidc.value = false;
+	savingSignIn.value = true;
+	try {
+		const updated = await $api.operator.setSignIn(props.id, value);
+		const next = { ...(shown.value ?? {}), ...updated, require_oidc: updated?.require_oidc ?? value } as Organization;
+		fetched.value = next;
+		emit('changed', next);
+		snackbar.add({ type: 'success', text: value ? 'Google sign-in is now required' : 'Passwords are allowed again' });
+	}
+	catch (e) {
+		snackbar.add({ type: 'error', text: `Couldn't change the sign-in setting: ${apiErrorMessage(e)}` });
+	}
+	finally {
+		savingSignIn.value = false;
+	}
+};
+const toggleRequireOidc = () => {
+	if (!shown.value || savingSignIn.value || systemOrg.value) return;
+	if (shown.value.require_oidc) saveRequireOidc(false);
+	else confirmRequireOidc.value = true;
 };
 
 const fetched = ref<Organization | null>(null);

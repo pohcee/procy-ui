@@ -39,9 +39,23 @@ class AuthModule extends HttpFactory {
 	async provider(): Promise<AuthProviderResponse> {
 		return this.call<AuthProviderResponse>(
 			'GET',
-			'/api/v1/provider',
+			'/api/v1/auth/provider',
 			undefined,
 		);
+	}
+
+	/**
+	 * Exchanges the one-time sign-in code of a Google sign-in (POST /oidc/token): answered like POST /login. A user
+	 * of several organizations sends the same code again with the one picked.
+	 */
+	async oidcToken(code: string, organization?: string, lifetime?: string | null): Promise<unknown> {
+		const query = lifetime ? `?token-lifetime=${encodeURIComponent(lifetime)}` : '';
+		// credentials: the browser-binding cookie of the sign-in (set by the API on /api/v1/oidc) must go along,
+		// also when the API is on another origin
+		return this.call<unknown>('POST', `/api/v1/oidc/token${query}`, organization ? { code, organization } : { code }, {
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+		});
 	}
 
 	async logout(token: string): Promise<void> {

@@ -29,6 +29,13 @@
 							Groups
 						</th>
 						<th
+							v-if="signInKnown"
+							scope="col"
+							class="whitespace-nowrap border-b border-app-border px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3 first:pl-4"
+						>
+							Sign-in
+						</th>
+						<th
 							scope="col"
 							class="w-48 whitespace-nowrap border-b border-app-border px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3 first:pl-4"
 						>
@@ -57,6 +64,12 @@
 									class="text-app-text-4"
 								>—</span>
 							</div>
+						</td>
+						<td
+							v-if="signInKnown"
+							class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 text-[13px] text-app-text-2"
+						>
+							{{ signInLabel(m.sign_in) || '—' }}
 						</td>
 						<td class="border-b border-app-border-subtle px-3 py-3">
 							<span
@@ -89,6 +102,10 @@
 						<span class="text-[13px] text-app-text-3">
 							{{ m.organizations > 1 ? `· ${m.organizations} organizations` : '· only this one' }}
 						</span>
+						<span
+							v-if="signInLabel(m.sign_in)"
+							class="text-[13px] text-app-text-3"
+						>· {{ signInLabel(m.sign_in) }}</span>
 					</div>
 				</li>
 			</ul>
@@ -100,6 +117,7 @@
 import { Users as UsersIcon } from 'lucide-vue-next';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
 import type { OrgMember } from '~/utils/membership';
+import { signInLabel } from '~/utils/oidc';
 import { formatCount } from '~/utils/usage';
 
 const props = defineProps<{ id: string }>();
@@ -108,6 +126,8 @@ const { $api } = useNuxtApp();
 /** null: loading. */
 const members = ref<OrgMember[] | null>(null);
 const error = ref<string | null>(null);
+/** The server reports each member's sign-in method (Postgres with [oidc]). */
+const signInKnown = computed(() => !!members.value?.some(m => !!signInLabel(m.sign_in)));
 
 let seq = 0;
 watch(() => props.id, async (id) => {

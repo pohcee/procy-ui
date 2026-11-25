@@ -164,6 +164,8 @@ export interface ServerStatus {
 	users_auth_source: string;
 	version: string;
 	capabilities?: Partial<ServerCapabilities>;
+	/** Sign in with Google ([oidc]) is enabled on the server. */
+	oidc_enabled?: boolean;
 }
 /**
  * Features the server offers (GET /api/v1/status → capabilities). A missing object or
@@ -217,6 +219,12 @@ export interface Profile {
 	two_fa_send_to: string;
 	effective_user_permissions: Permissions;
 	group_permissions_enabled: boolean;
+	/** How this login may sign in here (Postgres servers; omitted standalone). */
+	sign_in?: 'both' | 'password' | 'oidc';
+	/** How the current session signed in. */
+	auth_method?: 'password' | 'oidc';
+	/** A Google account is linked (pinned) to this login. */
+	oidc_linked?: boolean;
 }
 export interface UserListResponse {
 	data: User[];
@@ -243,12 +251,18 @@ export interface User {
 	two_fa_send_to: string;
 	effective_user_permissions: Permissions;
 	effective_extended_permissions: EffectiveExtendedPermissions;
+	/** How the user may sign in to this organization (Postgres servers; omitted standalone). */
+	sign_in?: 'both' | 'password' | 'oidc';
+	/** A Google account is linked (pinned) to this login (Postgres servers). */
+	oidc_linked?: boolean;
 }
 
 export interface UserPayload {
 	username: string;
 	groups: string[];
-	password: string;
+	/** Optional where the user signs in with Google only. */
+	password?: string;
+	sign_in?: 'both' | 'password' | 'oidc';
 }
 
 export interface UserGroup {
@@ -678,12 +692,14 @@ export interface TotP {
 	qr: string;
 }
 
-/** Mirrors AuthProviderInfo in the rport server (GET /api/v1/provider). */
+/** Mirrors AuthProviderInfo in the rport server (GET /api/v1/auth/provider). */
 export interface AuthProviderInfo {
 	auth_provider: string;
 	settings_uri: string;
 	device_settings_uri?: string;
 	max_token_lifetime: number;
+	/** Sign in with Google, when the server has [oidc] enabled. */
+	oidc?: { enabled: boolean; button_label?: string; login_url?: string };
 }
 
 export interface AuthProviderResponse {
