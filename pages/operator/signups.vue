@@ -150,6 +150,7 @@ import { formatDay } from '~/utils/billing';
 import { signupStatusInfo, type SignupRow } from '~/utils/signup';
 import { orgLink } from '~/utils/usage';
 
+definePageMeta({ layout: 'operator' });
 useHead({ title: 'Signups' });
 
 const { $api } = useNuxtApp();

@@ -181,6 +181,7 @@ import { downloadJson } from '~/utils/download';
 import { deletionStateInfo, exportFileName, type OrgDeletion } from '~/utils/signup';
 import { orgLink } from '~/utils/usage';
 
+definePageMeta({ layout: 'operator' });
 useHead({ title: 'Deletions' });
 
 const { $api } = useNuxtApp();
