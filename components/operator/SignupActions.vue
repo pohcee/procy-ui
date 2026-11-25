@@ -8,12 +8,12 @@
 		<label
 			:for="`deny-reason-${row.id}`"
 			class="sr-only"
-		>Reason (optional)</label>
+		>Reason (optional, emailed to the applicant)</label>
 		<OpInput
 			:id="`deny-reason-${row.id}`"
 			v-model="reason"
 			class="!h-9 !w-48"
-			placeholder="Reason (optional)"
+			placeholder="Reason (emailed to them)"
 			maxlength="500"
 		/>
 		<AppButton

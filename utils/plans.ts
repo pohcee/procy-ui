@@ -27,7 +27,6 @@ export interface PublicPlan {
 }
 
 /** The trial length the home page promises when the server doesn't say. */
-export const DEFAULT_TRIAL_DAYS = 14;
 
 const int = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
@@ -63,7 +62,7 @@ export const parsePlans = (raw: unknown): PublicPlan[] => {
 
 /** The trial plan's days, else the fallback (e.g. the signup settings' trial_days), else 14. */
 export const trialDaysOf = (plans: PublicPlan[], fallback = 0): number =>
-	plans.find(p => p.trial && p.trialDays > 0)?.trialDays || int(fallback) || DEFAULT_TRIAL_DAYS;
+	plans.find(p => p.trial && p.trialDays > 0)?.trialDays || int(fallback) || 0;
 
 /** "$29", "$2.50": whole dollars without cents. */
 export const formatPlanPrice = (cents: number): string => {
@@ -120,10 +119,13 @@ export const homePlans = (plans: PublicPlan[] | null, trialDaysFallback = 0): Ho
 	return {
 		trial: {
 			title: 'Free trial',
-			summary: `${days} days, no card`,
-			detail: trialPlan
-				? `Every new organization starts on ${trialPlan.name} for ${days} days. Add a payment method only if you stay.`
-				: `Every new organization starts with a ${days}-day trial. No payment method needed to start.`,
+			// no number of days unless the server says so (no trial configured: never promise one)
+			summary: days > 0 ? `${days} days, no card` : 'No card needed',
+			detail: days > 0
+				? trialPlan
+					? `Every new organization starts on ${trialPlan.name} for ${days} days. Add a payment method only if you stay.`
+					: `Every new organization starts with a ${days}-day trial. No payment method needed to start.`
+				: 'Start free. No payment method needed.',
 		},
 		plans: list.map(p => ({
 			id: p.id,

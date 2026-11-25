@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_TRIAL_DAYS, formatPlanPrice, homePlans, parsePlans, planFeatures, trialDaysOf } from '../utils/plans.ts';
+import { formatPlanPrice, homePlans, parsePlans, planFeatures, trialDaysOf } from '../utils/plans.ts';
 
 const GiB = 1024 ** 3;
 
@@ -38,8 +38,7 @@ describe('trialDaysOf', () => {
 	it('takes the trial plan\'s days, else the fallback, else 14', () => {
 		assert.equal(trialDaysOf(parsePlans(catalog)), 21);
 		assert.equal(trialDaysOf([], 30), 30);
-		assert.equal(trialDaysOf([]), DEFAULT_TRIAL_DAYS);
-		assert.equal(DEFAULT_TRIAL_DAYS, 14);
+		assert.equal(trialDaysOf([]), 0, 'unknown: never promise a number of days');
 	});
 });
 
@@ -84,7 +83,8 @@ describe('homePlans', () => {
 	it('falls back to the trial alone when there is no catalog', () => {
 		const h = homePlans(null);
 		assert.equal(h.fallback, true);
-		assert.equal(h.trial.summary, '14 days, no card');
+		assert.equal(h.trial.summary, 'No card needed', 'no trial known: no number of days');
+		assert.doesNotMatch(h.trial.detail, /\d/);
 		assert.deepEqual(h.plans, []);
 		assert.equal(homePlans([], 30).trial.summary, '30 days, no card');
 		assert.equal(homePlans([]).fallback, true);
