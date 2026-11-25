@@ -1,6 +1,6 @@
 <template>
 	<NuxtLink
-		to="/dashboard"
+		:to="to"
 		class="flex items-center gap-2.5"
 		:aria-label="`${appName} home`"
 	>
@@ -17,7 +17,8 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{ size?: number }>(), { size: 36 });
+// `to`: the home of the shell (the operator console links to /operator).
+withDefaults(defineProps<{ size?: number; to?: string }>(), { size: 36, to: '/dashboard' });
 
 const appName = 'Procy';
 </script>

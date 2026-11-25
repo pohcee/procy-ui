@@ -33,7 +33,17 @@ const { isAdmin } = useIsAdmin();
 const statusStore = useStatusStore();
 const oidcEnabled = computed(() => statusStore.status?.oidc_enabled === true);
 
-const items = computed(() => [
+// Platform operators (the system organization): only what the server allows there (/me, /users, /user-groups,
+// API tokens, /status); device access, client groups and the vault aren't theirs.
+const operatorItems = [
+	{ to: '/profile', label: 'Profile' },
+	{ to: '/users', label: 'Operators' },
+	{ to: '/user-groups', label: 'User groups' },
+	{ to: '/api-tokens', label: 'API tokens' },
+	{ to: '/info', label: 'Server info' },
+];
+
+const orgItems = computed(() => [
 	{ to: '/profile', label: 'Profile' },
 	{ to: '/users', label: 'Users' },
 	{ to: '/user-groups', label: 'User groups' },
@@ -46,6 +56,8 @@ const items = computed(() => [
 	// [oidc]); administrators.
 	...((signup.value || oidcEnabled.value) && isAdmin.value && !operator.value ? [{ to: '/organization', label: 'Organization' }] : []),
 ]);
+
+const items = computed(() => (operator.value ? operatorItems : orgItems.value));
 
 const route = useRoute();
 const isActive = (to: string) => route.path.toLowerCase() === to;
