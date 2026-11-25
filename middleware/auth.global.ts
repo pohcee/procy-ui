@@ -1,6 +1,6 @@
 import { readAuthToken } from '~/utils/authToken';
 
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
 	// const isLoggedIn = false;
 	// if (isLoggedIn) {
 	//     return navigateTo(to.fullPath);
@@ -20,5 +20,11 @@ export default defineNuxtRouteMiddleware((to) => {
 	if (!token.value && to?.name !== 'auth') {
 		abortNavigation();
 		return navigateTo('/auth');
+	}
+	// Platform operators have no devices: their home is the organization list.
+	if (token.value && to.path.replace(/\/+$/, '').toLowerCase() === '/dashboard') {
+		const statusStore = useStatusStore();
+		await statusStore.ensureStatus();
+		if (statusStore.isEnabled('operator')) return navigateTo('/organizations', { replace: true });
 	}
 });

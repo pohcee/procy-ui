@@ -127,6 +127,7 @@ export default defineNuxtConfig({
 				'/execute', '/schedules', '/tunnels', '/library', '/audits',
 				'/profile', '/users', '/user-groups', '/client-access', '/client-groups',
 				'/vault', '/api-tokens', '/info', '/dashboard', '/auth',
+				'/organizations', '/platform-usage', '/usage',
 				'/inventory', '/Inventory',
 			],
 		},

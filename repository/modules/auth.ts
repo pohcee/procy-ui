@@ -2,6 +2,12 @@ import type { FetchOptions } from 'ofetch';
 import { HttpFactory } from '~/repository/factory';
 import type { ApiLoginResponse, AuthProviderResponse, ILoginInput } from '~/types';
 
+/**
+ * The organization picked at login, for users of several organizations. Assumed to be a query parameter of
+ * /login and /verify-2fa; adjust here when the membership API lands.
+ */
+const orgParam = (credentials: ILoginInput) => (credentials.organization ? `&organization=${encodeURIComponent(credentials.organization)}` : '');
+
 class AuthModule extends HttpFactory {
 	private RESOURCE = '/api/v1/login';
 
@@ -15,7 +21,7 @@ class AuthModule extends HttpFactory {
 		};
 		return this.call<ApiLoginResponse>(
 			'GET',
-			`${this.RESOURCE}?token-lifetime=${credentials.remember_me}`,
+			`${this.RESOURCE}?token-lifetime=${credentials.remember_me}${orgParam(credentials)}`,
 			undefined,
 			fetchOptions,
 		);
@@ -53,7 +59,7 @@ class AuthModule extends HttpFactory {
 		};
 		return this.call<ApiLoginResponse>(
 			'POST',
-			`/api/v1/verify-2fa?token-lifetime=${credentials.remember_me}`,
+			`/api/v1/verify-2fa?token-lifetime=${credentials.remember_me}${orgParam(credentials)}`,
 			{
 				username: credentials.username,
 				token: twofaToken,

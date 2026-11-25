@@ -85,6 +85,11 @@
 														· {{ tunnel.name }}
 													</template>
 												</div>
+												<TunnelBytes
+													v-if="tunnelBytesLabel(tunnel.bytes)"
+													:bytes="tunnel.bytes"
+													class="mt-0.5 block text-xs"
+												/>
 											</td>
 											<td class="border-b border-app-border-subtle px-3 py-3.5 align-middle">
 												<span :class="['inline-block whitespace-nowrap rounded-md px-2 py-[3px] text-xs font-semibold', tunnel.badge.class]">{{ tunnel.badge.label }}</span>
@@ -187,6 +192,14 @@
 												class="break-all font-mono text-app-text"
 											>{{ tunnel.acl }}</span>
 										</dd>
+										<template v-if="tunnelBytesLabel(tunnel.bytes)">
+											<dt class="text-app-text-3">
+												Transfer
+											</dt>
+											<dd>
+												<TunnelBytes :bytes="tunnel.bytes" />
+											</dd>
+										</template>
 										<dt class="text-app-text-3">
 											Closes
 										</dt>
@@ -307,6 +320,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { PropType } from 'vue';
 import { storeToRefs } from 'pinia';
 import { formatTimeAgo, useNow } from '@vueuse/core';
 import { ArrowLeftRight, Check, Copy, RefreshCw, TriangleAlert } from 'lucide-vue-next';
@@ -314,6 +328,7 @@ import OpEmpty from '~/components/operate/OpEmpty.vue';
 import TunnelActions, { type TunnelRow } from '~/components/tunnels/TunnelActions.vue';
 import type { Client, Tunnel } from '~/types';
 import { apiBaseUrl } from '~/utils/apiBase';
+import { tunnelBytesLabel } from '~/utils/usage';
 
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
@@ -497,4 +512,21 @@ const confirmDeleteTunnel = async () => {
 	}
 	await refreshTunnels();
 };
+
+// Bytes a metered tunnel carried: total, with the split by direction.
+const TunnelBytes = defineComponent({
+	props: { bytes: { type: Object as PropType<Tunnel['bytes']>, default: undefined } },
+	setup(props) {
+		return () => {
+			const label = tunnelBytesLabel(props.bytes);
+			if (!label) return h('span', { class: 'text-app-text-4' }, '–');
+			const split = `${label.toUser} to the user, ${label.toDevice} to the device`;
+			return h('span', { class: 'text-app-text-2', title: split }, [
+				h('span', { class: 'font-medium' }, label.total),
+				' transferred',
+				h('span', { class: 'sr-only' }, ` (${split})`),
+			]);
+		};
+	},
+});
 </script>

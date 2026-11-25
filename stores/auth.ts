@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { FetchError } from 'ofetch';
 import { readAuthToken, writeAuthToken } from '~/utils/authToken';
+import { loginNeedsOrgChoice, type OrgRef } from '~/utils/membership';
 import type { ApiErrorResponse, ILoginInput, TwoFa } from '~/types';
 
 /** Set or clear the signed-in session (the auth cookie is written immediately). */
@@ -16,6 +17,8 @@ export const useTokenStore = defineStore('token', {
 		errors: [] as Array<string>,
 		two_fa: {} as TwoFa,
 		twoFaToken: null as string | null,
+		/** Set when the login listed several organizations and the user must pick one. */
+		orgChoices: null as OrgRef[] | null,
 	}),
 	actions: {
 		async getLoginToken(credentials: ILoginInput) {
@@ -27,7 +30,12 @@ export const useTokenStore = defineStore('token', {
 			this.authenticated = false;
 			try {
 				const response = await $api.auth.login(credentials);
-				if (response?.data.token) {
+				// A user of several organizations picks one, then signs in again with it.
+				const choices = credentials.organization ? null : loginNeedsOrgChoice(response?.data);
+				if (choices) {
+					this.orgChoices = choices;
+				}
+				else if (response?.data.token) {
 					// With 2FA the server returns a short-lived token that's only good for verify-2fa.
 					if (response.data.two_fa) {
 						this.twoFaToken = response.data.token;
@@ -36,7 +44,7 @@ export const useTokenStore = defineStore('token', {
 					}
 					else {
 						setAuthCookies(response.data.token);
-						this.authenticated = true;
+						this.signedIn();
 					}
 				}
 				this.loading = false;
@@ -63,7 +71,7 @@ export const useTokenStore = defineStore('token', {
 				const response = await $api.auth.verify2fa(credentials, this.twoFaToken ?? '', code);
 				if (response?.data.token) {
 					setAuthCookies(response.data.token);
-					this.authenticated = true;
+					this.signedIn();
 					this.showTwoFa = false;
 					this.twoFaToken = null;
 				}
@@ -78,6 +86,17 @@ export const useTokenStore = defineStore('token', {
 			this.loading = false;
 		},
 
+		/** A new session: forget the previous session's server status (its capabilities depend on the user). */
+		signedIn() {
+			this.authenticated = true;
+			this.orgChoices = null;
+			useStatusStore().$reset();
+			useProfile().$reset();
+		},
+		cancelOrgChoice() {
+			this.orgChoices = null;
+			this.errors = [];
+		},
 		async getProvider() {
 
 		},
@@ -101,6 +120,8 @@ export const useTokenStore = defineStore('token', {
 			}
 			this.authenticated = false;
 			setAuthCookies(null);
+			useStatusStore().$reset();
+			useProfile().$reset();
 		},
 	},
 });

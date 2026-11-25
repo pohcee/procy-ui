@@ -17,5 +17,10 @@ export const useCapabilities = () => {
 	/** Some kind of tunnel can be created (a server port, or the built-in HTTP proxy). */
 	const canCreateTunnels = computed(() => has('port_tunnels') || has('http_proxy_tunnels'));
 
-	return { has, canCreateTunnels };
+	/** The user is a platform operator (opt-in: only an explicit `operator: true` counts). */
+	const operator = computed(() => statusStore.isEnabled('operator'));
+	/** Usage metering is on (opt-in: only an explicit `usage: true` counts). */
+	const usage = computed(() => statusStore.isEnabled('usage'));
+
+	return { has, canCreateTunnels, operator, usage };
 };
