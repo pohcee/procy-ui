@@ -265,5 +265,5 @@ export const deviceLimitUse = (count: number | null | undefined, limit: number |
 	return (count ?? 0) / limit;
 };
 
-/** The operator page of one organization (a query, so a reload works from the static build). */
-export const orgLink = (id: string): string => `/organizations?id=${encodeURIComponent(id)}`;
+/** The operator console page of one organization. */
+export const orgLink = (id: string): string => `/operator/organizations/${encodeURIComponent(id)}`;

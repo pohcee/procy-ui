@@ -278,6 +278,7 @@ import {
 	transferOf,
 } from '~/utils/usage';
 
+definePageMeta({ layout: 'operator' });
 useHead({ title: 'Platform usage' });
 
 const { $api } = useNuxtApp();

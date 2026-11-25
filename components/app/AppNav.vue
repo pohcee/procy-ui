@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { ArrowLeftRight, BarChart3, BookOpen, Building2, Clock, CreditCard, ExternalLink, Trash2, UserPlus, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
+import { ArrowLeftRight, BarChart3, BookOpen, Clock, CreditCard, ExternalLink, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
 import type { Capability } from '~/composables/useCapabilities';
 
 /** Public documentation; absolute so it also works on servers that don't host the docs. */
@@ -74,22 +74,11 @@ interface NavSection {
 
 const emit = defineEmits<{ (e: 'navigate'): void }>();
 const route = useRoute();
-const { has, operator, usage, billing, signup } = useCapabilities();
+const { has, operator, usage, billing } = useCapabilities();
 const { isAdmin } = useIsAdmin();
 
 const allSections: NavSection[] = [
-	{
-		// Platform operators (users of the system organization): no devices of their own.
-		label: 'Platform',
-		when: () => operator.value,
-		items: [
-			{ label: 'Organizations', to: '/organizations', icon: Building2 },
-			{ label: 'Platform usage', to: '/platform-usage', icon: BarChart3, when: () => usage.value },
-			{ label: 'Platform billing', to: '/platform-billing', icon: CreditCard, when: () => billing.value },
-			{ label: 'Signups', to: '/signups', icon: UserPlus, when: () => signup.value },
-			{ label: 'Deletions', to: '/deletions', icon: Trash2, when: () => signup.value },
-		],
-	},
+	// Platform operators have the operator console's own navigation (components/operator/console/OperatorNav.vue).
 	{
 		label: 'Operate',
 		when: () => !operator.value,

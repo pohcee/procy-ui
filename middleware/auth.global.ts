@@ -1,5 +1,6 @@
 import { readAuthToken } from '~/utils/authToken';
 import { isPublicPath } from '~/utils/signup';
+import { isConsolePath, legacyOperatorRedirect } from '~/utils/operatorConsole';
 
 // Whether this server offers signup (GET /api/v1/signup), asked once per page load.
 let offered: Promise<boolean> | null = null;
@@ -40,10 +41,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
 		abortNavigation();
 		return navigateTo('/auth');
 	}
-	// Platform operators have no devices: their home is the organization list.
-	if (token.value && to.path.replace(/\/+$/, '').toLowerCase() === '/dashboard') {
+	// The operator pages moved into the console (/organizations?id=X → /operator/organizations/X, …).
+	const moved = token.value ? legacyOperatorRedirect(to.path, to.query) : null;
+	if (moved) return navigateTo(moved, { replace: true });
+	// Platform operators have no devices: their home is the operator console, which is theirs only. The status is
+	// loaded before the first page renders, so the layout shows the right shell (console or organization) at once.
+	if (token.value && !isPublicPath(to.path)) {
+		const toDashboard = to.path.replace(/\/+$/, '').toLowerCase() === '/dashboard';
 		const statusStore = useStatusStore();
 		await statusStore.ensureStatus();
-		if (statusStore.isEnabled('operator')) return navigateTo('/organizations', { replace: true });
+		const operator = statusStore.isEnabled('operator');
+		if (operator && toDashboard) return navigateTo('/operator', { replace: true });
+		if (!operator && isConsolePath(to.path) && statusStore.status?.version) return navigateTo('/dashboard', { replace: true });
 	}
 });

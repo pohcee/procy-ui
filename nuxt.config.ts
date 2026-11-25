@@ -130,7 +130,13 @@ export default defineNuxtConfig({
 				'/execute', '/schedules', '/tunnels', '/library', '/audits',
 				'/profile', '/users', '/user-groups', '/client-access', '/client-groups',
 				'/vault', '/api-tokens', '/info', '/dashboard', '/auth',
-				'/organizations', '/platform-usage', '/usage', '/invitations', '/billing', '/platform-billing', '/organization', '/signups', '/deletions',
+				'/usage', '/invitations', '/billing', '/organization',
+				// The operator console. Its organization pages (/operator/organizations/<id>) are not prerendered:
+				// rportd serves them through its index.html fallback (vueHistoryPaths).
+				'/operator', '/operator/organizations', '/operator/invitations', '/operator/signups', '/operator/deletions',
+				'/operator/usage', '/operator/billing', '/operator/audit',
+				// The old operator pages, kept so bookmarks load the app, which redirects them into the console.
+				'/organizations', '/platform-usage', '/platform-billing', '/signups', '/deletions',
 				// Signup, and the pages the signup emails link to (<public_url>/auth/signup/...).
 				'/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email',
 				// The page the server's Google sign-in callback redirects to (<ui_url>/auth/oidc#code=...).

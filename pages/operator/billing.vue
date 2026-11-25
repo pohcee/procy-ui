@@ -413,6 +413,7 @@ import {
 } from '~/utils/billing';
 import { currentMonth, formatBytes, formatCount, orgLink, shiftMonth } from '~/utils/usage';
 
+definePageMeta({ layout: 'operator' });
 useHead({ title: 'Platform billing' });
 
 const { $api } = useNuxtApp();
