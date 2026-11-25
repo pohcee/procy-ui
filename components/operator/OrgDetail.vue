@@ -32,6 +32,18 @@
 			#actions
 		>
 			<AppButton
+				v-if="signup"
+				variant="secondary"
+				:disabled="exporting"
+				@click="exportOrg"
+			>
+				<Download
+					class="h-4 w-4"
+					aria-hidden="true"
+				/>
+				{{ exporting ? 'Exporting…' : 'Export' }}
+			</AppButton>
+			<AppButton
 				variant="secondary"
 				@click="emit('limit', shown)"
 			>
@@ -169,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, CirclePause, Gauge, Pause, Play, UserPlus } from 'lucide-vue-next';
+import { ChevronLeft, CirclePause, Download, Gauge, Pause, Play, UserPlus } from 'lucide-vue-next';
 import OrgDeviceLimit from '~/components/operator/OrgDeviceLimit.vue';
 import OrgBilling from '~/components/operator/OrgBilling.vue';
 import OrgMembers from '~/components/operator/OrgMembers.vue';
@@ -177,6 +189,8 @@ import OrgStatusPill from '~/components/operator/OrgStatusPill.vue';
 import UsageMonthPicker from '~/components/usage/UsageMonthPicker.vue';
 import UsageReportView from '~/components/usage/UsageReportView.vue';
 import type { Organization } from '~/repository/modules/operator';
+import { downloadJson } from '~/utils/download';
+import { exportFileName } from '~/utils/signup';
 import { currentMonth, formatBytes, formatCount, monthQuery, type UsageReport } from '~/utils/usage';
 
 const props = defineProps<{
@@ -190,7 +204,23 @@ const emit = defineEmits<{
 }>();
 
 const { $api } = useNuxtApp();
-const { usage, billing } = useCapabilities();
+const { usage, billing, signup } = useCapabilities();
+const snackbar = useSnackbar();
+
+// The organization's configuration without secrets, as a JSON download (servers with signup).
+const exporting = ref(false);
+const exportOrg = async () => {
+	exporting.value = true;
+	try {
+		downloadJson(await $api.operator.exportOrg(props.id), exportFileName(props.id));
+	}
+	catch (e) {
+		snackbar.add({ type: 'error', text: `Couldn't export it: ${apiErrorMessage(e)}` });
+	}
+	finally {
+		exporting.value = false;
+	}
+};
 
 const fetched = ref<Organization | null>(null);
 const loadError = ref<string | null>(null);

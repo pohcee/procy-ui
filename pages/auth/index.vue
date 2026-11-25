@@ -35,7 +35,7 @@ import LoginForm from '~/components/LoginForm.vue';
 import LoginOrgPicker from '~/components/LoginOrgPicker.vue';
 import LoginNewPassword from '~/components/LoginNewPassword.vue';
 import type { ILoginInput } from '~/types';
-import { checkoutPlanFromQuery } from '~/utils/signup';
+import { checkoutPlanFromQuery, safeNext } from '~/utils/signup';
 
 const store = useTokenStore();
 const { authenticated, showTwoFa, orgChoices, passwordExpired, loading, errors } = storeToRefs(store);
@@ -74,7 +74,8 @@ const goHome = async () => {
 			snackbar.add({ type: 'error', text: `Couldn't open the checkout: ${apiErrorMessage(e)}` });
 		}
 	}
-	await router.push('/dashboard');
+	// A page that sent the user to sign in first (`?next=`, a path of this site only), else home.
+	await router.push(safeNext(route.query.next) ?? '/dashboard');
 };
 
 const handleLogin = async (credentials: ILoginInput) => {

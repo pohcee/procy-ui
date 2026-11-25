@@ -28,5 +28,8 @@ export const useCapabilities = () => {
 	/** Billing plans and limits are on (opt-in: only an explicit `billing: true` counts). */
 	const billing = computed(() => statusStore.isEnabled('billing'));
 
-	return { has, canCreateTunnels, operator, usage, organizations, billing };
+	/** Self-service signup, email confirmation, organization export and deletion (opt-in: only an explicit `signup: true` counts). */
+	const signup = computed(() => statusStore.isEnabled('signup'));
+
+	return { has, canCreateTunnels, operator, usage, organizations, billing, signup };
 };

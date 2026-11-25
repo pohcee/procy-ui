@@ -23,6 +23,7 @@ import UsageModule from '~/repository/modules/usage';
 import MembershipModule from '~/repository/modules/membership';
 import SignupModule from '~/repository/modules/signup';
 import BillingModule from '~/repository/modules/billing';
+import AccountModule from '~/repository/modules/account';
 import { noteBillingRefusal } from '~/composables/useBilling';
 
 interface IApiInstance {
@@ -47,6 +48,7 @@ interface IApiInstance {
 	membership: MembershipModule;
 	signup: SignupModule;
 	billing: BillingModule;
+	account: AccountModule;
 }
 
 /**
@@ -119,6 +121,7 @@ export default defineNuxtPlugin(() => {
 		// Public routes: no session header, and a 401 there is no reason to leave the page.
 		signup: new SignupModule(authFetcher),
 		billing: new BillingModule(apiFetcher),
+		account: new AccountModule(apiFetcher),
 	};
 
 	return {

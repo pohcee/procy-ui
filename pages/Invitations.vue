@@ -25,6 +25,11 @@
 			</AppCard>
 
 			<template v-else>
+				<!-- With signup on, accepting needs a confirmed email address. -->
+				<EmailConfirmCard
+					v-if="signup && (unconfirmed || invitations.length)"
+					compact
+				/>
 				<!-- Accepted on this page: offer to switch there. -->
 				<div
 					v-for="org in accepted"
@@ -107,7 +112,9 @@
 <script setup lang="ts">
 import { Building2, CircleCheck, MailPlus } from 'lucide-vue-next';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
+import EmailConfirmCard from '~/components/account/EmailConfirmCard.vue';
 import type { MyInvitation } from '~/utils/membership';
+import { isUnconfirmedEmailError } from '~/utils/signup';
 
 useHead({ title: 'Invitations' });
 
@@ -116,6 +123,9 @@ const statusReady = computed(() => !!statusStore.status?.version);
 const snackbar = useSnackbar();
 const { invitations, failed, available, reload, accept: acceptInv, decline: declineInv } = useInvitations();
 const { switching, switchTo: switchOrg } = useMembership();
+const { signup } = useCapabilities();
+/** An acceptance was refused because the account's email isn't confirmed. */
+const unconfirmed = ref(false);
 
 const retry = () => reload();
 
@@ -129,7 +139,11 @@ const accept = async (inv: MyInvitation) => {
 		accepted.value = [...accepted.value, inv];
 	}
 	catch (e) {
-		snackbar.add({ type: 'error', text: `Couldn't accept the invitation: ${apiErrorMessage(e)}` });
+		if (isUnconfirmedEmailError(apiErrorTitle(e))) {
+			unconfirmed.value = true;
+			snackbar.add({ type: 'error', text: 'Confirm your email address first: use the button above, then open the link we email you.' });
+		}
+		else snackbar.add({ type: 'error', text: `Couldn't accept the invitation: ${apiErrorMessage(e)}` });
 	}
 	finally {
 		busy.value = null;

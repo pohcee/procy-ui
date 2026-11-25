@@ -25,7 +25,8 @@ import SignupLinkResult from '~/components/signup/SignupLinkResult.vue';
 import { linkErrorMessage } from '~/utils/signup';
 
 definePageMeta({ layout: 'auth' });
-useHead({ title: 'Cancel deletion' });
+// The link's token must not leak to other sites.
+useHead({ title: 'Cancel deletion', meta: [{ name: 'referrer', content: 'no-referrer' }] });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
