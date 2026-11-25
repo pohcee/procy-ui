@@ -2,6 +2,8 @@ export interface ILoginInput {
 	username: string;
 	password: string;
 	remember_me: string;
+	/** The organization picked at login when the user belongs to several (membership API, not final). */
+	organization?: string;
 }
 export interface UpdateSummary {
 	title: string;
@@ -178,6 +180,10 @@ export interface ServerCapabilities {
 	file_upload: boolean;
 	scheduled_jobs: boolean;
 	library: boolean;
+	/** The requesting user is a platform operator (operator API). Reported only when true. */
+	operator?: boolean;
+	/** Usage metering is on (GET /usage). Reported only when true. */
+	usage?: boolean;
 }
 export interface TwoFa {
 	send_to: string;
@@ -190,6 +196,8 @@ export interface ApiLoginResponse {
 export interface ILoginResponse {
 	token: string;
 	two_fa: TwoFa;
+	/** Several organizations and no token: the user must pick one (membership API, not final). */
+	organizations?: { id: string; name: string }[];
 }
 export interface ProfileResponse {
 	data: Profile;
@@ -297,6 +305,8 @@ export interface Tunnel {
 	id: string;
 	client_id: string;
 	created_at: Date;
+	/** Payload bytes carried so far; only on servers with usage metering. */
+	bytes?: { to_user: number; to_device: number };
 }
 export interface TunnelFurtherOptions {
 	'idle-timeout-minutes': number;

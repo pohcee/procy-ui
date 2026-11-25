@@ -13,6 +13,12 @@ export const useStatusStore = defineStore('status', {
 		/** Whether the server offers a feature. Unknown (older server, status not loaded yet) counts as offered. */
 		hasCapability: state => (name: keyof ServerCapabilities): boolean =>
 			state.status?.capabilities?.[name] !== false,
+		/**
+		 * Whether an opt-in feature is on (`operator`, `usage`): only an explicit true counts, so servers that
+		 * don't report it (standalone, older) show nothing new.
+		 */
+		isEnabled: state => (name: 'operator' | 'usage'): boolean =>
+			state.status?.capabilities?.[name] === true,
 	},
 	actions: {
 		async loadStatus() {

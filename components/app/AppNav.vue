@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { ArrowLeftRight, BookOpen, Clock, ExternalLink, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
+import { ArrowLeftRight, BarChart3, BookOpen, Building2, Clock, ExternalLink, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
 import type { Capability } from '~/composables/useCapabilities';
 
 /** Public documentation; absolute so it also works on servers that don't host the docs. */
@@ -62,20 +62,34 @@ interface NavItem {
 	external?: boolean;
 	/** Shown only when the server offers this feature. */
 	capability?: Capability;
+	/** Shown only when this is true (opt-in features: operator, usage). */
+	when?: () => boolean;
 }
 
 interface NavSection {
 	label?: string;
 	items: NavItem[];
+	when?: () => boolean;
 }
 
 const emit = defineEmits<{ (e: 'navigate'): void }>();
 const route = useRoute();
-const { has } = useCapabilities();
+const { has, operator, usage } = useCapabilities();
+const { isAdmin } = useIsAdmin();
 
 const allSections: NavSection[] = [
 	{
+		// Platform operators (users of the system organization): no devices of their own.
+		label: 'Platform',
+		when: () => operator.value,
+		items: [
+			{ label: 'Organizations', to: '/organizations', icon: Building2 },
+			{ label: 'Platform usage', to: '/platform-usage', icon: BarChart3, when: () => usage.value },
+		],
+	},
+	{
 		label: 'Operate',
+		when: () => !operator.value,
 		items: [
 			{ label: 'Devices', to: '/dashboard', icon: Monitor },
 			{ label: 'Execute', to: '/execute', icon: Terminal },
@@ -87,6 +101,7 @@ const allSections: NavSection[] = [
 	},
 	{
 		items: [
+			{ label: 'Usage', to: '/usage', icon: BarChart3, when: () => usage.value && isAdmin.value && !operator.value },
 			{
 				label: 'Settings',
 				to: '/profile',
@@ -98,10 +113,12 @@ const allSections: NavSection[] = [
 	},
 ];
 
-const sections = computed(() => allSections.map(section => ({
-	...section,
-	items: section.items.filter(item => !item.capability || has(item.capability)),
-})));
+const sections = computed(() => allSections
+	.filter(section => !section.when || section.when())
+	.map(section => ({
+		...section,
+		items: section.items.filter(item => (!item.capability || has(item.capability)) && (!item.when || item.when())),
+	})));
 
 const isActive = (item: NavItem): boolean => {
 	if (item.external) return false;

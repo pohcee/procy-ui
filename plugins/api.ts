@@ -18,6 +18,9 @@ import AuditLogModule from '~/repository/modules/auditlog';
 import FilesModule from '~/repository/modules/files';
 import NotificationsModule from '~/repository/modules/notifications';
 import JobsModule from '~/repository/modules/jobs';
+import OperatorModule from '~/repository/modules/operator';
+import UsageModule from '~/repository/modules/usage';
+import MembershipModule from '~/repository/modules/membership';
 
 interface IApiInstance {
 	auth: AuthModule;
@@ -36,6 +39,9 @@ interface IApiInstance {
 	files: FilesModule;
 	notifications: NotificationsModule;
 	jobs: JobsModule;
+	operator: OperatorModule;
+	usage: UsageModule;
+	membership: MembershipModule;
 }
 
 /**
@@ -100,6 +106,9 @@ export default defineNuxtPlugin(() => {
 		files: new FilesModule(apiFetcher),
 		notifications: new NotificationsModule(apiFetcher),
 		jobs: new JobsModule(apiFetcher),
+		operator: new OperatorModule(apiFetcher),
+		usage: new UsageModule(apiFetcher),
+		membership: new MembershipModule(apiFetcher),
 	};
 
 	return {

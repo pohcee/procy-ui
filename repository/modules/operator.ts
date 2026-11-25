@@ -1,0 +1,80 @@
+import { HttpFactory } from '~/repository/factory';
+import type { OrgUsageRow, UsageReport } from '~/utils/usage';
+
+/** An organization as platform operators see it (GET /operator/organizations). */
+export interface Organization {
+	id: string;
+	name: string;
+	status: 'active' | 'suspended' | string;
+	created_at: string;
+	device_count: number;
+	/** null: unlimited */
+	device_limit: number | null;
+	user_count: number;
+}
+
+/** A created administrator; the password is shown once. */
+export interface OrganizationAdmin {
+	organization: string;
+	username: string;
+	password: string;
+	password_expired: boolean;
+}
+
+export interface OperatorUsage {
+	from: string;
+	to: string;
+	sort?: string;
+	organizations: OrgUsageRow[];
+}
+
+const org = (id: string) => `/api/v1/operator/organizations/${encodeURIComponent(id)}`;
+const query = (params: Record<string, string | undefined>) => {
+	const q = new URLSearchParams();
+	for (const [k, v] of Object.entries(params)) if (v) q.set(k, v);
+	const s = q.toString();
+	return s ? `?${s}` : '';
+};
+
+/** Platform operator API (capability `operator`). */
+class OperatorModule extends HttpFactory {
+	async list(): Promise<Organization[]> {
+		const res = await this.call<{ data: Organization[] }>('GET', '/api/v1/operator/organizations');
+		return res?.data ?? [];
+	}
+
+	async get(id: string): Promise<Organization> {
+		return (await this.call<{ data: Organization }>('GET', org(id))).data;
+	}
+
+	async create(body: { id: string; name?: string; device_limit?: number | null }): Promise<Organization> {
+		return (await this.call<{ data: Organization }>('POST', '/api/v1/operator/organizations', body)).data;
+	}
+
+	async suspend(id: string): Promise<Organization> {
+		return (await this.call<{ data: Organization }>('POST', `${org(id)}/suspend`)).data;
+	}
+
+	async activate(id: string): Promise<Organization> {
+		return (await this.call<{ data: Organization }>('POST', `${org(id)}/activate`)).data;
+	}
+
+	async setDeviceLimit(id: string, deviceLimit: number | null): Promise<Organization> {
+		return (await this.call<{ data: Organization }>('PUT', `${org(id)}/device-limit`, { device_limit: deviceLimit })).data;
+	}
+
+	async addAdmin(id: string, body: { username: string; two_fa_send_to?: string }): Promise<OrganizationAdmin> {
+		return (await this.call<{ data: OrganizationAdmin }>('POST', `${org(id)}/admins`, body)).data;
+	}
+
+	async orgUsage(id: string, params: { from?: string; to?: string; granularity?: 'hour' | 'day' | 'month' }): Promise<UsageReport> {
+		return (await this.call<{ data: UsageReport }>('GET', `${org(id)}/usage${query(params)}`)).data;
+	}
+
+	/** Every organization's totals for a month (YYYY-MM), heaviest first. */
+	async usage(month?: string): Promise<OperatorUsage> {
+		return (await this.call<{ data: OperatorUsage }>('GET', `/api/v1/operator/usage${query({ month })}`)).data;
+	}
+}
+
+export default OperatorModule;
