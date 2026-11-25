@@ -14,7 +14,15 @@ export interface SignupConfig {
 	requireApproval: boolean;
 	passwordMinLength: number;
 	trialDays: number;
+	/** "Continue with Google" ([oidc] on the server): a full-page navigation to googleSignupUrl?organization=. */
+	googleSignup: boolean;
+	/** A path on the API server. */
+	googleSignupUrl: string;
+	googleButtonLabel: string;
 }
+
+export const DEFAULT_GOOGLE_SIGNUP_URL = '/api/v1/oidc/signup';
+export const DEFAULT_GOOGLE_BUTTON_LABEL = 'Continue with Google';
 
 /** Used when the server doesn't say (the server checks the password anyway). */
 export const DEFAULT_PASSWORD_MIN_LENGTH = 8;
@@ -37,7 +45,16 @@ export const parseSignupConfig = (raw: unknown): SignupConfig | null => {
 		requireApproval: o.require_approval === true,
 		passwordMinLength: num(o.password_min_length, 0) || DEFAULT_PASSWORD_MIN_LENGTH,
 		trialDays: num(o.trial_days, 0),
+		googleSignup: o.google_signup === true,
+		googleSignupUrl: apiPath(o.google_signup_url, DEFAULT_GOOGLE_SIGNUP_URL),
+		googleButtonLabel: (typeof o.google_button_label === 'string' && o.google_button_label.trim()) || DEFAULT_GOOGLE_BUTTON_LABEL,
 	};
+};
+
+/** Only a path of the API server: never navigate to another host named by a response. */
+const apiPath = (v: unknown, fallback: string): string => {
+	const u = typeof v === 'string' ? v.trim() : '';
+	return u.startsWith('/') && !u.startsWith('//') && !u.includes('\\') ? u : fallback;
 };
 
 /** The providers' official script URLs (explicit rendering; nothing else is ever loaded). */
@@ -167,8 +184,11 @@ export const checkoutPlanFromQuery = (value: unknown): string | null => {
 	return v;
 };
 
-/** Routes reachable without signing in (/auth/confirm-email asks to sign in itself, then comes back; /auth/oidc finishes a Google sign-in). */
-const PUBLIC_PATHS = ['/auth', '/auth/oidc', '/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email'];
+/**
+ * Routes reachable without signing in: the home page (exactly "/"), sign-in and signup (/auth/confirm-email asks to
+ * sign in itself, then comes back; /auth/oidc finishes a Google sign-in, /auth/signup/google a Google signup).
+ */
+const PUBLIC_PATHS = ['/', '/auth', '/auth/oidc', '/auth/signup/google', '/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email'];
 
 /**
  * Where to go after signing in (`?next=`): only a path of this site (no scheme, no host, no `//`, no backslash),
@@ -274,7 +294,18 @@ export interface SignupRow {
 	decidedBy: string;
 	reason: string;
 	organizationId: string;
+	method: 'email' | 'google';
+	/** Whether the email domain has MX records; null: not looked up (or an older server). */
+	mxFound: boolean | null;
+	/** A large free-mail provider (domain checks are skipped for those). */
+	freeMail: boolean;
+	/** Completed signups of the same domain. */
+	domainCustomers: number;
+	emailDeniedBefore: number;
+	domainDeniedBefore: number;
 }
+
+const count = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
 
 export const parseSignups = (raw: unknown): SignupRow[] => listOf(raw).flatMap((r) => {
 	if (!r || typeof r !== 'object') return [];
@@ -285,8 +316,52 @@ export const parseSignups = (raw: unknown): SignupRow[] => listOf(raw).flatMap((
 		id, email: str(o.email), domain: str(o.domain), remoteIp: str(o.remote_ip), organizationName: str(o.organization_name),
 		status: str(o.status), createdAt: str(o.created_at), expiresAt: str(o.expires_at), verifiedAt: str(o.verified_at),
 		decidedAt: str(o.decided_at), decidedBy: str(o.decided_by), reason: str(o.reason), organizationId: str(o.organization_id),
+		method: o.method === 'google' ? 'google' : 'email',
+		mxFound: typeof o.mx_found === 'boolean' ? o.mx_found : null,
+		freeMail: o.free_mail === true,
+		domainCustomers: count(o.domain_customers),
+		emailDeniedBefore: count(o.email_denied_before),
+		domainDeniedBefore: count(o.domain_denied_before),
 	}];
 });
+
+/** How long a confirmed signup has waited: "waiting 12 min", "waiting 3 h", "waiting 2 d"; "" without a time. */
+export const formatWaiting = (verifiedAt: string, now: Date = new Date()): string => {
+	const t = verifiedAt ? Date.parse(verifiedAt) : Number.NaN;
+	if (!Number.isFinite(t)) return '';
+	const min = Math.floor(Math.max(0, now.getTime() - t) / 60_000);
+	if (min < 1) return 'waiting under a minute';
+	if (min < 60) return `waiting ${min} min`;
+	const h = Math.floor(min / 60);
+	if (h < 48) return `waiting ${h} h`;
+	return `waiting ${Math.floor(h / 24)} d`;
+};
+
+export interface SignupFact {
+	text: string;
+	tone: 'ok' | 'warn' | 'danger' | 'info' | 'neutral';
+	title?: string;
+}
+
+/** The facts an operator decides a signup on, in reading order (shown under its email in the queue). */
+export const signupFacts = (r: SignupRow, now: Date = new Date()): SignupFact[] => {
+	const out: SignupFact[] = [];
+	const domain = r.domain || r.email.split('@')[1] || '';
+	if (domain) out.push({ text: domain, tone: 'neutral' });
+	if (r.freeMail) out.push({ text: 'free mail', tone: 'info' });
+	if (r.mxFound === true) out.push({ text: 'MX ✓', tone: 'ok', title: 'The domain has mail servers' });
+	else if (r.mxFound === false) out.push({ text: 'MX ✗', tone: 'danger', title: 'The domain has no mail servers' });
+	else out.push({ text: 'MX ?', tone: 'neutral', title: 'Mail servers not looked up' });
+	if (r.method === 'google') out.push({ text: 'via Google', tone: 'info' });
+	if (r.status === 'awaiting_approval') {
+		const w = formatWaiting(r.verifiedAt, now);
+		if (w) out.push({ text: w, tone: 'warn' });
+	}
+	if (r.domainCustomers > 0) out.push({ text: `domain already a customer (${r.domainCustomers})`, tone: 'warn' });
+	if (r.emailDeniedBefore > 0) out.push({ text: `this email was rejected before (${r.emailDeniedBefore})`, tone: 'danger' });
+	if (r.domainDeniedBefore > 0) out.push({ text: `domain rejected before (${r.domainDeniedBefore})`, tone: 'danger' });
+	return out;
+};
 
 /** A signup's status for operators: label, tone and whether it can be approved or denied. */
 export const signupStatusInfo = (status: string): { label: string; tone: 'ok' | 'warn' | 'danger' | 'info' | 'neutral'; approve: boolean; deny: boolean } => {
@@ -314,6 +389,7 @@ export const deletionStateInfo = (state: string): { label: string; tone: 'ok' | 
 };
 
 export const isPublicPath = (path: string): boolean => {
+	// "/" stays "/" (only the home page itself, not everything below it).
 	const p = (path.split(/[?#]/)[0] || '/').replace(/\/+$/, '').toLowerCase() || '/';
 	return PUBLIC_PATHS.includes(p);
 };
