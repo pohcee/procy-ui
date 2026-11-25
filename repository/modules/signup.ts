@@ -1,5 +1,6 @@
 import { HttpFactory } from '~/repository/factory';
 import { httpStatusOf } from '~/utils/apiStatus';
+import { parsePlans, type PublicPlan } from '~/utils/plans';
 import { parseSignupConfig, verifyOutcome, type SignupConfig, type VerifyOutcome } from '~/utils/signup';
 
 /**
@@ -8,6 +9,7 @@ import { parseSignupConfig, verifyOutcome, type SignupConfig, type VerifyOutcome
  *   POST /signup                  { email, organization, captcha } → 202 { data: { status: "sent", message } } (always the same answer)
  *   POST /signup/verify           { token, password } → 201 completed | 202 awaiting_approval (SignupResult)
  *   POST /signup/cancel-deletion  { token } → { data: { organization, state } }
+ *   GET  /plans                   → { data: PlanInfo[] } (the public plan catalog; 404 without [billing] plans)
  */
 class SignupModule extends HttpFactory {
 	/** The signup settings, or null when this server has no signup (404, or `enabled` not true). */
@@ -19,6 +21,17 @@ class SignupModule extends HttpFactory {
 			const status = httpStatusOf(e);
 			if (status === 404 || status === 405) return null;
 			throw e;
+		}
+	}
+
+	/** The public plan catalog for the home page, or null when the server has none (or can't be reached). */
+	async plans(): Promise<PublicPlan[] | null> {
+		try {
+			const plans = parsePlans(await this.call<unknown>('GET', '/api/v1/plans'));
+			return plans.length ? plans : null;
+		}
+		catch {
+			return null;
 		}
 	}
 

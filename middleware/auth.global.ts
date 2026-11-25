@@ -15,8 +15,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
 		authenticated.value = true;
 	}
 
-	if (token.value && to?.name === 'auth') {
-		return navigateTo('/dashboard');
+	// Signed in: the sign-in page and the public home page lead to the app.
+	if (token.value && (to?.name === 'auth' || to.path === '/')) {
+		return navigateTo('/dashboard', { replace: true });
 	}
 	// The sign-in page and the signup pages (and the links of their emails) need no session.
 	if (!token.value && to?.name !== 'auth' && !isPublicPath(to.path)) {
