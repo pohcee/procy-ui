@@ -20,6 +20,7 @@
 					class="st-ctl"
 					type="text"
 					autocomplete="off"
+					:readonly="shared"
 				>
 			</div>
 			<div class="st-field">
@@ -41,7 +42,18 @@
 					/>
 				</div>
 			</div>
-			<div class="st-field">
+			<p
+				v-if="shared"
+				class="rounded-[10px] bg-app-muted p-3 text-[13px] text-app-text-2"
+				role="note"
+			>
+				{{ user.username }} also belongs to other organizations: only they can change their password and login name.
+				You can change their groups in this organization.
+			</p>
+			<div
+				v-if="!shared"
+				class="st-field"
+			>
 				<label
 					class="st-label"
 					:for="`${uid}-password`"
@@ -71,7 +83,10 @@
 					</AppButton>
 				</div>
 			</div>
-			<div class="st-field">
+			<div
+				v-if="!shared"
+				class="st-field"
+			>
 				<label
 					class="st-label"
 					:for="`${uid}-confirm`"
@@ -89,6 +104,12 @@
 					role="alert"
 				>Passwords do not match</span>
 			</div>
+			<p
+				v-if="accountNote && action === 'edit' && !shared"
+				class="text-[13px] text-app-text-3"
+			>
+				{{ accountNote }}
+			</p>
 		</div>
 	</Modal>
 </template>
@@ -111,7 +132,14 @@ defineProps({
 		type: Array as PropType<UserGroup[]>,
 		default: () => [],
 	},
+	/** Shown under the password when editing (organizations: who can change an account's password). */
+	accountNote: {
+		type: String,
+		default: undefined,
+	},
 });
+/** The member belongs to other organizations too: its password and login name aren't editable here. */
+const shared = ref(false);
 const user = ref({
 	username: '',
 	groups: [] as string[],
@@ -123,14 +151,16 @@ const emit = defineEmits(['close', 'save']);
 
 const open = () => {
 	action.value = 'create';
+	shared.value = false;
 	originalUsername.value = '';
 	user.value = { username: '', groups: [], password: '', confirmPassword: '' };
 	generatePassword();
 	isOpen.value = true;
 };
 
-const openForEdit = (existing: User) => {
+const openForEdit = (existing: User, sharedAccount = false) => {
 	action.value = 'edit';
+	shared.value = sharedAccount;
 	originalUsername.value = existing.username;
 	user.value = { username: existing.username, groups: [...(existing.groups ?? [])], password: '', confirmPassword: '' };
 	isOpen.value = true;

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { FetchError } from 'ofetch';
-import { readAuthToken, writeAuthToken } from '~/utils/authToken';
+import { isPasswordExpiredError, readAuthToken, writeAuthToken, writeSessionLifetime } from '~/utils/authToken';
 import { loginNeedsOrgChoice, type OrgRef } from '~/utils/membership';
 import type { ApiErrorResponse, ILoginInput, TwoFa } from '~/types';
 
@@ -19,6 +19,8 @@ export const useTokenStore = defineStore('token', {
 		twoFaToken: null as string | null,
 		/** Set when the login listed several organizations and the user must pick one. */
 		orgChoices: null as OrgRef[] | null,
+		/** Set when the server refused the sign-in because the password has expired: a new one is needed. */
+		passwordExpired: false,
 	}),
 	actions: {
 		async getLoginToken(credentials: ILoginInput) {
@@ -32,6 +34,7 @@ export const useTokenStore = defineStore('token', {
 				const response = await $api.auth.login(credentials);
 				// A user of several organizations picks one, then signs in again with it.
 				const choices = credentials.organization ? null : loginNeedsOrgChoice(response?.data);
+				this.passwordExpired = false;
 				if (choices) {
 					this.orgChoices = choices;
 				}
@@ -44,6 +47,7 @@ export const useTokenStore = defineStore('token', {
 					}
 					else {
 						setAuthCookies(response.data.token);
+						writeSessionLifetime(credentials.remember_me || null);
 						this.signedIn();
 					}
 				}
@@ -51,7 +55,14 @@ export const useTokenStore = defineStore('token', {
 			}
 			catch (error: unknown) {
 				const apiErrors = error instanceof FetchError ? (error.data as ApiErrorResponse | undefined)?.errors : undefined;
-				if (apiErrors) {
+				const first = apiErrors?.[0];
+				if (isPasswordExpiredError(error instanceof FetchError ? error.status : undefined, `${first?.title ?? ''} ${first?.detail ?? ''}`)) {
+					// The sign-in page asks for a new password and signs in again with it (POST /login new_password).
+					this.passwordExpired = true;
+					this.orgChoices = null;
+					this.errors = [];
+				}
+				else if (apiErrors) {
 					if (apiErrors.length > 0) {
 						const errorMessage = apiErrors[0].detail || apiErrors[0].title;
 						this.errors = [errorMessage];
@@ -71,6 +82,7 @@ export const useTokenStore = defineStore('token', {
 				const response = await $api.auth.verify2fa(credentials, this.twoFaToken ?? '', code);
 				if (response?.data.token) {
 					setAuthCookies(response.data.token);
+					writeSessionLifetime(credentials.remember_me || null);
 					this.signedIn();
 					this.showTwoFa = false;
 					this.twoFaToken = null;
@@ -90,11 +102,13 @@ export const useTokenStore = defineStore('token', {
 		signedIn() {
 			this.authenticated = true;
 			this.orgChoices = null;
+			this.passwordExpired = false;
 			useStatusStore().$reset();
 			useProfile().$reset();
 		},
 		cancelOrgChoice() {
 			this.orgChoices = null;
+			this.passwordExpired = false;
 			this.errors = [];
 		},
 		async getProvider() {
@@ -120,6 +134,7 @@ export const useTokenStore = defineStore('token', {
 			}
 			this.authenticated = false;
 			setAuthCookies(null);
+			writeSessionLifetime(null);
 			useStatusStore().$reset();
 			useProfile().$reset();
 		},

@@ -3,8 +3,8 @@ import { HttpFactory } from '~/repository/factory';
 import type { ApiLoginResponse, AuthProviderResponse, ILoginInput } from '~/types';
 
 /**
- * The organization picked at login, for users of several organizations. Assumed to be a query parameter of
- * /login and /verify-2fa; adjust here when the membership API lands.
+ * The organization picked at login, for users of several organizations: the query parameter `organization` of
+ * /login. (/verify-2fa takes the organization from its token and ignores the parameter.)
  */
 const orgParam = (credentials: ILoginInput) => (credentials.organization ? `&organization=${encodeURIComponent(credentials.organization)}` : '');
 
@@ -12,6 +12,15 @@ class AuthModule extends HttpFactory {
 	private RESOURCE = '/api/v1/login';
 
 	async login(credentials: ILoginInput): Promise<ApiLoginResponse> {
+		const query = `?token-lifetime=${credentials.remember_me}${orgParam(credentials)}`;
+		if (credentials.new_password) {
+			// An expired password is replaced with POST /login { username, password, new_password }.
+			return this.call<ApiLoginResponse>('POST', `${this.RESOURCE}${query}`, {
+				username: credentials.username,
+				password: credentials.password,
+				new_password: credentials.new_password,
+			}, { headers: { 'Content-Type': 'application/json' } });
+		}
 		const token = btoa(`${credentials.username}:${credentials.password}`);
 		const fetchOptions: FetchOptions<'json'> = {
 			headers: {
@@ -21,7 +30,7 @@ class AuthModule extends HttpFactory {
 		};
 		return this.call<ApiLoginResponse>(
 			'GET',
-			`${this.RESOURCE}?token-lifetime=${credentials.remember_me}${orgParam(credentials)}`,
+			`${this.RESOURCE}${query}`,
 			undefined,
 			fetchOptions,
 		);

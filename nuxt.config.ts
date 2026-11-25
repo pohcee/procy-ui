@@ -127,7 +127,9 @@ export default defineNuxtConfig({
 				'/execute', '/schedules', '/tunnels', '/library', '/audits',
 				'/profile', '/users', '/user-groups', '/client-access', '/client-groups',
 				'/vault', '/api-tokens', '/info', '/dashboard', '/auth',
-				'/organizations', '/platform-usage', '/usage',
+				'/organizations', '/platform-usage', '/usage', '/invitations',
+				// Signup, and the pages the signup emails link to (<public_url>/auth/signup/...).
+				'/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion',
 				'/inventory', '/Inventory',
 			],
 		},

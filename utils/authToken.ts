@@ -36,3 +36,30 @@ export const clearLegacyAuthCookies = () => {
 		for (const path of paths) document.cookie = `${name}=; Max-Age=0; path=${path}`;
 	}
 };
+
+/** Where the sign-in's session lifetime is kept, so switching organizations keeps it (see switchLifetime). */
+const LIFETIME_KEY = 'orp2_token_lifetime';
+
+/** Remember (or forget, with null) the `token-lifetime` chosen at sign-in. */
+export const writeSessionLifetime = (seconds: string | null) => {
+	try {
+		if (seconds) localStorage.setItem(LIFETIME_KEY, seconds);
+		else localStorage.removeItem(LIFETIME_KEY);
+	}
+	catch {
+		// No storage (private mode): a switch then gets the server's default lifetime.
+	}
+};
+
+export const readSessionLifetime = (): string | null => {
+	try {
+		return localStorage.getItem(LIFETIME_KEY);
+	}
+	catch {
+		return null;
+	}
+};
+
+/** Whether a failed sign-in means the password must be changed first (401 "password has expired"). */
+export const isPasswordExpiredError = (status: number | undefined, message: string): boolean =>
+	status === 401 && /password has expired/i.test(message);
