@@ -439,7 +439,7 @@ export const parseConsoleOrgs = (raw: unknown): ConsoleOrg[] =>
 	listOf(raw).map(parseConsoleOrg).filter((o): o is ConsoleOrg => !!o);
 
 export type OrgSortKey = 'name' | 'status' | 'plan' | 'devices' | 'users' | 'transfer_in' | 'transfer_out' | 'last_activity' | 'created' | 'source';
-export type SortDir = 'asc' | 'desc';
+export type OrgSortDir = 'asc' | 'desc';
 
 const sortValue = (o: ConsoleOrg, key: OrgSortKey): string | number | null => {
 	switch (key) {
@@ -463,7 +463,7 @@ const sortValue = (o: ConsoleOrg, key: OrgSortKey): string | number | null => {
 };
 
 /** Sorted by a column; missing values go last in either direction, ties by name. */
-export const sortOrgs = (rows: ConsoleOrg[], key: OrgSortKey, dir: SortDir): ConsoleOrg[] => {
+export const sortOrgs = (rows: ConsoleOrg[], key: OrgSortKey, dir: OrgSortDir): ConsoleOrg[] => {
 	const sign = dir === 'asc' ? 1 : -1;
 	const byName = (a: ConsoleOrg, b: ConsoleOrg) => (a.name || a.id).localeCompare(b.name || b.id) || a.id.localeCompare(b.id);
 	return [...rows].sort((a, b) => {
@@ -476,7 +476,7 @@ export const sortOrgs = (rows: ConsoleOrg[], key: OrgSortKey, dir: SortDir): Con
 };
 
 /** The direction a column sorts in first: numbers and dates largest first, text A–Z. */
-export const defaultSortDir = (key: OrgSortKey): SortDir => (['name', 'status', 'plan', 'source'].includes(key) ? 'asc' : 'desc');
+export const orgSortDefaultDir = (key: OrgSortKey): OrgSortDir => (['name', 'status', 'plan', 'source'].includes(key) ? 'asc' : 'desc');
 
 export interface OrgFilter {
 	q?: string;

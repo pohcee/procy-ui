@@ -7,7 +7,7 @@ import {
 	countAxis,
 	dayTick,
 	daySeries,
-	defaultSortDir,
+	orgSortDefaultDir,
 	filterOrgs,
 	inOf,
 	invitedByLabel,
@@ -269,8 +269,8 @@ describe('organization list', () => {
 		assert.deepEqual(sortOrgs(rows, 'plan', 'asc').map(r => r.id), ['c', 'b', 'a']);
 	});
 	it('default directions', () => {
-		assert.equal(defaultSortDir('name'), 'asc');
-		assert.equal(defaultSortDir('transfer_out'), 'desc');
+		assert.equal(orgSortDefaultDir('name'), 'asc');
+		assert.equal(orgSortDefaultDir('transfer_out'), 'desc');
 	});
 	it('filters by search, status and billing', () => {
 		assert.deepEqual(filterOrgs(rows, { q: 'alp' }).map(r => r.id), ['a']);
