@@ -83,12 +83,17 @@ const ERROR_MESSAGES: Record<string, string> = {
 	unknown_account: 'There is no account for this Google email address. Ask an administrator to add you, or sign in with your password.',
 	account_mismatch: 'This account is linked to a different Google account. Sign in with that one, or ask an administrator to unlink it.',
 	oidc_not_allowed: 'Google sign-in isn’t allowed for this account. Sign in with your password.',
+	ambiguous_account: 'Several accounts match this Google email address. Ask an administrator.',
+	unmanaged_email: 'Google doesn’t manage the email address of this Google account, so it can’t be linked. Use a Gmail or Google Workspace account, or sign in with your password.',
 	server_error: 'The server couldn’t complete the Google sign-in. Please try again later.',
 };
 
-/** A readable message for the `error` reason of the callback, else its description, else a generic one. */
-export const oidcErrorMessage = (reason: string, description = ''): string =>
-	ERROR_MESSAGES[reason] || description || 'The Google sign-in failed. Please try again.';
+/**
+ * A readable message for the `error` reason of the callback, else a generic one. The free-text description of the
+ * fragment is never shown: anyone can craft a link to this page with any text in it.
+ */
+export const oidcErrorMessage = (reason: string, _description = ''): string =>
+	ERROR_MESSAGES[reason] || 'The Google sign-in failed. Please try again.';
 
 // ---- Exchanging the sign-in code (POST /oidc/token) ----
 

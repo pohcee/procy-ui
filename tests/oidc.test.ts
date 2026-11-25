@@ -78,7 +78,7 @@ describe('oidcErrorMessage', () => {
 		}
 	});
 	it('falls back to the description, then a generic message', () => {
-		assert.equal(oidcErrorMessage('weird', 'Something odd'), 'Something odd');
+		assert.match(oidcErrorMessage('weird', 'Phishing text: call +1 555'), /failed/, 'never the crafted description');
 		assert.match(oidcErrorMessage('weird'), /failed/);
 	});
 });

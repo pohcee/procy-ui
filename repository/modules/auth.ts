@@ -50,8 +50,11 @@ class AuthModule extends HttpFactory {
 	 */
 	async oidcToken(code: string, organization?: string, lifetime?: string | null): Promise<unknown> {
 		const query = lifetime ? `?token-lifetime=${encodeURIComponent(lifetime)}` : '';
+		// credentials: the browser-binding cookie of the sign-in (set by the API on /api/v1/oidc) must go along,
+		// also when the API is on another origin
 		return this.call<unknown>('POST', `/api/v1/oidc/token${query}`, organization ? { code, organization } : { code }, {
 			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
 		});
 	}
 
