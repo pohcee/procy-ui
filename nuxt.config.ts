@@ -92,7 +92,8 @@ export default defineNuxtConfig({
 	},
 
 	routeRules: {
-		'/': { redirect: '/dashboard' },
+		// "/" is the public home page (signed-in users are sent on to /dashboard by middleware/auth.global.ts).
+		'/login': { redirect: '/auth' },
 		'/scripts': { redirect: '/execute' },
 		'/commands': { redirect: '/execute' },
 		// Inventory was folded into the device list.
@@ -124,6 +125,8 @@ export default defineNuxtConfig({
 	nitro: {
 		prerender: {
 			routes: [
+				// The public home page, and /login (a redirect to the sign-in page).
+				'/', '/login',
 				'/execute', '/schedules', '/tunnels', '/library', '/audits',
 				'/profile', '/users', '/user-groups', '/client-access', '/client-groups',
 				'/vault', '/api-tokens', '/info', '/dashboard', '/auth',
@@ -132,6 +135,8 @@ export default defineNuxtConfig({
 				'/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email',
 				// The page the server's Google sign-in callback redirects to (<ui_url>/auth/oidc#code=...).
 				'/auth/oidc',
+				// The end of a Google signup (<ui_url>/auth/signup/google#status=…).
+				'/auth/signup/google',
 				'/inventory', '/Inventory',
 			],
 		},

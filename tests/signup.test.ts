@@ -4,14 +4,33 @@ import {
 	CAPTCHA_SCRIPTS, checkoutPlanFromQuery, DEFAULT_PASSWORD_MIN_LENGTH, deletionStateInfo, emailConfirmErrorMessage, exportFileName,
 	isPublicPath, isUnconfirmedEmailError, linkErrorMessage, parseDeletion, parseDeletions, parseEmailStatus, parseSignupConfig,
 	parseSignups, passwordRefusal, safeNext, signInAfterSignup, signupErrorMessage, signupStatusInfo, validatePassword, validateSignup,
-	verifyErrorKind, verifyOutcome,
+	verifyErrorKind, verifyOutcome, signupFacts, formatWaiting, DEFAULT_GOOGLE_SIGNUP_URL, DEFAULT_GOOGLE_BUTTON_LABEL,
 } from '../utils/signup.ts';
 
 describe('parseSignupConfig', () => {
 	it('reads the public settings', () => {
 		assert.deepEqual(parseSignupConfig({ data: { enabled: true, captcha: 'turnstile', captcha_site_key: '0xKEY', require_approval: true, password_min_length: 12, trial_days: 14 } }), {
 			enabled: true, captcha: 'turnstile', captchaSiteKey: '0xKEY', requireApproval: true, passwordMinLength: 12, trialDays: 14,
+			googleSignup: false, googleSignupUrl: DEFAULT_GOOGLE_SIGNUP_URL, googleButtonLabel: DEFAULT_GOOGLE_BUTTON_LABEL,
 		});
+	});
+	it('reads the Google signup settings', () => {
+		const c = parseSignupConfig({ data: { enabled: true, google_signup: true, google_signup_url: '/api/v1/oidc/signup', google_button_label: 'Sign up with Google' } });
+		assert.equal(c?.googleSignup, true);
+		assert.equal(c?.googleSignupUrl, '/api/v1/oidc/signup');
+		assert.equal(c?.googleButtonLabel, 'Sign up with Google');
+	});
+	it('defaults the Google signup settings (older servers: no Google)', () => {
+		const c = parseSignupConfig({ enabled: true, google_signup: true });
+		assert.equal(c?.googleSignupUrl, '/api/v1/oidc/signup');
+		assert.equal(c?.googleButtonLabel, 'Continue with Google');
+		assert.equal(parseSignupConfig({ enabled: true })?.googleSignup, false);
+		assert.equal(parseSignupConfig({ enabled: true, google_signup: 'yes' })?.googleSignup, false);
+	});
+	it('only takes a path of the API server as the Google signup URL', () => {
+		for (const u of ['https://evil.test/x', '//evil.test', '/\\evil', 'relative', 7]) {
+			assert.equal(parseSignupConfig({ enabled: true, google_signup: true, google_signup_url: u })?.googleSignupUrl, DEFAULT_GOOGLE_SIGNUP_URL, String(u));
+		}
 	});
 	it('has no captcha without a known provider and a site key', () => {
 		assert.equal(parseSignupConfig({ enabled: true, captcha: 'hcaptcha' })?.captcha, null);
@@ -113,7 +132,10 @@ describe('isPublicPath', () => {
 		for (const p of ['/auth', '/auth/', '/signup', '/Signup/', '/signup/verify?token=x', '/auth/signup/verify', '/auth/signup/cancel-deletion#x', '/auth/confirm-email?token=x']) assert.equal(isPublicPath(p), true, p);
 	});
 	it('keeps everything else behind sign-in', () => {
-		for (const p of ['/', '/dashboard', '/users', '/signup/other', '/authx']) assert.equal(isPublicPath(p), false, p);
+		for (const p of ['/dashboard', '/users', '/signup/other', '/authx', '/x/']) assert.equal(isPublicPath(p), false, p);
+	});
+	it('lets the home page and the end of a Google signup through', () => {
+		for (const p of ['/', '', '/?x=1', '/#a', '/auth/signup/google', '/auth/signup/google#status=completed']) assert.equal(isPublicPath(p), true, p);
 	});
 });
 
@@ -167,5 +189,56 @@ describe('export and deletion', () => {
 		assert.equal(signupStatusInfo('pending').approve, false);
 		assert.equal(signupStatusInfo('pending').deny, true);
 		assert.equal(signupStatusInfo('completed').deny, false);
+	});
+});
+
+describe('signup queue facts', () => {
+	const now = new Date('2026-11-25T12:00:00Z');
+	it('defaults the new fields for older servers', () => {
+		const [r] = parseSignups({ data: [{ id: 's1', email: 'a@b.test', status: 'awaiting_approval' }] });
+		assert.equal(r.method, 'email');
+		assert.equal(r.mxFound, null);
+		assert.equal(r.freeMail, false);
+		assert.equal(r.domainCustomers, 0);
+		assert.equal(r.emailDeniedBefore, 0);
+		assert.equal(r.domainDeniedBefore, 0);
+	});
+	it('reads the new fields', () => {
+		const [r] = parseSignups([{ id: 's1', email: 'a@gmail.com', method: 'google', mx_found: false, free_mail: true, domain_customers: 2, email_denied_before: 1, domain_denied_before: 3 }]);
+		assert.deepEqual([r.method, r.mxFound, r.freeMail, r.domainCustomers, r.emailDeniedBefore, r.domainDeniedBefore], ['google', false, true, 2, 1, 3]);
+		assert.equal(parseSignups([{ id: 'x', method: 'carrier-pigeon', mx_found: 'yes', domain_customers: -1 }])[0].method, 'email');
+		assert.equal(parseSignups([{ id: 'x', mx_found: 'yes' }])[0].mxFound, null);
+		assert.equal(parseSignups([{ id: 'x', domain_customers: -1 }])[0].domainCustomers, 0);
+	});
+	it('formats how long a confirmed signup has waited', () => {
+		assert.equal(formatWaiting('2026-11-25T11:59:40Z', now), 'waiting under a minute');
+		assert.equal(formatWaiting('2026-11-25T11:48:00Z', now), 'waiting 12 min');
+		assert.equal(formatWaiting('2026-11-25T09:00:00Z', now), 'waiting 3 h');
+		assert.equal(formatWaiting('2026-11-23T10:00:00Z', now), 'waiting 2 d');
+		assert.equal(formatWaiting('', now), '');
+		assert.equal(formatWaiting('nonsense', now), '');
+		assert.equal(formatWaiting('2026-11-26T00:00:00Z', now), 'waiting under a minute');
+	});
+	it('lists the facts an operator decides on', () => {
+		const [r] = parseSignups([{ id: 's1', email: 'ann@acme.test', domain: 'acme.test', status: 'awaiting_approval', verified_at: '2026-11-25T09:00:00Z', method: 'google', mx_found: true, domain_customers: 2, email_denied_before: 1, domain_denied_before: 0 }]);
+		assert.deepEqual(signupFacts(r, now), [
+			{ text: 'acme.test', tone: 'neutral' },
+			{ text: 'MX ✓', tone: 'ok', title: 'The domain has mail servers' },
+			{ text: 'via Google', tone: 'info' },
+			{ text: 'waiting 3 h', tone: 'warn' },
+			{ text: 'domain already a customer (2)', tone: 'warn' },
+			{ text: 'this email was rejected before (1)', tone: 'danger' },
+		]);
+	});
+	it('marks free mail and unknown or missing MX, and waits only while awaiting approval', () => {
+		const [r] = parseSignups([{ id: 's1', email: 'bob@gmail.com', status: 'completed', verified_at: '2026-11-25T09:00:00Z', free_mail: true, mx_found: null, domain_denied_before: 4 }]);
+		assert.deepEqual(signupFacts(r, now), [
+			{ text: 'gmail.com', tone: 'neutral' },
+			{ text: 'free mail', tone: 'info' },
+			{ text: 'MX ?', tone: 'neutral', title: 'Mail servers not looked up' },
+			{ text: 'domain rejected before (4)', tone: 'danger' },
+		]);
+		const [n] = parseSignups([{ id: 's2', email: 'c@nomx.test', mx_found: false }]);
+		assert.deepEqual(signupFacts(n, now)[1], { text: 'MX ✗', tone: 'danger', title: 'The domain has no mail servers' });
 	});
 });
