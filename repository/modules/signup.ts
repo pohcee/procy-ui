@@ -5,8 +5,8 @@ import { parseSignupConfig, verifyOutcome, type SignupConfig, type VerifyOutcome
 /**
  * Self-service signup (Postgres servers with `[signup] enabled`; public routes, sent without a session):
  *   GET  /signup                  → { data: { enabled, captcha, captcha_site_key, require_approval, password_min_length, trial_days } } (404: off)
- *   POST /signup                  { email, organization, password, captcha } → 202 { data: { status: "sent", message } }
- *   POST /signup/verify           { token } → 201 completed | 202 awaiting_approval (SignupResult)
+ *   POST /signup                  { email, organization, captcha } → 202 { data: { status: "sent", message } } (always the same answer)
+ *   POST /signup/verify           { token, password } → 201 completed | 202 awaiting_approval (SignupResult)
  *   POST /signup/cancel-deletion  { token } → { data: { organization, state } }
  */
 class SignupModule extends HttpFactory {
@@ -22,13 +22,14 @@ class SignupModule extends HttpFactory {
 		}
 	}
 
-	async request(body: { email: string; organization: string; password: string; captcha?: string }): Promise<string> {
+	async request(body: { email: string; organization: string; captcha?: string }): Promise<string> {
 		const res = await this.call<{ data?: { message?: string } }>('POST', '/api/v1/signup', body);
 		return res?.data?.message ?? '';
 	}
 
-	async verify(token: string): Promise<VerifyOutcome> {
-		return verifyOutcome(await this.call<unknown>('POST', '/api/v1/signup/verify', { token }));
+	/** The token of the link and the password the new administrator chooses (a refused password keeps the link usable). */
+	async verify(token: string, password: string): Promise<VerifyOutcome> {
+		return verifyOutcome(await this.call<unknown>('POST', '/api/v1/signup/verify', { token, password }));
 	}
 
 	async cancelDeletion(token: string): Promise<{ organization: string }> {

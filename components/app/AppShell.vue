@@ -31,6 +31,7 @@
 
 		<!-- Page content: each page scrolls inside this region -->
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col">
+			<BillingBanners />
 			<slot />
 		</div>
 
@@ -98,6 +99,7 @@
 
 <script setup lang="ts">
 import { Menu, X } from 'lucide-vue-next';
+import BillingBanners from '~/components/billing/BillingBanners.vue';
 
 const menuOpen = ref(false);
 const route = useRoute();

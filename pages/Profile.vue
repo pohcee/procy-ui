@@ -410,6 +410,8 @@
 				</div>
 			</AppCard>
 		</div>
+
+		<EmailConfirmCard v-if="signup" />
 	</SettingsLayout>
 </template>
 
@@ -417,12 +419,14 @@
 import { storeToRefs } from 'pinia';
 import { useLocalStorage } from '@vueuse/core';
 import { Info, RotateCw, ShieldAlert, ShieldCheck } from 'lucide-vue-next';
+import EmailConfirmCard from '~/components/account/EmailConfirmCard.vue';
 
 const store = useProfile();
 const { profile } = storeToRefs(store);
 const { colorMode } = useTheme();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
+const { signup } = useCapabilities();
 
 // Mini previews of each theme (fixed colours: they depict the themes themselves).
 const LIGHT = { bg: '#F5F6F8', line: '#D5DAE1' };

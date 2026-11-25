@@ -28,7 +28,10 @@
 </template>
 
 <script setup lang="ts">
-const items = [
+const { signup, operator } = useCapabilities();
+const { isAdmin } = useIsAdmin();
+
+const items = computed(() => [
 	{ to: '/profile', label: 'Profile' },
 	{ to: '/users', label: 'Users' },
 	{ to: '/user-groups', label: 'User groups' },
@@ -37,7 +40,9 @@ const items = [
 	{ to: '/vault', label: 'Vault' },
 	{ to: '/api-tokens', label: 'API tokens' },
 	{ to: '/info', label: 'Server info' },
-];
+	// Export and deletion of the organization (servers with signup; administrators).
+	...(signup.value && isAdmin.value && !operator.value ? [{ to: '/organization', label: 'Organization' }] : []),
+]);
 
 const route = useRoute();
 const isActive = (to: string) => route.path.toLowerCase() === to;

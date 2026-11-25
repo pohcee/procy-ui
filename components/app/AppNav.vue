@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { ArrowLeftRight, BarChart3, BookOpen, Building2, Clock, ExternalLink, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
+import { ArrowLeftRight, BarChart3, BookOpen, Building2, Clock, CreditCard, ExternalLink, Trash2, UserPlus, LifeBuoy, ListChecks, Monitor, Settings, Terminal } from 'lucide-vue-next';
 import type { Capability } from '~/composables/useCapabilities';
 
 /** Public documentation; absolute so it also works on servers that don't host the docs. */
@@ -74,7 +74,7 @@ interface NavSection {
 
 const emit = defineEmits<{ (e: 'navigate'): void }>();
 const route = useRoute();
-const { has, operator, usage } = useCapabilities();
+const { has, operator, usage, billing, signup } = useCapabilities();
 const { isAdmin } = useIsAdmin();
 
 const allSections: NavSection[] = [
@@ -85,6 +85,9 @@ const allSections: NavSection[] = [
 		items: [
 			{ label: 'Organizations', to: '/organizations', icon: Building2 },
 			{ label: 'Platform usage', to: '/platform-usage', icon: BarChart3, when: () => usage.value },
+			{ label: 'Platform billing', to: '/platform-billing', icon: CreditCard, when: () => billing.value },
+			{ label: 'Signups', to: '/signups', icon: UserPlus, when: () => signup.value },
+			{ label: 'Deletions', to: '/deletions', icon: Trash2, when: () => signup.value },
 		],
 	},
 	{
@@ -102,11 +105,12 @@ const allSections: NavSection[] = [
 	{
 		items: [
 			{ label: 'Usage', to: '/usage', icon: BarChart3, when: () => usage.value && isAdmin.value && !operator.value },
+			{ label: 'Billing', to: '/billing', icon: CreditCard, when: () => billing.value && isAdmin.value && !operator.value },
 			{
 				label: 'Settings',
 				to: '/profile',
 				icon: Settings,
-				match: ['/users', '/user-groups', '/client-access', '/client-groups', '/vault', '/api-tokens', '/info'],
+				match: ['/users', '/user-groups', '/client-access', '/client-groups', '/vault', '/api-tokens', '/info', '/organization'],
 			},
 			{ label: 'Docs', to: DOCS_URL, icon: LifeBuoy, external: true },
 		],

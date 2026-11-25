@@ -1,8 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-	CAPTCHA_SCRIPTS, checkoutPlanFromQuery, DEFAULT_PASSWORD_MIN_LENGTH, isPublicPath, linkErrorMessage, parseSignupConfig,
-	signInAfterSignup, signupErrorMessage, validateSignup, verifyOutcome,
+	CAPTCHA_SCRIPTS, checkoutPlanFromQuery, DEFAULT_PASSWORD_MIN_LENGTH, deletionStateInfo, emailConfirmErrorMessage, exportFileName,
+	isPublicPath, isUnconfirmedEmailError, linkErrorMessage, parseDeletion, parseDeletions, parseEmailStatus, parseSignupConfig,
+	parseSignups, passwordRefusal, safeNext, signInAfterSignup, signupErrorMessage, signupStatusInfo, validatePassword, validateSignup,
+	verifyErrorKind, verifyOutcome,
 } from '../utils/signup.ts';
 
 describe('parseSignupConfig', () => {
@@ -32,17 +34,33 @@ describe('parseSignupConfig', () => {
 });
 
 describe('validateSignup', () => {
-	const ok = { email: 'me@example.com', organization: 'Acme', password: 'longenough', confirm: 'longenough' };
-	it('accepts a complete form', () => {
-		assert.deepEqual(validateSignup(ok, 8), {});
+	const ok = { email: 'me@example.com', organization: 'Acme' };
+	it('accepts a complete form: no password, it is chosen on the link', () => {
+		assert.deepEqual(validateSignup(ok), {});
+		assert.equal('password' in validateSignup({ email: '', organization: '' }), false);
 	});
 	it('reports each field', () => {
-		assert.deepEqual(Object.keys(validateSignup({ email: '', organization: ' ', password: '', confirm: '' })).sort(), ['email', 'organization', 'password']);
+		assert.deepEqual(Object.keys(validateSignup({ email: '', organization: ' ' })).sort(), ['email', 'organization']);
 		assert.match(validateSignup({ ...ok, email: 'nope' }).email ?? '', /valid/);
 		assert.match(validateSignup({ ...ok, email: 'a@b' }).email ?? '', /valid/);
 		assert.match(validateSignup({ ...ok, organization: 'x'.repeat(201) }).organization ?? '', /200/);
-		assert.match(validateSignup({ ...ok, password: 'short', confirm: 'short' }, 12).password ?? '', /12/);
-		assert.match(validateSignup({ ...ok, confirm: 'other' }).confirm ?? '', /match/);
+	});
+});
+
+describe('validatePassword', () => {
+	it('checks the length (the server\'s) and the confirmation', () => {
+		assert.deepEqual(validatePassword({ password: 'longenough', confirm: 'longenough' }, 8), {});
+		assert.match(validatePassword({ password: '', confirm: '' }).password ?? '', /Choose/);
+		assert.match(validatePassword({ password: 'short', confirm: 'short' }, 12).password ?? '', /12/);
+		assert.match(validatePassword({ password: 'longenough', confirm: 'other' }).confirm ?? '', /match/);
+		assert.deepEqual(validatePassword({ password: 'ééééééééé', confirm: 'ééééééééé' }, 9), {});
+	});
+	it('tells a refused password from a bad link', () => {
+		assert.equal(verifyErrorKind(400, 'invalid input: the password is too guessable'), 'password');
+		assert.equal(verifyErrorKind(400, 'the link is not valid: it was used already or it expired'), 'link');
+		assert.equal(verifyErrorKind(409, 'exists'), 'other');
+		assert.equal(passwordRefusal('invalid input: the password is too guessable'), 'The password is too guessable.');
+		assert.equal(passwordRefusal(''), 'This password was not accepted.');
 	});
 });
 
@@ -92,9 +110,62 @@ describe('messages', () => {
 
 describe('isPublicPath', () => {
 	it('lets the sign-in and signup pages through', () => {
-		for (const p of ['/auth', '/auth/', '/signup', '/Signup/', '/signup/verify?token=x', '/auth/signup/verify', '/auth/signup/cancel-deletion#x']) assert.equal(isPublicPath(p), true, p);
+		for (const p of ['/auth', '/auth/', '/signup', '/Signup/', '/signup/verify?token=x', '/auth/signup/verify', '/auth/signup/cancel-deletion#x', '/auth/confirm-email?token=x']) assert.equal(isPublicPath(p), true, p);
 	});
 	it('keeps everything else behind sign-in', () => {
 		for (const p of ['/', '/dashboard', '/users', '/signup/other', '/authx']) assert.equal(isPublicPath(p), false, p);
+	});
+});
+
+describe('safeNext', () => {
+	it('only follows paths of this site', () => {
+		assert.equal(safeNext('/auth/confirm-email?token=abc'), '/auth/confirm-email?token=abc');
+		assert.equal(safeNext(['/billing']), '/billing');
+		for (const v of [undefined, '', 'https://evil.test', '//evil.test', '/\\evil.test', 'billing', '/a b', '/auth', '/auth?x=1', 7]) assert.equal(safeNext(v), null, String(v));
+	});
+});
+
+describe('email confirmation', () => {
+	it('reads the status', () => {
+		assert.deepEqual(parseEmailStatus({ data: { login: 'me@example.com', verified: false, sent: true } }), { login: 'me@example.com', verified: false, sent: true });
+		assert.deepEqual(parseEmailStatus(null), { login: '', verified: false, sent: false });
+	});
+	it('recognises the membership refusal of an unconfirmed account', () => {
+		assert.equal(isUnconfirmedEmailError('invalid input: the account has not confirmed its email address yet (POST /me/email-confirmation)'), true);
+		assert.equal(isUnconfirmedEmailError('no pending invitation'), false);
+	});
+	it('explains refusals', () => {
+		assert.match(emailConfirmErrorMessage(400, '', 'send'), /not an email address/);
+		assert.match(emailConfirmErrorMessage(400, '', 'confirm'), /another account/);
+		assert.match(emailConfirmErrorMessage(429, '', 'send'), /tomorrow/);
+		assert.match(emailConfirmErrorMessage(404, '', 'confirm'), /not available/);
+	});
+});
+
+describe('export and deletion', () => {
+	it('names the export file safely', () => {
+		assert.equal(exportFileName('acme-x7k2m9', new Date('2026-11-24T10:00:00Z')), 'procy-acme-x7k2m9-export-2026-11-24.json');
+		assert.equal(exportFileName('../a b', new Date('2026-11-24T10:00:00Z')), 'procy-..-a-b-export-2026-11-24.json');
+		assert.match(exportFileName(''), /^procy-organization-export-/);
+	});
+	const raw = { id: 3, organization_id: 'acme-x7k2m9', organization_name: 'Acme', state: 'pending', requested_at: '2026-11-24T10:00:00Z', requested_by: 'me@example.com', reason: 'moving', delete_after: '2026-12-24T10:00:00Z', previous_status: 'active', finished_at: null, finished_by: '', cancel_links_sent: 2 };
+	it('reads deletions', () => {
+		const d = parseDeletion({ data: raw });
+		assert.equal(d?.organizationId, 'acme-x7k2m9');
+		assert.equal(d?.cancelLinksSent, 2);
+		assert.equal(d?.finishedAt, '');
+		assert.equal(parseDeletions({ data: [raw, { id: 4 }, null] }).length, 1);
+		assert.equal(parseDeletion(null), null);
+		assert.equal(deletionStateInfo('pending').tone, 'warn');
+		assert.equal(deletionStateInfo('done').label, 'Deleted');
+	});
+	it('reads signups and what an operator can do with them', () => {
+		const list = parseSignups({ data: [{ id: 's1', email: 'a@b.test', organization_name: 'A', status: 'awaiting_approval', organization_id: null }, { email: 'no-id' }] });
+		assert.equal(list.length, 1);
+		assert.equal(list[0].organizationId, '');
+		assert.deepEqual(signupStatusInfo('awaiting_approval'), { label: 'Awaiting approval', tone: 'warn', approve: true, deny: true });
+		assert.equal(signupStatusInfo('pending').approve, false);
+		assert.equal(signupStatusInfo('pending').deny, true);
+		assert.equal(signupStatusInfo('completed').deny, false);
 	});
 });

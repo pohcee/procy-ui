@@ -44,8 +44,9 @@
 				</h1>
 				<p class="mt-1.5 text-sm text-app-text-3">
 					If <span class="font-medium text-app-text">{{ sentTo }}</span> can sign up, we sent it a link to confirm the
-					address and create <span class="font-medium text-app-text">{{ form.organization.trim() }}</span>. The link
-					works once and expires in a day.
+					address. Open it to choose your password and create
+					<span class="font-medium text-app-text">{{ form.organization.trim() }}</span>. The link works once and expires
+					in a day.
 				</p>
 			</div>
 			<ul class="flex flex-col gap-2 text-[13px] text-app-text-3">
@@ -77,7 +78,7 @@
 					Create your organization
 				</h1>
 				<p class="mt-1.5 text-sm text-app-text-3">
-					You become its first administrator.<template v-if="config.trialDays">
+					You become its first administrator. We email you a link to confirm the address and choose a password.<template v-if="config.trialDays">
 						Free for {{ config.trialDays }} days, no payment method needed to start.
 					</template>
 				</p>
@@ -130,43 +131,6 @@
 						v-if="shown.organization"
 						class="text-[13px] text-app-danger"
 					>{{ shown.organization }}</span>
-				</div>
-				<div class="flex flex-col gap-1.5">
-					<label
-						for="signup-password"
-						class="text-[13px] font-medium text-app-text-2"
-					>Password</label>
-					<input
-						id="signup-password"
-						v-model="form.password"
-						type="password"
-						autocomplete="new-password"
-						:class="[inputClass, shown.password ? '!border-app-danger' : '']"
-						:aria-invalid="!!shown.password || undefined"
-						@blur="touch('password')"
-					>
-					<span
-						:class="['text-[13px]', shown.password ? 'text-app-danger' : 'text-app-text-3']"
-					>{{ shown.password || `At least ${config.passwordMinLength} characters.` }}</span>
-				</div>
-				<div class="flex flex-col gap-1.5">
-					<label
-						for="signup-confirm"
-						class="text-[13px] font-medium text-app-text-2"
-					>Confirm password</label>
-					<input
-						id="signup-confirm"
-						v-model="form.confirm"
-						type="password"
-						autocomplete="new-password"
-						:class="[inputClass, shown.confirm ? '!border-app-danger' : '']"
-						:aria-invalid="!!shown.confirm || undefined"
-						@blur="touch('confirm')"
-					>
-					<span
-						v-if="shown.confirm"
-						class="text-[13px] text-app-danger"
-					>{{ shown.confirm }}</span>
 				</div>
 				<SignupCaptcha
 					v-if="config.captcha"
@@ -243,10 +207,10 @@ onMounted(async () => {
 	}
 });
 
-const form = reactive<SignupForm>({ email: '', organization: '', password: '', confirm: '' });
+const form = reactive<SignupForm>({ email: '', organization: '' });
 const touched = ref(new Set<keyof SignupForm>());
 const submitted = ref(false);
-const errors = computed(() => validateSignup(form, config.value?.passwordMinLength));
+const errors = computed(() => validateSignup(form));
 // Errors show for fields left (or all, after a submit), not while typing the first time.
 const shown = computed(() => Object.fromEntries(
 	(Object.keys(errors.value) as (keyof SignupForm)[]).filter(k => submitted.value || touched.value.has(k)).map(k => [k, errors.value[k]]),
@@ -274,12 +238,9 @@ const submit = async () => {
 		await $api.signup.request({
 			email: form.email.trim(),
 			organization: form.organization.trim(),
-			password: form.password,
 			...(captchaToken.value ? { captcha: captchaToken.value } : {}),
 		});
 		sentTo.value = form.email.trim();
-		form.password = '';
-		form.confirm = '';
 	}
 	catch (e) {
 		error.value = signupErrorMessage(httpStatusOf(e), apiErrorTitle(e));
