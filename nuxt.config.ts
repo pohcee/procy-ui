@@ -130,6 +130,8 @@ export default defineNuxtConfig({
 				'/organizations', '/platform-usage', '/usage', '/invitations', '/billing', '/platform-billing', '/organization', '/signups', '/deletions',
 				// Signup, and the pages the signup emails link to (<public_url>/auth/signup/...).
 				'/signup', '/signup/verify', '/auth/signup/verify', '/auth/signup/cancel-deletion', '/auth/confirm-email',
+				// The page the server's Google sign-in callback redirects to (<ui_url>/auth/oidc#code=...).
+				'/auth/oidc',
 				'/inventory', '/Inventory',
 			],
 		},

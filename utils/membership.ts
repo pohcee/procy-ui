@@ -95,6 +95,8 @@ export interface OrgMember {
 	groups: string[];
 	/** How many organizations the login belongs to, this one included. */
 	organizations: number;
+	/** How the member signs in there (`both`, `password`, `oidc`), when the server says (Postgres with [oidc]). */
+	sign_in?: string;
 }
 
 export const parseMembers = (raw: unknown): OrgMember[] => listOf(raw).flatMap((r) => {
@@ -102,7 +104,8 @@ export const parseMembers = (raw: unknown): OrgMember[] => listOf(raw).flatMap((
 	const username = str(o?.username);
 	if (!o || !username) return [];
 	const n = typeof o.organizations === 'number' && Number.isFinite(o.organizations) && o.organizations >= 1 ? Math.floor(o.organizations) : 1;
-	return [{ username, groups: strList(o.groups), organizations: n }];
+	const signIn = str(o.sign_in);
+	return [{ username, groups: strList(o.groups), organizations: n, ...(signIn ? { sign_in: signIn } : {}) }];
 }).sort((a, b) => a.username.localeCompare(b.username));
 
 /** What inviting a login did (POST /organization/members → OrganizationInvited). */

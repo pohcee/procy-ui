@@ -21,6 +21,11 @@ class ProfileModule extends HttpFactory {
 		);
 	}
 
+	/** PUT /me/sign-in { method }: how the user signs in (`oidc` needs a linked Google account). */
+	async setSignIn(method: 'both' | 'password' | 'oidc'): Promise<void> {
+		await this.call(HttpMethod.PUT, `${this.RESOURCE}/sign-in`, { method });
+	}
+
 	async getTotP(): Promise<TotP> {
 		return this.call<TotP>(
 			HttpMethod.GET,

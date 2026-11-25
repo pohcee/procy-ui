@@ -13,6 +13,8 @@ export interface Organization {
 	/** null: unlimited */
 	device_limit: number | null;
 	user_count: number;
+	/** Members must sign in with Google (Postgres servers with [oidc]). */
+	require_oidc?: boolean;
 }
 
 /** A created administrator; the password is shown once. */
@@ -63,6 +65,11 @@ class OperatorModule extends HttpFactory {
 
 	async setDeviceLimit(id: string, deviceLimit: number | null): Promise<Organization> {
 		return (await this.call<{ data: Organization }>('PUT', `${org(id)}/device-limit`, { device_limit: deviceLimit })).data;
+	}
+
+	/** PUT …/sign-in { require_oidc } → the organization. */
+	async setSignIn(id: string, requireOidc: boolean): Promise<Organization> {
+		return (await this.call<{ data: Organization }>('PUT', `${org(id)}/sign-in`, { require_oidc: requireOidc })).data;
 	}
 
 	async addAdmin(id: string, body: { username: string; two_fa_send_to?: string }): Promise<OrganizationAdmin> {

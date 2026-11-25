@@ -18,6 +18,8 @@
 	<LoginForm
 		v-else-if="!showTwoFa"
 		:initial-username="initialUsername"
+		:oidc="oidc"
+		:oidc-href="oidcHref"
 		@login="handleLogin"
 	/>
 	<TwoFa
@@ -36,6 +38,8 @@ import LoginOrgPicker from '~/components/LoginOrgPicker.vue';
 import LoginNewPassword from '~/components/LoginNewPassword.vue';
 import type { ILoginInput } from '~/types';
 import { checkoutPlanFromQuery, safeNext } from '~/utils/signup';
+import { apiBaseUrl } from '~/utils/apiBase';
+import { oidcLoginHref, parseOidcProvider, type OidcProvider } from '~/utils/oidc';
 
 const store = useTokenStore();
 const { authenticated, showTwoFa, orgChoices, passwordExpired, loading, errors } = storeToRefs(store);
@@ -53,6 +57,29 @@ const initialUsername = typeof route.query.username === 'string' ? route.query.u
 
 definePageMeta({
 	layout: 'auth',
+});
+
+// Sign in with Google, when the server has [oidc] enabled (GET /auth/provider → oidc). After Google the server
+// sends the browser to /auth/oidc, which goes on to `return_to`: the page that asked for the sign-in, else home.
+const config = useRuntimeConfig();
+const oidc = ref<OidcProvider | null>(null);
+const oidcHref = computed(() => {
+	if (!oidc.value) return '';
+	try {
+		return oidcLoginHref(apiBaseUrl(config.public.apiUrl), oidc.value.loginUrl, safeNext(route.query.next) ?? '/dashboard');
+	}
+	catch {
+		return '';
+	}
+});
+onMounted(async () => {
+	store.oidcRequired = false;
+	try {
+		oidc.value = parseOidcProvider(await $api.auth.provider());
+	}
+	catch {
+		oidc.value = null;
+	}
 });
 useHead({
 	title: 'Login',
