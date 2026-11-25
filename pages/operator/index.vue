@@ -183,7 +183,7 @@
 						:days="series.days"
 						:series="[{ label: 'To devices', values: series.in }, { label: 'From devices', values: series.out }]"
 						:empty-title="data.metering ? 'No usage recorded yet' : 'Usage metering is off'"
-						:empty-description="data.metering ? 'Metering has only just started; days fill in as devices move data.' : 'Turn on [usage] in the server configuration to record transfer.'"
+						:empty-description="data.metering ? 'Metering has only just started; days fill in as devices move data.' : 'Turn on [metering] in the server configuration to record transfer.'"
 					/>
 					<OpEmpty
 						v-else
@@ -266,6 +266,7 @@ const devicesOnlineShare = computed(() => {
 
 const signupsShown = computed(() => signup.value || (data.value?.signupsAwaiting ?? null) !== null);
 
-// The server sends every day; the series is laid over the last 30 UTC days anyway, so gaps read as zero.
-const series = computed(() => daySeries(data.value?.series ?? [], lastDays(30)));
+// The server sends every day; the series is laid over the last 30 UTC days of the server's clock anyway, so gaps
+// read as zero.
+const series = computed(() => daySeries(data.value?.series ?? [], lastDays(30, serverNow(data.value?.generatedAt))));
 </script>

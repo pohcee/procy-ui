@@ -56,7 +56,7 @@
 			<OpEmpty
 				:icon="BarChart3"
 				title="Usage metering is off"
-				description="This server doesn't record transfer, devices per day or jobs. Turn on [usage] in the server configuration."
+				description="This server doesn't record transfer, devices per day or jobs. Turn on [metering] in the server configuration."
 			/>
 		</AppCard>
 		<div

@@ -14,6 +14,7 @@ import {
 	isConsolePath,
 	isFailedSignIn,
 	lastDays,
+	serverNow,
 	latest,
 	legacyOperatorRedirect,
 	monthToDateQuery,
@@ -403,5 +404,14 @@ describe('timeAgo', () => {
 		assert.equal(timeAgo('2026-11-21T12:00:00Z', NOW), '4 days ago');
 		assert.equal(timeAgo('2026-01-02T12:00:00Z', NOW), 'Jan 2, 2026');
 		assert.equal(timeAgo('2026-11-26T12:00:00Z', NOW), 'just now');
+	});
+});
+
+describe('serverNow', () => {
+	it('takes the server clock when it is known, else the fallback', () => {
+		const fallback = new Date('2026-11-25T23:59:00Z');
+		assert.equal(serverNow('2026-11-26T00:01:00Z', fallback).toISOString(), '2026-11-26T00:01:00.000Z');
+		assert.equal(serverNow(null, fallback), fallback);
+		assert.equal(serverNow('garbage', fallback), fallback);
 	});
 });

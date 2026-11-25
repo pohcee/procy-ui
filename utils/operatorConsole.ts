@@ -784,3 +784,9 @@ export const dateTime = (iso: string | null | undefined): string => {
 		? ''
 		: new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(t));
 };
+
+/** The server's clock (an overview's generated_at), so day windows match the server's UTC days; else fallback. */
+export const serverNow = (generatedAt: string | null | undefined, fallback: Date = new Date()): Date => {
+	const t = generatedAt ? Date.parse(generatedAt) : Number.NaN;
+	return Number.isNaN(t) ? fallback : new Date(t);
+};
