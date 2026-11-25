@@ -124,7 +124,7 @@ export const oidcTokenErrorMessage = (status: number | undefined, serverMessage:
 export const isOidcRequiredError = (status: number | undefined, code: unknown): boolean =>
 	status === 403 && code === 'oidc_required';
 
-export const OIDC_REQUIRED_MESSAGE = 'This account signs in with Google. Use the Google button below.';
+export const OIDC_REQUIRED_MESSAGE = 'This account signs in with Google.';
 
 /** The "remember me" choice survives the round trip to Google in the tab's session storage. */
 export const OIDC_LIFETIME_KEY = 'orp2_oidc_lifetime';

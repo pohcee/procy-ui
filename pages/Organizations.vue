@@ -181,6 +181,18 @@
 										{{ formatCount(org.user_count) }}
 									</td>
 									<td
+										v-if="signInKnown"
+										class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 text-[13px] text-app-text-2"
+									>
+										<span
+											v-if="org.require_oidc"
+											class="inline-flex items-center rounded-md bg-app-chip px-2 py-0.5 text-xs font-medium text-app-text-2"
+										>Google required</span>
+										<template v-else-if="org.require_oidc === false">
+											Password or Google
+										</template>
+									</td>
+									<td
 										class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3 text-[13px] text-app-text-2"
 										:title="org.created_at"
 									>
@@ -232,6 +244,14 @@
 									<dd class="text-app-text-2">
 										{{ formatCount(org.user_count) }}
 									</dd>
+									<template v-if="typeof org.require_oidc === 'boolean'">
+										<dt class="text-app-text-3">
+											Sign-in
+										</dt>
+										<dd class="text-app-text-2">
+											{{ org.require_oidc ? 'Google required' : 'Password or Google' }}
+										</dd>
+									</template>
 									<template v-if="usage">
 										<dt class="text-app-text-3">
 											Transfer
@@ -366,11 +386,14 @@ const rows = computed(() => {
 	return orgs.value.filter(o => (statusFilter.value === 'all' || o.status === statusFilter.value)
 		&& (!needle || o.id.toLowerCase().includes(needle) || (o.name ?? '').toLowerCase().includes(needle)));
 });
+// Servers with [oidc] on Postgres report whether each organization requires Google sign-in.
+const signInKnown = computed(() => orgs.value.some(o => typeof o.require_oidc === 'boolean'));
 const columns = computed(() => [
 	{ label: 'Organization' },
 	{ label: 'Status' },
 	{ label: 'Devices / limit' },
 	{ label: 'Users', right: true },
+	...(signInKnown.value ? [{ label: 'Sign-in' }] : []),
 	{ label: 'Created' },
 	...(usage.value ? [{ label: 'Transfer this month', right: true }] : []),
 ]);
