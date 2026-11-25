@@ -4,6 +4,7 @@ import {
 	authMethodLabel, DEFAULT_OIDC_BUTTON_LABEL, DEFAULT_OIDC_LOGIN_URL, isOidcRequiredError, isSystemOrg, lifetimeParam,
 	oidcErrorMessage, oidcLoginHref, oidcTokenErrorMessage, oidcTokenOutcome, parseOidcFragment, parseOidcProvider,
 	parseOrgSignIn, parseSignIn, passwordAllowed, safeReturnTo, signInLabel,
+	googleSignupHref, parseGoogleSignupFragment, googleSignupErrorMessage,
 } from '../utils/oidc.ts';
 
 describe('parseOidcProvider', () => {
@@ -168,5 +169,50 @@ describe('isPublicPath', () => {
 		const { isPublicPath } = await import('../utils/signup.ts');
 		assert.equal(isPublicPath('/auth/oidc'), true);
 		assert.equal(isPublicPath('/auth/oidc/'), true);
+	});
+});
+
+describe('googleSignupHref', () => {
+	it('joins the API base, the signup URL and the organization name', () => {
+		assert.equal(googleSignupHref('https://ui.example.com/', '/api/v1/oidc/signup', ' Acme & Co '), 'https://ui.example.com/api/v1/oidc/signup?organization=Acme+%26+Co');
+	});
+	it('keeps a base path, like the API client', () => {
+		assert.equal(googleSignupHref(new URL('https://api.example.net/rport/'), '/api/v1/oidc/signup', 'A'), 'https://api.example.net/rport/api/v1/oidc/signup?organization=A');
+	});
+});
+
+describe('parseGoogleSignupFragment', () => {
+	it('reads a signup awaiting approval', () => {
+		assert.deepEqual(parseGoogleSignupFragment('#status=awaiting_approval&organization_name=Acme%20Co&email=ann%40acme.test'), {
+			kind: 'awaiting_approval', organizationName: 'Acme Co', email: 'ann@acme.test',
+		});
+	});
+	it('reads a completed signup', () => {
+		assert.deepEqual(parseGoogleSignupFragment('status=completed&organization=acme&organization_name=Acme&email=ann%40acme.test'), {
+			kind: 'completed', organization: 'acme', organizationName: 'Acme', email: 'ann@acme.test',
+		});
+		assert.equal((parseGoogleSignupFragment('#status=completed&organization=acme') as { organizationName: string }).organizationName, 'acme');
+	});
+	it('reads an error, which wins over a status', () => {
+		assert.deepEqual(parseGoogleSignupFragment('#error=account_exists&error_description=x&status=completed'), { kind: 'error', reason: 'account_exists', description: 'x' });
+	});
+	it('is none without a known status or an error', () => {
+		assert.deepEqual(parseGoogleSignupFragment(''), { kind: 'none' });
+		assert.deepEqual(parseGoogleSignupFragment('#status=sent'), { kind: 'none' });
+	});
+});
+
+describe('googleSignupErrorMessage', () => {
+	it('has a message for every reason of the contract', () => {
+		const reasons = ['access_denied', 'invalid_state', 'email_unverified', 'domain_not_allowed', 'unmanaged_email', 'account_exists', 'rate_limited', 'invalid', 'domain_refused', 'server_error'];
+		const generic = googleSignupErrorMessage('nope');
+		for (const r of reasons) {
+			const m = googleSignupErrorMessage(r);
+			assert.ok(m && m !== generic, r);
+		}
+		assert.match(googleSignupErrorMessage('account_exists'), /sign in/i);
+	});
+	it('never shows the free-text description (anyone can craft the link)', () => {
+		assert.equal(googleSignupErrorMessage('weird', 'Call 555-0100 for help'), googleSignupErrorMessage('other'));
 	});
 });

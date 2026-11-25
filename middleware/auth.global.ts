@@ -2,6 +2,16 @@ import { readAuthToken } from '~/utils/authToken';
 import { isPublicPath } from '~/utils/signup';
 import { isConsolePath, legacyOperatorRedirect } from '~/utils/operatorConsole';
 
+// Whether this server offers signup (GET /api/v1/signup), asked once per page load.
+let offered: Promise<boolean> | null = null;
+const signupOffered = (): Promise<boolean> => {
+	if (!offered) {
+		const { $api } = useNuxtApp();
+		offered = $api.signup.config().then(c => c !== null, () => false);
+	}
+	return offered;
+};
+
 export default defineNuxtRouteMiddleware(async (to) => {
 	// const isLoggedIn = false;
 	// if (isLoggedIn) {
@@ -16,8 +26,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
 		authenticated.value = true;
 	}
 
-	if (token.value && to?.name === 'auth') {
-		return navigateTo('/dashboard');
+	// Signed in: the sign-in page and the public home page lead to the app.
+	if (token.value && (to?.name === 'auth' || to.path === '/')) {
+		return navigateTo('/dashboard', { replace: true });
+	}
+	// The public home page is for servers that offer signup (hosted Procy); elsewhere (standalone, self-hosted
+	// without [signup]) a signed-out visitor goes straight to the sign-in page, as before.
+	if (!token.value && to.path === '/') {
+		if (!(await signupOffered())) return navigateTo('/auth', { replace: true });
+		return;
 	}
 	// The sign-in page and the signup pages (and the links of their emails) need no session.
 	if (!token.value && to?.name !== 'auth' && !isPublicPath(to.path)) {

@@ -95,6 +95,57 @@ const ERROR_MESSAGES: Record<string, string> = {
 export const oidcErrorMessage = (reason: string, _description = ''): string =>
 	ERROR_MESSAGES[reason] || 'The Google sign-in failed. Please try again.';
 
+// ---- Signing up with Google (GET /oidc/signup?organization=, ending at /auth/signup/google#…) ----
+
+/** The full-page URL that starts a Google signup: the API base + the signup URL + `?organization=`. */
+export const googleSignupHref = (apiBase: URL | string, signupUrl: string, organization: string): string => {
+	const base = new URL(String(apiBase));
+	const path = `${base.pathname.replace(/\/+$/, '')}${signupUrl.startsWith('/') ? '' : '/'}${signupUrl}`;
+	const url = new URL(path, base.origin);
+	url.searchParams.set('organization', organization.trim());
+	return url.toString();
+};
+
+export type GoogleSignupFragment =
+	| { kind: 'awaiting_approval'; organizationName: string; email: string }
+	| { kind: 'completed'; organization: string; organizationName: string; email: string }
+	| { kind: 'error'; reason: string; description: string }
+	| { kind: 'none' };
+
+/**
+ * Reads the fragment the server's callback sends a Google signup to: `status=awaiting_approval&organization_name=&email=`,
+ * `status=completed&organization=&organization_name=&email=` or `error=…&error_description=…` (the "#" optional).
+ */
+export const parseGoogleSignupFragment = (hash: string): GoogleSignupFragment => {
+	const params = new URLSearchParams((hash ?? '').replace(/^#/, ''));
+	const get = (k: string) => (params.get(k) ?? '').trim();
+	const error = get('error');
+	if (error) return { kind: 'error', reason: error, description: get('error_description') };
+	const status = get('status');
+	if (status === 'awaiting_approval') return { kind: 'awaiting_approval', organizationName: get('organization_name'), email: get('email') };
+	if (status === 'completed') {
+		return { kind: 'completed', organization: get('organization'), organizationName: get('organization_name') || get('organization'), email: get('email') };
+	}
+	return { kind: 'none' };
+};
+
+const SIGNUP_ERROR_MESSAGES: Record<string, string> = {
+	access_denied: 'The Google sign-in was canceled, so nothing was created. You can try again or sign up with your email address.',
+	invalid_state: 'This signup attempt expired or was started in another browser. Please start again.',
+	email_unverified: 'Your Google account’s email address is not verified. Verify it with Google, or sign up with your email address.',
+	domain_not_allowed: 'Accounts of this email domain can’t sign up here with Google. Sign up with your email address instead.',
+	unmanaged_email: 'Google doesn’t manage the email address of this Google account. Use a Gmail or Google Workspace account, or sign up with your email address.',
+	account_exists: 'This address has an account already. Sign in instead.',
+	rate_limited: 'Too many signups from here today. Try again tomorrow.',
+	invalid: 'The organization name wasn’t accepted. Choose another name and try again.',
+	domain_refused: 'Signups from this email domain aren’t accepted. Use another address, or write to support.',
+	server_error: 'The server couldn’t finish the signup. Please try again later.',
+};
+
+/** A readable message for the reason of a failed Google signup (the free-text description is never shown). */
+export const googleSignupErrorMessage = (reason: string, _description = ''): string =>
+	SIGNUP_ERROR_MESSAGES[reason] || 'The Google signup didn’t work. Please try again, or sign up with your email address.';
+
 // ---- Exchanging the sign-in code (POST /oidc/token) ----
 
 export type OidcTokenOutcome =

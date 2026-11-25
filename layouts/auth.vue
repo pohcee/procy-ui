@@ -2,15 +2,21 @@
 	<div class="flex min-h-[100dvh] bg-app-bg font-sans text-app-text">
 		<!-- Form column -->
 		<div class="flex min-w-0 flex-1 flex-col px-4 py-5 sm:px-8 sm:py-7">
-			<header class="flex items-center gap-2.5">
-				<img
-					src="/favicon.svg"
-					alt=""
-					width="36"
-					height="36"
-					class="block h-9 w-9 shrink-0"
+			<header>
+				<NuxtLink
+					to="/"
+					class="inline-flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-accent"
+					aria-label="Procy home"
 				>
-				<span class="text-[17px] font-bold tracking-tight text-app-text">Procy</span>
+					<img
+						src="/favicon.svg"
+						alt=""
+						width="36"
+						height="36"
+						class="block h-9 w-9 shrink-0"
+					>
+					<span class="text-[17px] font-bold tracking-tight text-app-text">Procy</span>
+				</NuxtLink>
 			</header>
 			<main class="flex flex-1 items-center justify-center py-8 sm:py-12">
 				<div class="w-full max-w-[400px]">

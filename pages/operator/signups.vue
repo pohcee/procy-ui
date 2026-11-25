@@ -59,6 +59,10 @@
 								>
 									<td class="border-b border-app-border-subtle py-3 pl-4 pr-3 text-[13px] font-medium text-app-text">
 										{{ r.email }}
+										<SignupFacts
+											:row="r"
+											:now="now"
+										/>
 									</td>
 									<td class="border-b border-app-border-subtle px-3 py-3 text-[13px] text-app-text-2">
 										<NuxtLink
@@ -123,6 +127,10 @@
 							<p class="text-xs text-app-text-3">
 								{{ r.organizationName }} · {{ formatDay(r.createdAt) }}
 							</p>
+							<SignupFacts
+								:row="r"
+								:now="now"
+							/>
 							<SignupActions
 								:row="r"
 								:busy="busy"
@@ -146,6 +154,7 @@ import OpEmpty from '~/components/operate/OpEmpty.vue';
 import OpSegmented from '~/components/operate/OpSegmented.vue';
 import BillingPill from '~/components/billing/BillingPill.vue';
 import SignupActions from '~/components/operator/SignupActions.vue';
+import SignupFacts from '~/components/signup/SignupFacts.vue';
 import { formatDay } from '~/utils/billing';
 import { signupStatusInfo, type SignupRow } from '~/utils/signup';
 import { orgLink } from '~/utils/usage';
@@ -164,6 +173,8 @@ const filter = ref<'awaiting_approval' | ''>('awaiting_approval');
 const rows = ref<SignupRow[] | null>(null);
 const error = ref<string | null>(null);
 const loading = ref(false);
+// "Waiting 3 h" is measured from the last load.
+const now = ref(new Date());
 
 let seq = 0;
 const load = async () => {
@@ -173,7 +184,10 @@ const load = async () => {
 	error.value = null;
 	try {
 		const list = await $api.operator.signups({ status: filter.value || undefined, limit: 200 });
-		if (mine === seq) rows.value = list;
+		if (mine === seq) {
+			rows.value = list;
+			now.value = new Date();
+		}
 	}
 	catch (e) {
 		if (mine === seq) error.value = apiErrorMessage(e);
