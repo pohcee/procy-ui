@@ -263,58 +263,60 @@
 						>
 					</div>
 
-					<h3 class="mt-1 text-sm font-semibold text-app-text">
-						Change password
-					</h3>
-					<div class="st-field">
-						<label
-							class="st-label"
-							for="oldPassword"
-						>Current password</label>
-						<input
-							id="oldPassword"
-							v-model="oldPassword"
-							class="st-ctl"
-							type="password"
-							autocomplete="current-password"
-						>
-					</div>
-					<div class="st-field">
-						<label
-							class="st-label"
-							for="newPassword"
-						>New password</label>
-						<input
-							id="newPassword"
-							v-model="newPassword"
-							class="st-ctl"
-							type="password"
-							autocomplete="new-password"
-						>
-					</div>
-					<div class="st-field">
-						<label
-							class="st-label"
-							for="confirmPassword"
-						>Confirm new password</label>
-						<input
-							id="confirmPassword"
-							v-model="confirmPassword"
-							:class="['st-ctl', { 'st-invalid': passwordMismatch }]"
-							type="password"
-							autocomplete="new-password"
-							:aria-invalid="passwordMismatch || undefined"
-						>
-						<span
-							v-if="passwordMismatch"
-							class="st-error"
-							role="alert"
-						>Passwords do not match</span>
-						<span
-							v-else
-							class="st-help"
-						>Leave the password fields empty to keep your current password.</span>
-					</div>
+					<template v-if="showPasswordChange">
+						<h3 class="mt-1 text-sm font-semibold text-app-text">
+							Change password
+						</h3>
+						<div class="st-field">
+							<label
+								class="st-label"
+								for="oldPassword"
+							>Current password</label>
+							<input
+								id="oldPassword"
+								v-model="oldPassword"
+								class="st-ctl"
+								type="password"
+								autocomplete="current-password"
+							>
+						</div>
+						<div class="st-field">
+							<label
+								class="st-label"
+								for="newPassword"
+							>New password</label>
+							<input
+								id="newPassword"
+								v-model="newPassword"
+								class="st-ctl"
+								type="password"
+								autocomplete="new-password"
+							>
+						</div>
+						<div class="st-field">
+							<label
+								class="st-label"
+								for="confirmPassword"
+							>Confirm new password</label>
+							<input
+								id="confirmPassword"
+								v-model="confirmPassword"
+								:class="['st-ctl', { 'st-invalid': passwordMismatch }]"
+								type="password"
+								autocomplete="new-password"
+								:aria-invalid="passwordMismatch || undefined"
+							>
+							<span
+								v-if="passwordMismatch"
+								class="st-error"
+								role="alert"
+							>Passwords do not match</span>
+							<span
+								v-else
+								class="st-help"
+							>Leave the password fields empty to keep your current password.</span>
+						</div>
+					</template>
 					<div>
 						<AppButton
 							type="submit"
@@ -411,6 +413,88 @@
 			</AppCard>
 		</div>
 
+		<!-- Sign-in: how this session signed in, and how the account may sign in (Postgres servers with [oidc]). -->
+		<AppCard
+			v-if="mySignIn || sessionMethod"
+			title="Sign-in"
+		>
+			<div class="flex flex-col gap-4">
+				<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+					<div v-if="sessionMethod">
+						<dt class="st-label">
+							This session
+						</dt>
+						<dd class="mt-1 text-app-text">
+							Signed in with {{ sessionMethod === 'Google' ? 'Google' : 'a password' }}
+						</dd>
+					</div>
+					<div v-if="mySignIn">
+						<dt class="st-label">
+							Google account
+						</dt>
+						<dd class="mt-1 text-app-text">
+							{{ profile.oidc_linked ? 'Linked' : 'Not linked yet: it is linked the first time you sign in with Google.' }}
+						</dd>
+					</div>
+				</dl>
+				<p
+					v-if="systemOrg"
+					class="rounded-[10px] bg-app-muted p-3 text-[13px] text-app-text-2"
+					role="note"
+				>
+					Platform operators sign in with Google only.
+				</p>
+				<form
+					v-else-if="mySignIn"
+					class="flex flex-col gap-3"
+					@submit.prevent="saveSignIn"
+				>
+					<fieldset class="flex flex-col gap-2">
+						<legend class="st-label mb-2">
+							How you sign in
+						</legend>
+						<label
+							v-for="option in signInOptions"
+							:key="option.value"
+							:class="['flex min-h-[32px] items-center gap-2.5 text-sm', option.disabled ? 'cursor-not-allowed text-app-text-4' : 'cursor-pointer text-app-text']"
+						>
+							<input
+								v-model="signInChoice"
+								type="radio"
+								name="sign-in"
+								:value="option.value"
+								:disabled="option.disabled"
+								class="h-4 w-4 shrink-0 accent-app-accent"
+							>
+							{{ option.label }}
+						</label>
+						<p
+							v-if="!profile.oidc_linked"
+							class="st-help"
+						>
+							“Google only” is available once your Google account is linked.
+						</p>
+					</fieldset>
+					<p
+						v-if="signInError"
+						role="alert"
+						class="rounded-[10px] bg-app-danger-bg p-3 text-sm text-app-danger"
+					>
+						{{ signInError }}
+					</p>
+					<div>
+						<AppButton
+							type="submit"
+							variant="secondary"
+							:disabled="savingSignIn || signInChoice === mySignIn"
+						>
+							Save sign-in method
+						</AppButton>
+					</div>
+				</form>
+			</div>
+		</AppCard>
+
 		<EmailConfirmCard v-if="signup" />
 	</SettingsLayout>
 </template>
@@ -420,13 +504,48 @@ import { storeToRefs } from 'pinia';
 import { useLocalStorage } from '@vueuse/core';
 import { Info, RotateCw, ShieldAlert, ShieldCheck } from 'lucide-vue-next';
 import EmailConfirmCard from '~/components/account/EmailConfirmCard.vue';
+import { authMethodLabel, isSystemOrg, parseSignIn, passwordAllowed, signInLabel, SIGN_IN_METHODS, type SignInMethod } from '~/utils/oidc';
 
 const store = useProfile();
 const { profile } = storeToRefs(store);
 const { colorMode } = useTheme();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
-const { signup } = useCapabilities();
+const { signup, operator } = useCapabilities();
+const { current } = useMembership();
+
+// ---- Sign-in method (GET /me → sign_in, auth_method, oidc_linked; PUT /me/sign-in) ----
+const mySignIn = computed(() => parseSignIn(profile.value?.sign_in));
+const sessionMethod = computed(() => authMethodLabel(profile.value?.auth_method));
+const systemOrg = computed(() => isSystemOrg(current.value?.id, operator.value));
+/** No password change for Google-only accounts and platform operators. */
+const showPasswordChange = computed(() => passwordAllowed({ signIn: mySignIn.value, systemOrg: systemOrg.value }));
+const signInChoice = ref<SignInMethod>('both');
+watch(mySignIn, (value) => {
+	if (value) signInChoice.value = value;
+}, { immediate: true });
+const signInOptions = computed(() => SIGN_IN_METHODS.map(value => ({
+	value,
+	label: signInLabel(value),
+	disabled: value === 'oidc' && !profile.value?.oidc_linked,
+})));
+const savingSignIn = ref(false);
+const signInError = ref('');
+const saveSignIn = async () => {
+	savingSignIn.value = true;
+	signInError.value = '';
+	try {
+		await $api.profile.setSignIn(signInChoice.value);
+		snackbar.add({ type: 'success', text: `Sign-in method saved: ${signInLabel(signInChoice.value)}` });
+		await store.fetchProfile();
+	}
+	catch (e) {
+		signInError.value = `Couldn't change how you sign in: ${apiErrorMessage(e)}`;
+	}
+	finally {
+		savingSignIn.value = false;
+	}
+};
 
 // Mini previews of each theme (fixed colours: they depict the themes themselves).
 const LIGHT = { bg: '#F5F6F8', line: '#D5DAE1' };

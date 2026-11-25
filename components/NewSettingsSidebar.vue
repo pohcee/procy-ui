@@ -30,6 +30,8 @@
 <script setup lang="ts">
 const { signup, operator } = useCapabilities();
 const { isAdmin } = useIsAdmin();
+const statusStore = useStatusStore();
+const oidcEnabled = computed(() => statusStore.status?.oidc_enabled === true);
 
 const items = computed(() => [
 	{ to: '/profile', label: 'Profile' },
@@ -40,8 +42,9 @@ const items = computed(() => [
 	{ to: '/vault', label: 'Vault' },
 	{ to: '/api-tokens', label: 'API tokens' },
 	{ to: '/info', label: 'Server info' },
-	// Export and deletion of the organization (servers with signup; administrators).
-	...(signup.value && isAdmin.value && !operator.value ? [{ to: '/organization', label: 'Organization' }] : []),
+	// Export and deletion of the organization (servers with signup), and its Google sign-in requirement (servers with
+	// [oidc]); administrators.
+	...((signup.value || oidcEnabled.value) && isAdmin.value && !operator.value ? [{ to: '/organization', label: 'Organization' }] : []),
 ]);
 
 const route = useRoute();

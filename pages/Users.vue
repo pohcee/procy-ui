@@ -94,6 +94,12 @@
 								Groups
 							</th>
 							<th
+								v-if="signInSupported"
+								scope="col"
+							>
+								Sign-in
+							</th>
+							<th
 								scope="col"
 								class="w-14"
 							>
@@ -133,6 +139,16 @@
 									>—</span>
 								</div>
 							</td>
+							<td v-if="signInSupported">
+								<div class="flex flex-wrap items-center gap-1.5">
+									<span class="text-[13px] text-app-text-2">{{ userSignInLabel(user) }}</span>
+									<span
+										v-if="user.oidc_linked"
+										class="st-chip"
+										title="A Google account is linked to this login."
+									>Google linked</span>
+								</div>
+							</td>
 							<td class="text-right">
 								<SettingsRowActions
 									:items="rowActions(user)"
@@ -163,6 +179,16 @@
 								class="text-[13px] text-app-text-3"
 							>
 								Also in other organizations
+							</p>
+							<p
+								v-if="signInSupported"
+								class="flex flex-wrap items-center gap-1.5 text-[13px] text-app-text-3"
+							>
+								{{ userSignInLabel(user) }}
+								<span
+									v-if="user.oidc_linked"
+									class="st-chip"
+								>Google linked</span>
 							</p>
 							<div class="mt-1.5 flex flex-wrap gap-1.5">
 								<span
@@ -199,6 +225,10 @@
 		<AddUser
 			ref="addUserModal"
 			:groups="userGroups ?? []"
+			:sign-in-supported="signInSupported"
+			:system-org="systemOrg"
+			:org-requires-oidc="orgSignIn?.requireOidc ?? false"
+			:oidc-enabled="oidcEnabled"
 			:account-note="organizations ? 'For a member who also belongs to other organizations, only its owner can change the password or login name: change its groups here.' : undefined"
 			@save="handleUserSave"
 		/>
@@ -241,12 +271,13 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, Info, Pencil, Copy, Laptop, Plus, Trash2, UserMinus, UserPlus, Users as UsersIcon } from 'lucide-vue-next';
+import { CircleAlert, Info, Pencil, Copy, Laptop, Link2Off, Plus, Trash2, UserMinus, UserPlus, Users as UsersIcon } from 'lucide-vue-next';
 import { useClipboard } from '@vueuse/core';
 import AddUser from '@/components/users/AddUser.vue';
 import InviteMemberDialog from '~/components/users/InviteMemberDialog.vue';
 import PendingInvitations from '~/components/users/PendingInvitations.vue';
 import { isSharedAccountRefusal, type InviteOutcome } from '~/utils/membership';
+import { isSystemOrg, parseSignIn, signInLabel } from '~/utils/oidc';
 import type { User, UserPayload, UserSession } from '~/types';
 import Modal from '~/components/Modal.vue';
 import ManageSessionModal from '~/components/users/ManageSessionModal.vue';
@@ -255,7 +286,9 @@ const { copy } = useClipboard();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
 // Postgres servers: accounts may belong to several organizations (members, invitations).
-const { organizations } = useCapabilities();
+const { organizations, operator } = useCapabilities();
+const statusStore = useStatusStore();
+const { current } = useMembership();
 const inviteOpen = ref(false);
 const pendingRef = ref<InstanceType<typeof PendingInvitations> | null>(null);
 // Members the server said belong to other organizations too (learned from a refused change).
@@ -268,6 +301,15 @@ const onInvited = async (outcome: InviteOutcome) => {
 
 const { data: users, refresh, pending, error } = useLazyAsyncData('users', () => $api.users.getAll());
 const { data: userGroups } = useLazyAsyncData(('user-groups'), () => $api.userGroups.all());
+
+// Sign-in methods (Postgres servers): each user's `sign_in` and linked Google account; standalone servers omit them.
+const signInSupported = computed(() => !!users.value?.some(u => parseSignIn(u.sign_in) !== null));
+const userSignInLabel = (user: User) => signInLabel(user.sign_in) || '—';
+// The operators' organization signs in with Google only: no passwords there.
+const systemOrg = computed(() => isSystemOrg(current.value?.id, operator.value));
+// Whether the organization requires Google sign-in (null: no such setting on this server).
+const { data: orgSignIn } = useLazyAsyncData('organization-sign-in', () => $api.account.orgSignIn().catch(() => null));
+const oidcEnabled = computed(() => orgSignIn.value?.oidcEnabled ?? statusStore.status?.oidc_enabled !== false);
 
 const delConfirm = ref(false);
 const activeUser = ref<User | null>(null);
@@ -316,6 +358,7 @@ const handleUserSave = async (data: UserPayload & { originalUsername?: string; a
 	try {
 		if (action === 'edit' && originalUsername) {
 			const updatePayload: Partial<UserPayload> = { username: payload.username, groups: payload.groups };
+			if (payload.sign_in) updatePayload.sign_in = payload.sign_in;
 			if (payload.password) {
 				updatePayload.password = payload.password;
 			}
@@ -368,10 +411,23 @@ const deleteUser = async (activeUsername: string) => {
 	}
 };
 
+const unlinkGoogle = async (user: User) => {
+	try {
+		await $api.users.unlinkOidc(user.username);
+		snackbar.add({ type: 'success', text: `Unlinked the Google account of ${user.username}. Their next Google sign-in links one again.` });
+		await refresh();
+	}
+	catch (e) {
+		const message = apiErrorTitle(e);
+		snackbar.add({ type: 'error', text: `Couldn't unlink the Google account${message ? `: ${message}` : ''}` });
+	}
+};
+
 const rowActions = (user: User) => [
 	{ label: 'Edit', icon: Pencil, action: () => addUserModal.value?.openForEdit(user, sharedLogins.value.has(user.username)) },
 	{ label: 'Copy username', icon: Copy, action: () => copy(user.username) },
 	{ label: 'Manage sessions', icon: Laptop, action: () => openManageSessionModal(user) },
+	...(user.oidc_linked ? [{ label: 'Unlink Google account', icon: Link2Off, action: () => unlinkGoogle(user) }] : []),
 	organizations.value
 		? { label: 'Remove from organization', icon: UserMinus, danger: true, action: () => triggerDelete(user) }
 		: { label: 'Delete', icon: Trash2, danger: true, action: () => triggerDelete(user) },

@@ -42,6 +42,37 @@
 					/>
 				</div>
 			</div>
+			<div
+				v-if="signInSupported && !systemOrg"
+				class="st-field"
+			>
+				<label
+					class="st-label"
+					:for="`${uid}-sign-in`"
+				>Sign-in</label>
+				<select
+					:id="`${uid}-sign-in`"
+					v-model="user.signIn"
+					class="st-ctl"
+				>
+					<option
+						v-for="option in signInOptions"
+						:key="option.value"
+						:value="option.value"
+						:disabled="option.disabled"
+					>
+						{{ option.label }}
+					</option>
+				</select>
+				<span class="st-help">{{ signInHelp }}</span>
+			</div>
+			<p
+				v-if="systemOrg"
+				class="rounded-[10px] bg-app-muted p-3 text-[13px] text-app-text-2"
+				role="note"
+			>
+				Platform operators sign in with Google only: they have no password.
+			</p>
 			<p
 				v-if="shared"
 				class="rounded-[10px] bg-app-muted p-3 text-[13px] text-app-text-2"
@@ -51,7 +82,7 @@
 				You can change their groups in this organization.
 			</p>
 			<div
-				v-if="!shared"
+				v-if="showPassword"
 				class="st-field"
 			>
 				<label
@@ -84,7 +115,7 @@
 				</div>
 			</div>
 			<div
-				v-if="!shared"
+				v-if="showPassword"
 				class="st-field"
 			>
 				<label
@@ -121,13 +152,34 @@ import type { PropType } from 'vue';
 import Modal from '~/components/Modal.vue';
 import { randomPassword } from '@/lib/utils';
 import type { User, UserGroup } from '~/types';
+import { parseSignIn, passwordAllowed, signInLabel, SIGN_IN_METHODS, type SignInMethod } from '~/utils/oidc';
 
 const uid = useId();
 const isOpen = ref(false);
 const action = ref<'create' | 'edit'>('create');
 const originalUsername = ref('');
 
-defineProps({
+const props = defineProps({
+	/** The server keeps a sign-in method per user (Postgres servers): offer it. */
+	signInSupported: {
+		type: Boolean,
+		default: false,
+	},
+	/** The operators' organization: Google only, never a password. */
+	systemOrg: {
+		type: Boolean,
+		default: false,
+	},
+	/** The organization requires Google sign-in: new users get no password. */
+	orgRequiresOidc: {
+		type: Boolean,
+		default: false,
+	},
+	/** Google sign-in is enabled on the server (else "Google only" would lock the user out). */
+	oidcEnabled: {
+		type: Boolean,
+		default: true,
+	},
 	groups: {
 		type: Array as PropType<UserGroup[]>,
 		default: () => [],
@@ -145,7 +197,25 @@ const user = ref({
 	groups: [] as string[],
 	password: '',
 	confirmPassword: '',
+	signIn: 'both' as SignInMethod,
 });
+
+const signInOptions = computed(() => SIGN_IN_METHODS.map(value => ({
+	value,
+	label: signInLabel(value),
+	disabled: (value === 'oidc' && !props.oidcEnabled) || (value === 'password' && props.orgRequiresOidc),
+})));
+const signInHelp = computed(() => {
+	if (props.orgRequiresOidc) return 'This organization requires Google sign-in.';
+	if (user.value.signIn === 'oidc') return 'Signs in with the Google account of this email address; no password.';
+	return 'Google sign-in uses the Google account of the username’s email address.';
+});
+/** Password fields: not for shared accounts, Google-only users, operators, or new users where Google is required. */
+const showPassword = computed(() => !shared.value && passwordAllowed({
+	signIn: props.signInSupported ? user.value.signIn : null,
+	systemOrg: props.systemOrg,
+	orgRequiresOidc: action.value === 'create' && props.orgRequiresOidc,
+}));
 
 const emit = defineEmits(['close', 'save']);
 
@@ -153,7 +223,7 @@ const open = () => {
 	action.value = 'create';
 	shared.value = false;
 	originalUsername.value = '';
-	user.value = { username: '', groups: [], password: '', confirmPassword: '' };
+	user.value = { username: '', groups: [], password: '', confirmPassword: '', signIn: props.orgRequiresOidc ? 'oidc' : 'both' };
 	generatePassword();
 	isOpen.value = true;
 };
@@ -162,7 +232,13 @@ const openForEdit = (existing: User, sharedAccount = false) => {
 	action.value = 'edit';
 	shared.value = sharedAccount;
 	originalUsername.value = existing.username;
-	user.value = { username: existing.username, groups: [...(existing.groups ?? [])], password: '', confirmPassword: '' };
+	user.value = {
+		username: existing.username,
+		groups: [...(existing.groups ?? [])],
+		password: '',
+		confirmPassword: '',
+		signIn: parseSignIn(existing.sign_in) ?? 'both',
+	};
 	isOpen.value = true;
 };
 
@@ -173,10 +249,11 @@ const generatePassword = async () => {
 };
 
 const save = () => {
-	if (user.value.password !== user.value.confirmPassword) return;
+	if (showPassword.value && user.value.password !== user.value.confirmPassword) return;
 	emit('save', {
 		username: user.value.username,
-		password: user.value.password,
+		...(showPassword.value ? { password: user.value.password } : {}),
+		...(props.signInSupported && !props.systemOrg ? { sign_in: user.value.signIn } : {}),
 		groups: user.value.groups,
 		originalUsername: originalUsername.value,
 		action: action.value,

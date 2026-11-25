@@ -1,21 +1,93 @@
 <template>
 	<SettingsLayout
 		heading="Organization"
-		description="Take your organization's configuration with you, or delete the organization."
+		description="How members sign in, take your organization's configuration with you, or delete the organization."
 	>
 		<AppCard
-			v-if="!available"
+			v-if="!available && !signIn"
 			flush
 		>
 			<OpEmpty
 				:icon="Building2"
-				:loading="!statusReady"
-				:title="statusReady ? 'Not available' : 'Loading…'"
-				:description="statusReady ? 'Export and deletion are for administrators, on servers with self-service signup.' : undefined"
+				:loading="!statusReady || signInLoading"
+				:title="statusReady && !signInLoading ? 'Not available' : 'Loading…'"
+				:description="statusReady && !signInLoading ? 'Export and deletion are for administrators, on servers with self-service signup.' : undefined"
 			/>
 		</AppCard>
 
-		<template v-else>
+		<!-- Sign-in: whether members must sign in with Google (servers with organizations; 404 standalone). -->
+		<AppCard
+			v-if="signIn"
+			title="Sign-in"
+			description="How the members of this organization sign in."
+		>
+			<div class="flex flex-col gap-3">
+				<div class="flex items-start justify-between gap-4">
+					<div class="min-w-0">
+						<p
+							id="org-require-oidc-label"
+							class="text-sm font-medium text-app-text"
+						>
+							Require Google sign-in
+						</p>
+						<p
+							id="org-require-oidc-help"
+							class="mt-0.5 text-[13px] text-app-text-3"
+						>
+							<template v-if="!signIn.oidcEnabled && !signIn.requireOidc">
+								Google sign-in isn’t enabled on this server, so it can’t be required.
+							</template>
+							<template v-else-if="signIn.requireOidc">
+								Members sign in with their Google account only; passwords don’t work here.
+							</template>
+							<template v-else>
+								Members can sign in with a password or with Google, as each member’s sign-in setting allows.
+							</template>
+						</p>
+					</div>
+					<button
+						type="button"
+						role="switch"
+						:aria-checked="signIn.requireOidc"
+						aria-labelledby="org-require-oidc-label"
+						aria-describedby="org-require-oidc-help"
+						:disabled="savingSignIn || (!signIn.oidcEnabled && !signIn.requireOidc)"
+						:class="[
+							'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent disabled:cursor-not-allowed disabled:opacity-50',
+							signIn.requireOidc ? 'bg-app-accent' : 'bg-app-border-strong',
+						]"
+						@click="toggleRequireOidc"
+					>
+						<span
+							:class="['inline-block h-5 w-5 rounded-full bg-white shadow transition-transform', signIn.requireOidc ? 'translate-x-[22px]' : 'translate-x-0.5']"
+							aria-hidden="true"
+						/>
+					</button>
+				</div>
+				<p
+					v-if="signInError"
+					role="alert"
+					class="rounded-[10px] bg-app-danger-bg p-3 text-sm text-app-danger"
+				>
+					{{ signInError }}
+				</p>
+			</div>
+		</AppCard>
+		<Modal
+			v-model="confirmRequireOidc"
+			title="Require Google sign-in?"
+			ok-text="Require Google sign-in"
+			cancel-text="Cancel"
+			:show-cancel="true"
+			@ok="saveRequireOidc(true)"
+		>
+			<p class="text-sm text-app-text-2">
+				Members with only a password will no longer be able to sign in. Their password sessions end, and they must
+				sign in with the Google account of their email address. API tokens keep working.
+			</p>
+		</Modal>
+
+		<template v-if="available">
 			<!-- Export -->
 			<AppCard
 				title="Export"
@@ -161,6 +233,8 @@ import OpInput from '~/components/operate/OpInput.vue';
 import { formatDay } from '~/utils/billing';
 import { downloadJson } from '~/utils/download';
 import { exportFileName, type OrgDeletion } from '~/utils/signup';
+import type { OrgSignIn } from '~/utils/oidc';
+import Modal from '~/components/Modal.vue';
 
 useHead({ title: 'Organization' });
 
@@ -176,6 +250,49 @@ const statusReady = computed(() => !!statusStore.status?.version && profileReady
 const available = computed(() => signup.value && isAdmin.value && !operator.value);
 /** The organization's ID when the membership list knows it (servers with organizations). */
 const orgId = computed(() => current.value?.id ?? '');
+
+// ---- Sign-in (GET/PUT /organization/sign-in; null: no such setting on this server) ----
+const signIn = ref<OrgSignIn | null>(null);
+const signInLoading = ref(false);
+const signInError = ref('');
+const savingSignIn = ref(false);
+const confirmRequireOidc = ref(false);
+let signInRequested = false;
+watch([isAdmin, operator], async ([admin, op]) => {
+	if (!admin || op || signInRequested) return;
+	signInRequested = true;
+	signInLoading.value = true;
+	try {
+		signIn.value = await $api.account.orgSignIn();
+	}
+	catch {
+		signIn.value = null;
+	}
+	finally {
+		signInLoading.value = false;
+	}
+}, { immediate: true });
+
+const saveRequireOidc = async (value: boolean) => {
+	confirmRequireOidc.value = false;
+	savingSignIn.value = true;
+	signInError.value = '';
+	try {
+		signIn.value = await $api.account.setOrgSignIn(value);
+	}
+	catch (e) {
+		signInError.value = `Couldn't change the sign-in setting: ${apiErrorMessage(e)}`;
+	}
+	finally {
+		savingSignIn.value = false;
+	}
+};
+// Turning it on locks out password-only members: confirm first. Turning it off needs no confirmation.
+const toggleRequireOidc = () => {
+	if (!signIn.value || savingSignIn.value) return;
+	if (signIn.value.requireOidc) saveRequireOidc(false);
+	else confirmRequireOidc.value = true;
+};
 
 const exporting = ref(false);
 const exportError = ref('');
