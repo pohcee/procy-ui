@@ -64,7 +64,7 @@
 						Version
 					</dt>
 					<dd class="break-all font-mono text-[13px] text-app-text">
-						openrport-frontend-{{ appVersion }}
+						procy-ui-{{ appVersion }}
 					</dd>
 				</div>
 				<div class="grid grid-cols-1 gap-1 px-4 py-3 sm:grid-cols-[minmax(0,240px)_minmax(0,1fr)] sm:gap-4">

@@ -59,7 +59,7 @@
 										/>Docs
 									</a>
 									<a
-										href="https://github.com/pohcee/openrport"
+										href="https://github.com/pohcee/procy"
 										rel="noopener"
 										:class="darkLink"
 									>
@@ -182,7 +182,7 @@
 								:class="lightButton"
 							>Read the docs</a>
 							<a
-								href="https://github.com/pohcee/openrport"
+								href="https://github.com/pohcee/procy"
 								rel="noopener"
 								:class="lightButton"
 							>

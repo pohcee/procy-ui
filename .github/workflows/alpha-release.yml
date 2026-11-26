@@ -34,7 +34,7 @@ jobs:
           NAME="Alpha Release $DATE"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "artifact_name=openrport-ui-$TAG" >> $GITHUB_OUTPUT
+          echo "artifact_name=procy-ui-$TAG" >> $GITHUB_OUTPUT
 
       - name: Create release zip
         run: |

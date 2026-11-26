@@ -22,7 +22,7 @@ Manage remote systems with ease
 # Procy UI
 
 - [Website and documentation](https://procy.sh/docs/)
-- [Procy server](https://github.com/pohcee/openrport)
+- [Procy server](https://github.com/pohcee/procy-server)
 
 Welcome to the web UI of Procy, an open-source remote server manager without the hassle of VPNs. Procy takes its name from *Procyon callidus*, Latin for "the clever raccoon"; read the
 [naming story](https://procy.sh/docs/#why-procy). This project is designed using Nuxt 3 to create a seamless and responsive user interface for managing remote systems securely.
@@ -32,8 +32,8 @@ Welcome to the web UI of Procy, an open-source remote server manager without the
 
 ### Install
 ```
-git clone git@github.com:pohcee/openrport-ui.git
-cd openrport-ui
+git clone git@github.com:pohcee/procy-ui.git
+cd procy-ui
 yarn install
 ```
 

@@ -29,7 +29,7 @@
 If the PR has changes in multiple repos please provide the command to checkout all branches, eg.:
 ```bash
 git checkout "dev-branch-name" &&
-cd openrport && git checkout branch-name &&
-cd ../openrport-ui && git checkout ui-branch-name &&
+cd server && git checkout branch-name &&
+cd ../ui && git checkout ui-branch-name &&
 cd ../../..
 ```

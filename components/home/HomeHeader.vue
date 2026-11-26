@@ -23,7 +23,7 @@
 				:class="[linkClass, 'hidden sm:inline-flex']"
 			>Docs</a>
 			<a
-				href="https://github.com/pohcee/openrport"
+				href="https://github.com/pohcee/procy"
 				rel="noopener"
 				:class="[linkClass, 'hidden sm:inline-flex']"
 			>GitHub</a>

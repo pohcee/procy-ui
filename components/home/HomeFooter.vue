@@ -30,7 +30,7 @@
 						</li>
 						<li>
 							<a
-								href="https://github.com/pohcee/openrport"
+								href="https://github.com/pohcee/procy"
 								rel="noopener"
 								:class="link"
 							>Source on GitHub</a>
