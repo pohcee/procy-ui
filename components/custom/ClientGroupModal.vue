@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ClientGroup, ClientGroupParams } from '~/types';
+import type { ClientGroup } from '~/types';
 import { clientGroupSavePayload } from '~/utils/clientGroup';
 
 const emit = defineEmits(['saved']);
@@ -72,14 +72,11 @@ const isEditing = ref(false);
 const id = ref('');
 const description = ref('');
 const allowedUserGroupsText = ref('');
-// The rules of the group being edited: the modal cannot change them, so it sends them back as loaded.
-const params = ref<ClientGroupParams | null>(null);
 
 const reset = () => {
 	id.value = '';
 	description.value = '';
 	allowedUserGroupsText.value = '';
-	params.value = null;
 };
 
 const openForCreate = () => {
@@ -94,7 +91,6 @@ const openForEdit = (group: ClientGroup) => {
 	id.value = group.id;
 	description.value = group.description ?? '';
 	allowedUserGroupsText.value = (group.allowed_user_groups ?? []).join(', ');
-	params.value = group.params ?? null;
 	isOpen.value = true;
 };
 
@@ -110,7 +106,6 @@ const save = async () => {
 			id: id.value,
 			description: description.value,
 			allowedUserGroupsText: allowedUserGroupsText.value,
-			params: params.value,
 		}, isEditing.value);
 		if (isEditing.value) {
 			await $api.groups.update(id.value, payload);

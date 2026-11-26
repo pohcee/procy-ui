@@ -1,7 +1,8 @@
 /**
  * Saving a client group from the modal. The modal edits only the description and the
- * allowed user groups; the rules (`params`) are set through the API, so an edit sends the
- * loaded group's params back unchanged instead of clearing them.
+ * allowed user groups; the rules (`params`) are set through the API. An edit leaves `params`
+ * out, and the server keeps the stored rules (never a round trip through the UI's types,
+ * which could alter them); a new group starts without rules.
  * Pure helpers (tested in tests/clientGroup.test.ts).
  */
 import type { ClientGroupParams } from '../types.ts';
@@ -11,8 +12,6 @@ export interface ClientGroupForm {
 	description: string;
 	/** Comma separated user groups, as typed. */
 	allowedUserGroupsText: string;
-	/** The params of the group being edited, as loaded. */
-	params?: ClientGroupParams | null;
 }
 
 export interface ClientGroupSavePayload {
@@ -32,12 +31,6 @@ export function clientGroupSavePayload(form: ClientGroupForm, isEditing: boolean
 		description: form.description,
 		allowed_user_groups: parseUserGroups(form.allowedUserGroupsText),
 	};
-	if (isEditing) {
-		// Without params the server keeps the stored ones; with them it stores what we send.
-		if (form.params) payload.params = form.params;
-	}
-	else {
-		payload.params = {};
-	}
+	if (!isEditing) payload.params = {};
 	return payload;
 }

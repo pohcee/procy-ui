@@ -1,30 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import type { ClientGroupParams } from '../types.ts';
 import { clientGroupSavePayload, parseUserGroups } from '../utils/clientGroup.ts';
 
-const params: ClientGroupParams = { client_id: ['web-*'], os: null, tag: ['QA', 'linux*'] };
-
 describe('clientGroupSavePayload', () => {
-	it('an edit sends the loaded params back unchanged', () => {
-		const payload = clientGroupSavePayload(
-			{ id: 'g1', description: 'new', allowedUserGroupsText: 'ops, qa', params },
-			true,
-		);
-		assert.deepEqual(payload, {
-			id: 'g1',
-			description: 'new',
-			allowed_user_groups: ['ops', 'qa'],
-			params,
-		});
-		assert.equal(payload.params, params);
-	});
-
-	it('an edit of a group loaded without params leaves them out, so the server keeps them', () => {
-		for (const loaded of [undefined, null]) {
-			const payload = clientGroupSavePayload({ id: 'g1', description: '', allowedUserGroupsText: '', params: loaded }, true);
-			assert.equal('params' in payload, false);
-		}
+	it('an edit never sends params, so the server keeps the stored rules', () => {
+		const payload = clientGroupSavePayload({ id: 'g1', description: 'new', allowedUserGroupsText: 'ops, qa' }, true);
+		assert.deepEqual(payload, { id: 'g1', description: 'new', allowed_user_groups: ['ops', 'qa'] });
+		assert.equal('params' in payload, false);
 	});
 
 	it('a new group starts without rules', () => {
