@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
 import {
-	BarChart3, Building2, CreditCard, ExternalLink, LayoutDashboard, LifeBuoy, ListChecks, Mail, Settings, Trash2, UserPlus,
+	BarChart3, Building2, CreditCard, ExternalLink, LayoutDashboard, LifeBuoy, ListChecks, Mail, Server, Settings, Trash2, UserPlus,
 } from 'lucide-vue-next';
 
 const DOCS_URL = 'https://procy.sh/docs/';
@@ -68,7 +68,7 @@ interface NavItem {
 
 const emit = defineEmits<{ (e: 'navigate'): void }>();
 const route = useRoute();
-const { usage, billing, signup } = useCapabilities();
+const { usage, billing, signup, organizations } = useCapabilities();
 
 const allSections: { label?: string; items: NavItem[] }[] = [
 	{
@@ -80,6 +80,8 @@ const allSections: { label?: string; items: NavItem[] }[] = [
 			{ label: 'Invitations', to: '/operator/invitations', icon: Mail },
 			{ label: 'Deletions', to: '/operator/deletions', icon: Trash2, when: () => signup.value },
 			{ label: 'Usage', to: '/operator/usage', icon: BarChart3, when: () => usage.value },
+			// Cluster nodes are recorded on Postgres servers only (the same ones that offer organizations).
+			{ label: 'Servers', to: '/operator/servers', icon: Server, when: () => organizations.value },
 			{ label: 'Billing', to: '/operator/billing', icon: CreditCard, when: () => billing.value },
 			{ label: 'Audit log', to: '/operator/audit', icon: ListChecks },
 		],
