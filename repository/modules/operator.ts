@@ -8,6 +8,10 @@ import {
 	type ActivityKind, type ActivityPage, type ConsoleInvitation, type ConsoleMember, type ConsoleOrg, type OrgDevices,
 	type OrgStatsReport, type Overview, type StatsRange,
 } from '~/utils/operatorConsole';
+import {
+	parseServerDetail, parseServerDevices, parseServerList,
+	type ServerDetail, type ServerDevicePage, type ServerList,
+} from '~/utils/servers';
 
 /** An organization as platform operators see it (GET /operator/organizations). */
 export interface Organization {
@@ -38,6 +42,7 @@ export interface OperatorUsage {
 	organizations: OrgUsageRow[];
 }
 
+const node = (id: string) => `/api/v1/operator/nodes/${encodeURIComponent(id)}`;
 const org = (id: string) => `/api/v1/operator/organizations/${encodeURIComponent(id)}`;
 const query = (params: Record<string, string | undefined>) => {
 	const q = new URLSearchParams();
@@ -139,6 +144,26 @@ class OperatorModule extends HttpFactory {
 			limit: params.limit ? String(params.limit) : undefined,
 			before: params.before ?? undefined,
 		})}`));
+	}
+
+	// ---- Servers (cluster nodes; Postgres servers) ----
+
+	/** GET /operator/nodes?days: every node with its status, devices online and traffic, live first. */
+	async nodes(days: number): Promise<ServerList> {
+		return parseServerList(await this.call<unknown>('GET', `/api/v1/operator/nodes${query({ days: String(days) })}`), days);
+	}
+
+	/** GET /operator/nodes/{id}?days: the node, its daily traffic and connects, organizations and latest events. */
+	async node(id: string, days: number): Promise<ServerDetail> {
+		return parseServerDetail(await this.call<unknown>('GET', `${node(id)}${query({ days: String(days) })}`), days);
+	}
+
+	/** GET /operator/nodes/{id}/devices?page[limit]&page[offset]: the devices with a live session on the node. */
+	async nodeDevices(id: string, params: { limit: number; offset: number }): Promise<ServerDevicePage> {
+		return parseServerDevices(await this.call<unknown>('GET', `${node(id)}/devices${query({
+			'page[limit]': String(params.limit),
+			'page[offset]': String(params.offset),
+		})}`), params.offset);
 	}
 
 	// ---- Signups and deletions (servers with [signup] enabled) ----
