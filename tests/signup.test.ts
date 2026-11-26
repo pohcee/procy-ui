@@ -11,8 +11,13 @@ describe('parseSignupConfig', () => {
 	it('reads the public settings', () => {
 		assert.deepEqual(parseSignupConfig({ data: { enabled: true, captcha: 'turnstile', captcha_site_key: '0xKEY', require_approval: true, password_min_length: 12, trial_days: 14 } }), {
 			enabled: true, captcha: 'turnstile', captchaSiteKey: '0xKEY', requireApproval: true, passwordMinLength: 12, trialDays: 14,
-			googleSignup: false, googleSignupUrl: DEFAULT_GOOGLE_SIGNUP_URL, googleButtonLabel: DEFAULT_GOOGLE_BUTTON_LABEL,
+			googleSignup: false, googleSignupUrl: DEFAULT_GOOGLE_SIGNUP_URL, googleButtonLabel: DEFAULT_GOOGLE_BUTTON_LABEL, emailSignup: true,
 		});
+	});
+	it('reads whether the email form is offered (older servers: yes)', () => {
+		assert.equal(parseSignupConfig({ enabled: true, google_signup: true, email_signup: false })?.emailSignup, false);
+		assert.equal(parseSignupConfig({ enabled: true, email_signup: true })?.emailSignup, true);
+		assert.equal(parseSignupConfig({ enabled: true })?.emailSignup, true);
 	});
 	it('reads the Google signup settings', () => {
 		const c = parseSignupConfig({ data: { enabled: true, google_signup: true, google_signup_url: '/api/v1/oidc/signup', google_button_label: 'Sign up with Google' } });

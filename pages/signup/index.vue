@@ -73,7 +73,7 @@
 				v-else
 				class="flex flex-col gap-6"
 				novalidate
-				@submit.prevent="submit"
+				@submit.prevent="config.emailSignup ? submit() : continueWithGoogle()"
 			>
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-app-text">
@@ -135,6 +135,7 @@
 							>Google confirms your email address, so no link is mailed.</span>
 						</div>
 						<div
+							v-if="config.emailSignup"
 							class="flex items-center gap-3 text-xs font-medium text-app-text-4"
 							aria-hidden="true"
 						>
@@ -144,7 +145,10 @@
 						</div>
 					</template>
 
-					<div class="flex flex-col gap-1.5">
+					<div
+						v-if="config.emailSignup"
+						class="flex flex-col gap-1.5"
+					>
 						<label
 							for="signup-email"
 							class="text-[13px] font-medium text-app-text-2"
@@ -173,7 +177,7 @@
 						>It becomes your login. We email it a link to confirm the address and choose a password.</span>
 					</div>
 					<SignupCaptcha
-						v-if="config.captcha"
+						v-if="config.captcha && config.emailSignup"
 						ref="captchaRef"
 						:provider="config.captcha"
 						:site-key="config.captchaSiteKey"
@@ -195,6 +199,7 @@
 
 				<div class="flex flex-col gap-3">
 					<button
+						v-if="config.emailSignup"
 						type="submit"
 						:disabled="sending || (!!config.captcha && !captchaToken)"
 						class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-app-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-app-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent disabled:cursor-not-allowed disabled:opacity-60"
