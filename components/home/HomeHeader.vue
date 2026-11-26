@@ -23,7 +23,7 @@
 				:class="[linkClass, 'hidden sm:inline-flex']"
 			>Docs</a>
 			<a
-				href="https://github.com/pohcee/procy"
+				href="https://github.com/pohcee/procy-server"
 				rel="noopener"
 				:class="[linkClass, 'hidden sm:inline-flex']"
 			>GitHub</a>

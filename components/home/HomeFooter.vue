@@ -30,7 +30,7 @@
 						</li>
 						<li>
 							<a
-								href="https://github.com/pohcee/procy"
+								href="https://github.com/pohcee/procy-server"
 								rel="noopener"
 								:class="link"
 							>Source on GitHub</a>
