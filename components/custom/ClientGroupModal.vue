@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import type { ClientGroup } from '~/types';
+import { clientGroupSavePayload } from '~/utils/clientGroup';
 
 const emit = defineEmits(['saved']);
 
@@ -101,15 +102,11 @@ const save = async () => {
 	if (!id.value) return;
 	isSaving.value = true;
 	try {
-		const allowedUserGroups = allowedUserGroupsText.value
-			.split(',')
-			.map(group => group.trim())
-			.filter(Boolean);
-		const payload: Partial<ClientGroup> = {
+		const payload = clientGroupSavePayload({
 			id: id.value,
 			description: description.value,
-			allowed_user_groups: allowedUserGroups,
-		};
+			allowedUserGroupsText: allowedUserGroupsText.value,
+		}, isEditing.value);
 		if (isEditing.value) {
 			await $api.groups.update(id.value, payload);
 		}
