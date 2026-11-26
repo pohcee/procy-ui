@@ -19,6 +19,8 @@ export interface SignupConfig {
 	/** A path on the API server. */
 	googleSignupUrl: string;
 	googleButtonLabel: string;
+	/** The email form ("Work email", a mailed link, a password). Off with `[signup] oidc_only`: Google only. */
+	emailSignup: boolean;
 }
 
 export const DEFAULT_GOOGLE_SIGNUP_URL = '/api/v1/oidc/signup';
@@ -48,6 +50,8 @@ export const parseSignupConfig = (raw: unknown): SignupConfig | null => {
 		googleSignup: o.google_signup === true,
 		googleSignupUrl: apiPath(o.google_signup_url, DEFAULT_GOOGLE_SIGNUP_URL),
 		googleButtonLabel: (typeof o.google_button_label === 'string' && o.google_button_label.trim()) || DEFAULT_GOOGLE_BUTTON_LABEL,
+		// Older servers don't say: they offer it.
+		emailSignup: o.email_signup !== false,
 	};
 };
 
