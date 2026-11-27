@@ -40,7 +40,6 @@
 	--color-green-500: #22c55e;
 	--color-red-500: #ef4444;
 	--color-slate-600: #475569;
-	--color-sky-700: #0369a1;
 
 	/* Tailwind 3's ring defaults: a bare ring-* without a colour was blue-500 at 50%. */
 	--default-ring-color: rgb(59 130 246 / 0.5);
