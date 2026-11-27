@@ -1,6 +1,6 @@
 <template>
 	<form
-		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-sm sm:p-8"
+		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-xs sm:p-8"
 		novalidate
 		@submit.prevent="verifyTwoFa"
 	>
@@ -35,7 +35,7 @@
 				type="text"
 				inputmode="numeric"
 				autocomplete="one-time-code"
-				class="h-12 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 font-mono text-lg tracking-[0.3em] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+				class="h-12 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 font-mono text-lg tracking-[0.3em] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25"
 			>
 		</div>
 

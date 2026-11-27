@@ -47,7 +47,7 @@
 				type="search"
 				aria-label="Search the library"
 				placeholder="Search…"
-				class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+				class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25"
 			>
 			<ul class="-mx-1 flex flex-col">
 				<li

@@ -103,7 +103,7 @@
 								v-model="filters.q"
 								type="search"
 								placeholder="Search name, ID, IP, tag…"
-								class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-none placeholder:text-app-text-4 focus:ring-0"
+								class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-hidden placeholder:text-app-text-4 focus:ring-0"
 							>
 						</div>
 						<DeviceGroupPicker

@@ -23,7 +23,7 @@
 				:aria-labelledby="titleId"
 				tabindex="-1"
 				:class="[
-					'flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-app-border bg-app-surface text-left text-app-text shadow-2xl outline-none sm:max-h-[88dvh] sm:rounded-2xl',
+					'flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-app-border bg-app-surface text-left text-app-text shadow-2xl outline-hidden sm:max-h-[88dvh] sm:rounded-2xl',
 					{ sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'sm:max-w-3xl' }[size],
 				]"
 				@submit.prevent="$emit('submit')"

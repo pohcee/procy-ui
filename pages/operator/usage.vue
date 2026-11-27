@@ -87,7 +87,7 @@
 									:aria-invalid="priceInvalid || undefined"
 									aria-describedby="cost-per-gib-help"
 									:class="[
-										'h-10 w-[92px] rounded-[10px] border bg-app-surface-2 pl-6 pr-2 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25',
+										'h-10 w-[92px] rounded-[10px] border bg-app-surface-2 pl-6 pr-2 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25',
 										priceInvalid ? 'border-app-danger' : 'border-app-border-strong',
 									]"
 								>

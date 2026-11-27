@@ -16,7 +16,7 @@
 				aria-modal="true"
 				:aria-labelledby="titleId"
 				tabindex="-1"
-				class="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-app-border bg-app-surface text-left text-app-text shadow-2xl outline-none sm:max-h-[88dvh] sm:max-w-2xl sm:rounded-2xl"
+				class="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-app-border bg-app-surface text-left text-app-text shadow-2xl outline-hidden sm:max-h-[88dvh] sm:max-w-2xl sm:rounded-2xl"
 				@click.stop
 			>
 				<div class="flex items-center justify-between gap-3 border-b border-app-border px-5 py-3.5">

@@ -25,7 +25,7 @@
 						type="search"
 						aria-label="Search schedules"
 						placeholder="Search by name or command…"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface pl-9 pr-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface pl-9 pr-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25"
 					>
 				</div>
 				<OpSegmented
@@ -113,7 +113,7 @@
 									<td class="whitespace-nowrap border-b border-app-border-subtle px-3 py-3.5 align-middle text-[13px]">
 										<button
 											type="button"
-											class="-mx-1.5 rounded-md px-1.5 py-1 text-left hover:bg-app-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent"
+											class="-mx-1.5 rounded-md px-1.5 py-1 text-left hover:bg-app-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-app-accent"
 											:aria-label="`Run history of ${schedule.name}`"
 											title="Show run history"
 											@click="openHistory(schedule)"

@@ -1,6 +1,6 @@
 <template>
 	<!-- Result card of a link from a signup email (verify, cancel a deletion): working, done, or refused. -->
-	<div class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-sm sm:p-8">
+	<div class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-xs sm:p-8">
 		<div
 			v-if="state === 'working'"
 			class="flex items-center justify-center gap-2 py-10 text-sm text-app-text-3"

@@ -1,7 +1,7 @@
 <template>
 	<!-- Second sign-in step for users of several organizations: pick the one to work in. -->
 	<form
-		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-sm sm:p-8"
+		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-xs sm:p-8"
 		novalidate
 		@submit.prevent="submit"
 	>

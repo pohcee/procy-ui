@@ -6,7 +6,7 @@
 	<li class="border-b border-app-border-subtle last:border-b-0">
 		<button
 			type="button"
-			class="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-app-hover focus-visible:bg-app-hover focus-visible:outline-none sm:gap-3.5 sm:px-[18px]"
+			class="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-app-hover focus-visible:bg-app-hover focus-visible:outline-hidden sm:gap-3.5 sm:px-[18px]"
 			:aria-expanded="open"
 			@click="open = !open"
 		>

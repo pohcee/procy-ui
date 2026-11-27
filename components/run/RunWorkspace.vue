@@ -196,7 +196,7 @@
 						type="text"
 						autocomplete="off"
 						placeholder="untitled"
-						class="h-9 min-w-[120px] max-w-[260px] rounded-md [field-sizing:content] border border-transparent bg-transparent px-1.5 font-mono text-xs text-[#E6EBF2] placeholder:text-[#7D8796] hover:border-[#2E3947] focus:border-[#3A4656] focus:outline-none"
+						class="h-9 min-w-[120px] max-w-[260px] rounded-md [field-sizing:content] border border-transparent bg-transparent px-1.5 font-mono text-xs text-[#E6EBF2] placeholder:text-[#7D8796] hover:border-[#2E3947] focus:border-[#3A4656] focus:outline-hidden"
 					>
 				</template>
 				<template #footer>

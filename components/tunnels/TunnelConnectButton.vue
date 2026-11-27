@@ -44,7 +44,7 @@
 					autocomplete="username"
 					spellcheck="false"
 					placeholder="e.g. root"
-					class="h-11 rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 font-mono text-sm text-app-text focus:border-app-accent focus:outline-none"
+					class="h-11 rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 font-mono text-sm text-app-text focus:border-app-accent focus:outline-hidden"
 				>
 			</div>
 			<p class="text-[13px] text-app-text-3">

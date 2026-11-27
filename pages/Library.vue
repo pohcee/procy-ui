@@ -26,7 +26,7 @@
 						type="search"
 						aria-label="Search the library"
 						placeholder="Search by name, tag or type…"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface pl-9 pr-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface pl-9 pr-3 text-sm text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25"
 					>
 				</div>
 				<OpCheckbox v-model="showDeleted">

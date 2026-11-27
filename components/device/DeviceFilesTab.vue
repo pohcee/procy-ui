@@ -44,7 +44,7 @@
 					<input
 						id="device-file-dest"
 						v-model="dest"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 						placeholder="/tmp/test.txt or C:\Windows\temp\test.txt"
 						type="text"
 						autocomplete="off"
@@ -68,7 +68,7 @@
 					>
 					<span
 						aria-hidden="true"
-						class="relative h-6 w-11 flex-none rounded-full bg-app-border-strong transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-[''] peer-checked:bg-app-accent peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-app-accent"
+						class="relative h-6 w-11 flex-none rounded-full bg-app-border-strong transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:content-[''] peer-checked:bg-app-accent peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-app-accent"
 					/>
 				</label>
 
@@ -86,7 +86,7 @@
 					>
 					<span
 						aria-hidden="true"
-						class="relative h-6 w-11 flex-none rounded-full bg-app-border-strong transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-[''] peer-checked:bg-app-accent peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-app-accent"
+						class="relative h-6 w-11 flex-none rounded-full bg-app-border-strong transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:content-[''] peer-checked:bg-app-accent peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-app-accent"
 					/>
 				</label>
 
@@ -111,7 +111,7 @@
 					<input
 						id="device-file-mode"
 						v-model="mode"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 						placeholder="0500"
 						type="text"
 						autocomplete="off"
@@ -130,7 +130,7 @@
 						<input
 							id="device-file-user"
 							v-model="user"
-							class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+							class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 							placeholder="root"
 							type="text"
 							autocomplete="off"
@@ -145,7 +145,7 @@
 						<input
 							id="device-file-group"
 							v-model="group"
-							class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+							class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text placeholder:font-sans placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 							placeholder="root"
 							type="text"
 							autocomplete="off"

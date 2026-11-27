@@ -1,14 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import tailwindcss from '@tailwindcss/vite';
 
 const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf-8'));
 
 export default defineNuxtConfig({
-
 	modules: [
 		'@nuxt/icon',
 		'@pinia/nuxt',
-		'@nuxtjs/tailwindcss',
 		'shadcn-nuxt',
 		'nuxt-snackbar',
 		'@nuxt/eslint',
@@ -116,11 +115,9 @@ export default defineNuxtConfig({
 		},
 	},
 
-	postcss: {
-		plugins: {
-			tailwindcss: {},
-			autoprefixer: {},
-		},
+	vite: {
+		// Tailwind 4: CSS-first config in assets/css/tailwind.css (no tailwind.config.js, no PostCSS step).
+		plugins: [tailwindcss()],
 	},
 
 	eslint: {
@@ -133,6 +130,8 @@ export default defineNuxtConfig({
 	},
 
 	shadcn: {
+		// shadcn-nuxt 2 defaults to a 'Ui' prefix (<UiDropdownMenu>); the app uses the bare names.
+		prefix: '',
 		componentDir: './components/ui',
 	},
 

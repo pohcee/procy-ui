@@ -16,7 +16,7 @@
 			tabindex="-1"
 			novalidate
 			:class="[
-				'fixed inset-x-0 bottom-0 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-app-border bg-app-surface text-left text-app-text shadow-2xl outline-none',
+				'fixed inset-x-0 bottom-0 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-app-border bg-app-surface text-left text-app-text shadow-2xl outline-hidden',
 				'sm:relative sm:inset-auto sm:max-h-[88dvh] sm:rounded-2xl',
 				wide ? 'sm:max-w-2xl' : 'sm:max-w-lg',
 			]"

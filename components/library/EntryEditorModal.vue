@@ -63,7 +63,7 @@
 						:aria-controls="`libPanel-${os}`"
 						:tabindex="activeOs === os ? 0 : -1"
 						:class="[
-							'-mb-px inline-flex min-h-[44px] items-center gap-1.5 border-b-2 px-3 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40',
+							'-mb-px inline-flex min-h-[44px] items-center gap-1.5 border-b-2 px-3 text-sm font-medium focus:outline-hidden focus-visible:ring-2 focus-visible:ring-app-accent/40',
 							activeOs === os ? 'border-app-accent text-app-text' : 'border-transparent text-app-text-3 hover:text-app-text',
 						]"
 						@click="activeOs = os"

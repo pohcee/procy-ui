@@ -35,7 +35,7 @@
 			<PopoverContent
 				align="start"
 				:side-offset="8"
-				class="z-40 w-72 rounded-xl border border-app-border bg-app-surface p-1.5 shadow-lg focus:outline-none"
+				class="z-40 w-72 rounded-xl border border-app-border bg-app-surface p-1.5 shadow-lg focus:outline-hidden"
 			>
 				<div
 					v-if="options.length > 8"
@@ -50,7 +50,7 @@
 						v-model="search"
 						type="search"
 						placeholder="Find a group…"
-						class="h-9 w-full rounded-lg border border-app-border-strong bg-app-surface-2 px-2.5 text-[13px] text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+						class="h-9 w-full rounded-lg border border-app-border-strong bg-app-surface-2 px-2.5 text-[13px] text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25"
 					>
 				</div>
 				<ul

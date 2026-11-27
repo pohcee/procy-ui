@@ -53,13 +53,15 @@ defineProps<{
 </script>
 
 <style>
+@reference "~/assets/css/tailwind.css";
+
 /*
  * Form + table primitives shared by the settings pages and their dialogs
  * (dialogs are teleported to <body>, so these are intentionally global).
  */
 .st-ctl {
 	@apply h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 text-sm text-app-text placeholder:text-app-text-4;
-	@apply focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25;
+	@apply focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25;
 	@apply disabled:cursor-not-allowed disabled:opacity-60 read-only:text-app-text-3;
 }
 textarea.st-ctl {

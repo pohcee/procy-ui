@@ -45,7 +45,7 @@
 							v-model="q"
 							type="search"
 							placeholder="Search name or ID…"
-							class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-none placeholder:text-app-text-4 focus:ring-0"
+							class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-hidden placeholder:text-app-text-4 focus:ring-0"
 						>
 					</div>
 					<OpSegmented
@@ -65,7 +65,7 @@
 						<select
 							id="org-billing-filter"
 							v-model="billingFilter"
-							class="h-8 rounded-lg border border-app-border-strong bg-app-surface px-2 pr-8 text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25"
+							class="h-8 rounded-lg border border-app-border-strong bg-app-surface px-2 pr-8 text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25"
 						>
 							<option value="all">
 								All
