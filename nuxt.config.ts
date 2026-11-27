@@ -91,6 +91,10 @@ export default defineNuxtConfig({
 	// as small redirect pages so old links keep working.
 	nitro: {
 		prerender: {
+			// Nuxt 4 adds /index.html (the SPA shell) for client-only apps, and the prerendered home page (/)
+			// writes the same file: the two writes race and leave the tail of one after the other's </html>,
+			// which rportd then serves for every deep link. Let / be the only writer.
+			ignore: ['/index.html'],
 			routes: [
 				// The public home page, and /login (a redirect to the sign-in page).
 				'/', '/login',
