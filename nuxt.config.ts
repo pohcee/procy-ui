@@ -83,10 +83,6 @@ export default defineNuxtConfig({
 		presets: [{ from: 'vue3-snackbar', imports: ['useSnackbar'] }],
 	},
 
-	plugins: [
-		// { src: '~/node_modules/@tabler/core/dist/js/tabler.min.js', mode: 'client' }
-	],
-
 	alias: {
 		assets: '/<rootDir>/assets',
 	},
