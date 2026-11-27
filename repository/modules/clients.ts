@@ -9,7 +9,6 @@ import type {
 	Client,
 	StoredTunnel, StoredTunnelResponse,
 	Tunnel, TunnelPayload,
-	TunnelResponse,
 } from '~/types';
 import { toQueryString } from '~/lib/utils';
 
@@ -150,8 +149,9 @@ class ClientsModule extends HttpFactory {
 		);
 	}
 
-	async tunnels(id: string): Promise<Tunnel[]> {
-		const response = await this.call<TunnelResponse>(
+	// ?fields[clients]=tunnels returns the client with only its tunnels field.
+	async tunnels(id: string): Promise<Pick<Client, 'tunnels'>> {
+		const response = await this.call<{ data: Pick<Client, 'tunnels'> }>(
 			'GET',
 			`${this.RESOURCE}/${id}?fields[clients]=tunnels`,
 			undefined,

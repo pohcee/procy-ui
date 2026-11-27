@@ -30,6 +30,7 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "nuxi typecheck",
     "test": "node --test --experimental-strip-types \"tests/**/*.test.ts\""
   },
   "devDependencies": {
@@ -47,7 +48,8 @@
     "shadcn-nuxt": "^0.10.0",
     "typescript": "^5.4.2",
     "vue": "^3.4.19",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "vue-tsc": "^2"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.5.1",

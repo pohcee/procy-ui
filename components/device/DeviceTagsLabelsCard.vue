@@ -50,23 +50,21 @@
 	</AppCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Pencil, Tag } from 'lucide-vue-next';
 import TagsLabelDialog from '~/components/device/TagsLabelDialog.vue';
+import type { Client } from '~/types';
 
-const props = defineProps({
-	client: {
-		type: Object,
-		default: () => ({}),
-	},
-});
+const props = defineProps<{
+	client?: Client;
+}>();
 const isModalOpen = ref(false);
 // Follows the prop, so the card updates when the device loads or is replaced in the store.
 const internalClient = computed(() => props.client);
 const labels = computed(() => {
 	const l = internalClient.value?.labels;
 	if (!l) return [];
-	return Object.keys(l).map(key => [key, l[key]]);
+	return Object.entries(l);
 });
 
 const tags = computed(() => {

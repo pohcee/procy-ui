@@ -22,19 +22,15 @@
 	</div>
 </template>
 
-<script setup>
-defineProps({
-	device: {
-		type: Object,
-		required: true,
-	},
-	metrics: {
-		type: Array,
-		default: () => [],
-	},
-	disks: {
-		type: Array,
-		default: () => [],
-	},
+<script setup lang="ts">
+import type { Client, ClientMetric, DiskUsage } from '~/types';
+
+withDefaults(defineProps<{
+	device: Client;
+	metrics?: ClientMetric[];
+	disks?: DiskUsage[];
+}>(), {
+	metrics: () => [],
+	disks: () => [],
 });
 </script>

@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-4">
-		<template v-if="readonly">
+		<template v-if="props.readonly">
 			<p
 				v-if="!draft.code"
 				class="text-sm text-app-text-3"
@@ -103,7 +103,7 @@ import type { OsDraft } from '~/components/library/entryDraft';
 import { interpreterOptionsWith, normalizeInterpreter } from '~/utils/interpreter';
 import { detectRunKind } from '~/utils/runKind';
 
-defineProps<{
+const props = defineProps<{
 	/** The OS name shown to people (Linux, Windows, macOS). */
 	label: string;
 	readonly?: boolean;

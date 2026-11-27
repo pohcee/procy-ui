@@ -234,23 +234,22 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useTimeAgo, useClipboard } from '@vueuse/core';
 import { MoreHorizontal, Plus } from 'lucide-vue-next';
 import TunnelConnectButton from '~/components/tunnels/TunnelConnectButton.vue';
+import type { StoredTunnel, Tunnel } from '~/types';
 
-const props = defineProps({
-	id: {
-		type: String,
-		required: true,
-	},
-	deviceName: {
-		type: String,
-		default: '',
-	},
+const props = withDefaults(defineProps<{
+	id: string;
+	deviceName?: string;
+}>(), {
+	deviceName: '',
 });
 
-defineEmits(['addtunnel']);
+defineEmits<{
+	(e: 'addtunnel'): void;
+}>();
 const { canCreateTunnels } = useCapabilities();
 const { $api } = useNuxtApp();
 const snackbar = useSnackbar();
@@ -268,11 +267,11 @@ const { data: tunnels, refresh: refreshTunnels } = useAsyncData(`tunnels_${props
 const { data: storedTuns, refresh: refreshStoredTunnels } = useAsyncData(`stored_tunnels_${props.id}`, () => $api.clients.storedTunnels(props.id));
 
 const deleteTunnelConfirmOpen = ref(false);
-const activeTunnel = ref(null);
+const activeTunnel = ref<Tunnel | null>(null);
 const deleteStoredTunnelConfirmOpen = ref(false);
-const activeStoredTunnel = ref(null);
+const activeStoredTunnel = ref<StoredTunnel | null>(null);
 
-const triggerDeleteTunnel = (tunnel) => {
+const triggerDeleteTunnel = (tunnel: Tunnel) => {
 	activeTunnel.value = tunnel;
 	deleteTunnelConfirmOpen.value = true;
 };
@@ -291,7 +290,7 @@ const confirmDeleteTunnel = async () => {
 	await refreshTunnels();
 };
 
-const triggerDeleteStoredTunnel = (tun) => {
+const triggerDeleteStoredTunnel = (tun: StoredTunnel) => {
 	activeStoredTunnel.value = tun;
 	deleteStoredTunnelConfirmOpen.value = true;
 };
