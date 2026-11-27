@@ -92,8 +92,8 @@
     <!-- the raccoon -->
     <g>
       <!-- ringed tail: one path, fur underneath, mask rings dashed on top -->
-      <path d="M736 318 C 690 312, 676 262, 708 236 C 724 224, 744 232, 742 248" fill="none" stroke="#9CA3AF" stroke-width="26" stroke-linecap="round"/>
-      <path d="M736 318 C 690 312, 676 262, 708 236 C 724 224, 744 232, 742 248" fill="none" stroke="#1F2937" stroke-width="26" stroke-dasharray="12 14" stroke-dashoffset="-6"/>
+      <path d="M740 320 C 708 322, 690 306, 695 286 C 696 278, 702 273, 708 275" fill="none" stroke="#9CA3AF" stroke-width="26" stroke-linecap="round"/>
+      <path d="M740 320 C 708 322, 690 306, 695 286 C 696 278, 702 273, 708 275" fill="none" stroke="#1F2937" stroke-width="26" stroke-dasharray="12 14" stroke-dashoffset="-6"/>
       <!-- body -->
       <ellipse cx="770" cy="292" rx="44" ry="42" fill="#9CA3AF"/>
       <ellipse cx="772" cy="300" rx="27" ry="28" fill="#E3E6EB"/>
