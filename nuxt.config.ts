@@ -53,13 +53,6 @@ export default defineNuxtConfig({
 		'~/assets/css/tailwind.css',
 	],
 
-	router: {
-		options: {
-			linkActiveClass: 'bg-sky-700',
-			linkExactActiveClass: 'bg-sky-700',
-		},
-	},
-
 	runtimeConfig: {
 		public: {
 			appEnv: process.env.NUXT_APP_ENV,
