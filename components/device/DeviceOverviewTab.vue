@@ -492,8 +492,10 @@ const latest = computed(() => {
 });
 const lastSample = computed(() => sorted.value[sorted.value.length - 1]?.timestamp);
 const metricsSpan = computed(() => {
-	if (sorted.value.length < 2) return 'sample';
-	const ms = new Date(sorted.value[sorted.value.length - 1].timestamp).getTime() - new Date(sorted.value[0].timestamp).getTime();
+	const first = sorted.value[0];
+	const last = sorted.value[sorted.value.length - 1];
+	if (sorted.value.length < 2 || !first || !last) return 'sample';
+	const ms = new Date(last.timestamp).getTime() - new Date(first.timestamp).getTime();
 	const minutes = Math.max(1, Math.round(ms / 60000));
 	return minutes < 120 ? `${minutes} min` : `${Math.round(minutes / 60)} h`;
 });

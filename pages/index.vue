@@ -1,5 +1,5 @@
+<!-- The public home page for signed-out visitors (signed-in users go on to /dashboard, see middleware/auth.global.ts). -->
 <template>
-	<!-- The public home page for signed-out visitors (signed-in users go on to /dashboard, see middleware/auth.global.ts). -->
 	<div class="flex min-h-[100dvh] flex-col bg-app-bg font-sans text-app-text">
 		<a
 			href="#main"

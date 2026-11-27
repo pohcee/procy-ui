@@ -57,7 +57,7 @@ import InstallEditor from '~/components/clients/InstallEditor.vue';
 interface Props {
 	linuxCode: string;
 	windowsCode: string;
-	disabled: boolean;
+	disabled?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {

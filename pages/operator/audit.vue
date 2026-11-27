@@ -1,5 +1,5 @@
+<!-- The system organization's own audit log: every operator action (the page of /audits, in the console). -->
 <template>
-	<!-- The system organization's own audit log: every operator action (the page of /audits, in the console). -->
 	<AuditsPage />
 </template>
 

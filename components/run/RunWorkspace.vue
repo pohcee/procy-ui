@@ -607,9 +607,9 @@ const runLabel = computed(() => {
 });
 
 // What the last run was started with, so "Re-run failed" repeats it even if the form changed since.
-type LastRun =
-	| { mode: 'library'; entryId: string; entryName: string; abortOnError: boolean }
-	| { mode: 'code'; kind: RunKind; code: string; cwd: string; interpreter: string; isSudo: boolean; timeoutSec: number; abortOnError: boolean };
+type LastRun
+	= | { mode: 'library'; entryId: string; entryName: string; abortOnError: boolean }
+		| { mode: 'code'; kind: RunKind; code: string; cwd: string; interpreter: string; isSudo: boolean; timeoutSec: number; abortOnError: boolean };
 const lastRun = ref<LastRun | null>(null);
 
 const emptyMessage = computed(() => {

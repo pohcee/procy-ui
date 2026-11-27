@@ -4,19 +4,6 @@ import { fileURLToPath } from 'node:url';
 const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf-8'));
 
 export default defineNuxtConfig({
-	devtools: { enabled: true },
-
-	css: [
-		'~/assets/css/tailwind.css',
-		'~/assets/css/prism-tomorrow.css',
-	],
-
-	postcss: {
-		plugins: {
-			tailwindcss: {},
-			autoprefixer: {},
-		},
-	},
 
 	modules: [
 		'@nuxt/icon',
@@ -27,23 +14,15 @@ export default defineNuxtConfig({
 		'@nuxt/eslint',
 	],
 
-	eslint: {
-		config: {
-			stylistic: {
-				indent: 'tab',
-				semi: true,
-			},
-		},
-	},
+	ssr: false,
 
-	shadcn: {
-		componentDir: './components/ui',
+	imports: {
+		// nuxt-snackbar registers this auto-import in a late hook, after Nuxt
+		// has generated its auto-import type declarations, so declare it here
+		// as well to make it visible to TypeScript.
+		presets: [{ from: 'vue3-snackbar', imports: ['useSnackbar'] }],
 	},
-
-	snackbar: {
-		bottom: true,
-		duration: 3000,
-	},
+	devtools: { enabled: true },
 
 	app: {
 		head: {
@@ -71,26 +50,10 @@ export default defineNuxtConfig({
 		},
 	},
 
-	imports: {
-		// nuxt-snackbar registers this auto-import in a late hook, after Nuxt
-		// has generated its auto-import type declarations, so declare it here
-		// as well to make it visible to TypeScript.
-		presets: [{ from: 'vue3-snackbar', imports: ['useSnackbar'] }],
-	},
-
-	alias: {
-		assets: '/<rootDir>/assets',
-	},
-
-	routeRules: {
-		// "/" is the public home page (signed-in users are sent on to /dashboard by middleware/auth.global.ts).
-		'/login': { redirect: '/auth' },
-		'/scripts': { redirect: '/execute' },
-		'/commands': { redirect: '/execute' },
-		// Inventory was folded into the device list.
-		'/inventory': { redirect: '/dashboard' },
-		'/Inventory': { redirect: '/dashboard' },
-	},
+	css: [
+		'~/assets/css/tailwind.css',
+		'~/assets/css/prism-tomorrow.css',
+	],
 
 	router: {
 		options: {
@@ -106,6 +69,20 @@ export default defineNuxtConfig({
 			appVersion: pkg.version,
 		},
 	},
+
+	alias: {
+		assets: '/<rootDir>/assets',
+	},
+
+	routeRules: {
+		// "/" is the public home page (signed-in users are sent on to /dashboard by middleware/auth.global.ts).
+		'/login': { redirect: '/auth' },
+		'/scripts': { redirect: '/execute' },
+		'/commands': { redirect: '/execute' },
+		// Inventory was folded into the device list.
+		'/inventory': { redirect: '/dashboard' },
+	},
+	compatibilityDate: '2025-03-25',
 
 	// Static builds (`nuxi generate`) are served by rportd from its doc_root. Page files
 	// are capitalised (pages/Execute.vue → /Execute/), but the app links to lowercase
@@ -139,6 +116,28 @@ export default defineNuxtConfig({
 		},
 	},
 
-	ssr: false,
-	compatibilityDate: '2025-03-25',
+	postcss: {
+		plugins: {
+			tailwindcss: {},
+			autoprefixer: {},
+		},
+	},
+
+	eslint: {
+		config: {
+			stylistic: {
+				indent: 'tab',
+				semi: true,
+			},
+		},
+	},
+
+	shadcn: {
+		componentDir: './components/ui',
+	},
+
+	snackbar: {
+		bottom: true,
+		duration: 3000,
+	},
 });

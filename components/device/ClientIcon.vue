@@ -47,7 +47,7 @@ const props = defineProps({
 
 const iconSize = computed(() => props.size ?? Math.round(props.tile * 0.55));
 
-const icons: Record<string, { icon: string; tone: Tone }> = {
+const icons = {
 	default: { icon: 'mdi:server', tone: 'muted' },
 	ubuntu: { icon: 'mdi:ubuntu', tone: 'ub' },
 	debian: { icon: 'mdi:debian', tone: 'db' },
@@ -66,7 +66,7 @@ const icons: Record<string, { icon: string; tone: Tone }> = {
 	axisIpCamera: { icon: 'mdi:camera', tone: 'purple' },
 	almalinux: { icon: 'mdi:linux', tone: 'al' },
 	arch: { icon: 'mdi:arch', tone: 'al' },
-};
+} satisfies Record<string, { icon: string; tone: Tone }>;
 
 const getLinuxIcon = (osFullName?: string, osFamily?: string, os?: string) => {
 	const lower = osFullName?.toLowerCase() || '';

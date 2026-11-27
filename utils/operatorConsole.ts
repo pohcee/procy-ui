@@ -99,7 +99,7 @@ export const rangeQuery = (range: StatsRange, now: Date = new Date()): { from: s
 	const n = STATS_RANGES.find(r => r.value === range)?.days ?? 30;
 	const days = lastDays(n, now);
 	const tomorrow = utcDay(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + DAY_MS));
-	return { from: days[0], to: tomorrow, granularity: 'day', days };
+	return { from: days[0] ?? tomorrow, to: tomorrow, granularity: 'day', days };
 };
 
 /** GET …/stats from the first day of the current UTC month to the next midnight ("this month"). */
@@ -145,12 +145,13 @@ export const daySeries = (periods: unknown, days: string[]): DaySeries => {
 		const day = dayOf(o.start ?? o.day);
 		const i = day === null ? undefined : index.get(day);
 		if (i === undefined) continue;
-		s.in[i] += inOf(o);
-		s.out[i] += outOf(o);
-		s.devices[i] = Math.max(s.devices[i], num(o.devices ?? o.devices_peak_day ?? o.devices_peak));
-		s.jobsCommand[i] += num(o.jobs_command);
-		s.jobsScript[i] += num(o.jobs_script);
-		s.jobsLibrary[i] += num(o.jobs_library);
+		// i comes from `days`, and every series has one slot per day.
+		s.in[i]! += inOf(o);
+		s.out[i]! += outOf(o);
+		s.devices[i] = Math.max(s.devices[i]!, num(o.devices ?? o.devices_peak_day ?? o.devices_peak));
+		s.jobsCommand[i]! += num(o.jobs_command);
+		s.jobsScript[i]! += num(o.jobs_script);
+		s.jobsLibrary[i]! += num(o.jobs_library);
 	}
 	return s;
 };
@@ -277,7 +278,7 @@ const ATTENTION_LABELS: Record<string, string> = {
 export const attentionLabel = (kind: string): string => {
 	if (ATTENTION_LABELS[kind]) return ATTENTION_LABELS[kind];
 	const words = kind.replace(/[_-]+/g, ' ').trim();
-	return words ? words[0].toUpperCase() + words.slice(1) : 'Notice';
+	return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Notice';
 };
 
 export const severityLabel = (s: Severity): string => (s === 'critical' ? 'Critical' : s === 'warning' ? 'Warning' : 'Notice');

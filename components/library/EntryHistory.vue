@@ -330,7 +330,8 @@ const load = async () => {
 	try {
 		const { data } = await $api.library.listVersions(props.entry.id);
 		versions.value = [...(data ?? [])].sort((a, b) => b.version - a.version);
-		if (versions.value.length) select(versions.value[0].version);
+		const [latest] = versions.value;
+		if (latest) select(latest.version);
 	}
 	catch (e) {
 		loadError.value = `Couldn’t load the history: ${apiErrorMessage(e)}`;

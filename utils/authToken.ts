@@ -13,7 +13,7 @@ const LEGACY_PATHS = ['/', '/dashboard', '/dashboard/', '/auth', '/auth/'];
 export const readAuthToken = (): string | null => {
 	if (typeof document === 'undefined') return null;
 	const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE}=([^;]*)`));
-	const value = match ? decodeURIComponent(match[1]) : '';
+	const value = match?.[1] ? decodeURIComponent(match[1]) : '';
 	return value && value !== 'null' && value !== 'undefined' ? value : null;
 };
 

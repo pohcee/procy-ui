@@ -295,6 +295,7 @@ const close = () => {
 
 const moveTab = (step: number) => {
 	const next = LIBRARY_OS_ORDER[(LIBRARY_OS_ORDER.indexOf(activeOs.value) + step + LIBRARY_OS_ORDER.length) % LIBRARY_OS_ORDER.length];
+	if (!next) return;
 	activeOs.value = next;
 	nextTick(() => document.getElementById(`libTab-${next}`)?.focus());
 };

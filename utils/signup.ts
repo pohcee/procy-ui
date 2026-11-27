@@ -118,8 +118,8 @@ export const passwordRefusal = (serverMessage: string): string => {
 	return m ? m.charAt(0).toUpperCase() + m.slice(1) + (/[.!]$/.test(m) ? '' : '.') : 'This password was not accepted.';
 };
 
-export type VerifyOutcome =
-	| {
+export type VerifyOutcome
+	= | {
 		kind: 'completed';
 		organization: string;
 		organizationName: string;

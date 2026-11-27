@@ -36,32 +36,33 @@ export const lineDiffInfo = (a: string, b: string): { lines: DiffLine[]; tooLarg
 		out.push(...x.slice(endX).map((text): DiffLine => ({ kind: 'same', text })));
 		return { lines: out, tooLarge: true };
 	}
+	// Indexes below stay inside x, y and lcs by construction (i < n, j < m), hence the non-null assertions.
 	const w = m + 1;
 	const lcs = new Uint32Array((n + 1) * w);
 	for (let i = n - 1; i >= 0; i--) {
 		for (let j = m - 1; j >= 0; j--) {
 			lcs[i * w + j] = x[start + i] === y[start + j]
-				? lcs[(i + 1) * w + j + 1] + 1
-				: Math.max(lcs[(i + 1) * w + j], lcs[i * w + j + 1]);
+				? lcs[(i + 1) * w + j + 1]! + 1
+				: Math.max(lcs[(i + 1) * w + j]!, lcs[i * w + j + 1]!);
 		}
 	}
 	let i = 0;
 	let j = 0;
 	while (i < n && j < m) {
 		if (x[start + i] === y[start + j]) {
-			out.push({ kind: 'same', text: x[start + i] });
+			out.push({ kind: 'same', text: x[start + i]! });
 			i++;
 			j++;
 		}
-		else if (lcs[(i + 1) * w + j] >= lcs[i * w + j + 1]) {
-			out.push({ kind: 'del', text: x[start + i++] });
+		else if (lcs[(i + 1) * w + j]! >= lcs[i * w + j + 1]!) {
+			out.push({ kind: 'del', text: x[start + i++]! });
 		}
 		else {
-			out.push({ kind: 'add', text: y[start + j++] });
+			out.push({ kind: 'add', text: y[start + j++]! });
 		}
 	}
-	while (i < n) out.push({ kind: 'del', text: x[start + i++] });
-	while (j < m) out.push({ kind: 'add', text: y[start + j++] });
+	while (i < n) out.push({ kind: 'del', text: x[start + i++]! });
+	while (j < m) out.push({ kind: 'add', text: y[start + j++]! });
 	for (const text of x.slice(endX)) out.push({ kind: 'same', text });
 	return { lines: out, tooLarge: false };
 };

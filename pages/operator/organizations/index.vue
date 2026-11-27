@@ -455,7 +455,8 @@ const rowActions = (org: ConsoleOrg) => [
 const replace = (org: Organization) => {
 	const i = orgs.value.findIndex(o => o.id === org.id);
 	// Keep the stats and counts of the list row when the response leaves them out.
-	if (i >= 0) orgs.value.splice(i, 1, { ...orgs.value[i], ...org });
+	const existing = orgs.value[i];
+	if (existing) orgs.value.splice(i, 1, { ...existing, ...org });
 	else orgs.value.push({ stats: null, billing: null, ...org, device_limit: org.device_limit ?? null, name: org.name || org.id });
 };
 const onSaved = (org: Organization, text: string) => {

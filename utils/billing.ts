@@ -506,8 +506,9 @@ export const deviceMeter = (count: number | null | undefined, limit: number | nu
 export const extraTransferError = (input: string): string | null => {
 	const m = /^\s*(\d+(?:\.\d+)?)\s*([A-Za-z]*)\s*$/.exec(input);
 	if (!m) return 'Enter a size such as 50GiB, or 0 to remove the extra transfer.';
-	if (!['', 'b', 'kib', 'mib', 'gib', 'tib', 'kb', 'mb', 'gb', 'tb'].includes(m[2].toLowerCase())) return 'Units: B, KiB, MiB, GiB, TiB (or KB, MB, GB, TB).';
-	if (Number(m[1]) !== 0 && m[2] === '') return 'Add a unit, for example 50GiB.';
+	const [, amount = '', unit = ''] = m;
+	if (!['', 'b', 'kib', 'mib', 'gib', 'tib', 'kb', 'mb', 'gb', 'tb'].includes(unit.toLowerCase())) return 'Units: B, KiB, MiB, GiB, TiB (or KB, MB, GB, TB).';
+	if (Number(amount) !== 0 && unit === '') return 'Add a unit, for example 50GiB.';
 	return null;
 };
 

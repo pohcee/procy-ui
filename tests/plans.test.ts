@@ -22,7 +22,7 @@ describe('parsePlans', () => {
 			transferBaseBytes: 50 * GiB, transferPerDeviceBytes: 2 * GiB, overage: 'bill', overagePricePerGibCents: 10,
 			free: false, trial: true, trialDays: 21, purchasable: true,
 		});
-		assert.equal(plans[0].maxClients, 3);
+		assert.equal(plans[0]!.maxClients, 3);
 	});
 	it('accepts a bare list and tolerates garbage', () => {
 		assert.equal(parsePlans(catalog.data).length, 2);
@@ -30,7 +30,7 @@ describe('parsePlans', () => {
 		assert.deepEqual(parsePlans({ data: 'x' }), []);
 	});
 	it('names a plan by its id when it has no name', () => {
-		assert.equal(parsePlans([{ id: 'pro' }])[0].name, 'pro');
+		assert.equal(parsePlans([{ id: 'pro' }])[0]!.name, 'pro');
 	});
 });
 
@@ -53,7 +53,7 @@ describe('formatPlanPrice', () => {
 
 describe('planFeatures', () => {
 	it('describes a paid plan', () => {
-		assert.deepEqual(planFeatures(parsePlans(catalog)[1]), [
+		assert.deepEqual(planFeatures(parsePlans(catalog)[1]!), [
 			'10 devices included',
 			'$2.50 a month for each device after that',
 			'No device limit',
@@ -62,7 +62,7 @@ describe('planFeatures', () => {
 		]);
 	});
 	it('describes a free plan with a cap', () => {
-		assert.deepEqual(planFeatures(parsePlans(catalog)[0]), [
+		assert.deepEqual(planFeatures(parsePlans(catalog)[0]!), [
 			'Up to 3 devices',
 			'1 GiB of tunnel traffic a month',
 			'Tunnels pause when the month\'s traffic is used up',
@@ -78,7 +78,7 @@ describe('homePlans', () => {
 		assert.equal(h.trial.summary, '21 days, no card');
 		assert.match(h.trial.detail, /Team/);
 		assert.deepEqual(h.plans.map(p => [p.id, p.price, p.period]), [['free', 'Free', ''], ['team', '$29', 'a month']]);
-		assert.equal(h.plans[1].trial, true);
+		assert.equal(h.plans[1]!.trial, true);
 	});
 	it('falls back to the trial alone when there is no catalog', () => {
 		const h = homePlans(null);

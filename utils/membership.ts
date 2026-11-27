@@ -109,11 +109,11 @@ export const parseMembers = (raw: unknown): OrgMember[] => listOf(raw).flatMap((
 }).sort((a, b) => a.username.localeCompare(b.username));
 
 /** What inviting a login did (POST /organization/members → OrganizationInvited). */
-export type InviteOutcome =
+export type InviteOutcome
 	/** A new account, a member at once, with a generated password shown only this once. */
-	| { kind: 'new-account'; username: string; organization: string; password: string }
+	= | { kind: 'new-account'; username: string; organization: string; password: string }
 	/** An existing account: a member once its owner accepts. */
-	| { kind: 'pending'; username: string; organization: string };
+		| { kind: 'pending'; username: string; organization: string };
 
 export const inviteOutcome = (raw: unknown, fallbackUsername = ''): InviteOutcome => {
 	const o = obj(obj(raw)?.data) ?? obj(raw) ?? {};
