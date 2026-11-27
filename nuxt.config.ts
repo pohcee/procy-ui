@@ -51,7 +51,6 @@ export default defineNuxtConfig({
 
 	css: [
 		'~/assets/css/tailwind.css',
-		'~/assets/css/prism-tomorrow.css',
 	],
 
 	router: {

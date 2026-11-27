@@ -1,24 +1,19 @@
 <template>
 	<!--
-		Code editor (Prism) with line numbers. Always dark, in both themes; the parent
+		Code editor (CodeMirror) with line numbers. Always dark, in both themes; the parent
 		decides the height. Supports v-model (and the legacy `code` prop).
 	-->
-	<prism-editor
+	<CodeEditor
 		v-model="codeEdit"
-		class="op-code-editor"
-		:highlight="highlighter"
+		class="op-command-editor"
 		:aria-label="ariaLabel"
 		:placeholder="placeholder"
-		line-numbers
 		@update:model-value="onInput"
 	/>
 </template>
 
 <script setup lang="ts">
-import { PrismEditor } from 'vue-prism-editor';
-import { highlight } from 'prismjs/components/prism-core';
-import prism from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css';
+import CodeEditor from '~/components/CodeEditor.vue';
 
 const props = defineProps({
 	modelValue: {
@@ -51,55 +46,10 @@ watch(() => props.code, (value) => {
 const onInput = (value: string) => {
 	emit('update:modelValue', value);
 };
-
-const highlighter = (code: string) => {
-	return highlight(code, prism.languages.text);
-};
 </script>
 
 <style>
-.op-code-editor {
+.op-command-editor {
 	min-height: 100%;
-	padding: 14px 16px 14px 0;
-	background: #0F151D;
-	color: rgb(230, 235, 242);
-	font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-	font-size: 13px;
-	line-height: 22px;
-}
-
-.op-code-editor .prism-editor__line-numbers {
-	min-width: 42px;
-	padding: 0 12px 0 14px;
-	color: #5D6878;
-	text-align: right;
-	user-select: none;
-	line-height: 22px;
-}
-
-.op-code-editor .prism-editor__line-number {
-	line-height: 22px;
-}
-
-.op-code-editor .prism-editor__textarea,
-.op-code-editor .prism-editor__editor {
-	white-space: pre;
-	line-height: 22px;
-}
-
-.op-code-editor .prism-editor__container {
-	overflow-x: auto;
-}
-
-.op-code-editor .prism-editor__textarea:focus {
-	outline: none;
-}
-
-.op-code-editor .prism-editor__textarea::placeholder {
-	color: #6B7685;
-}
-
-.prism-editor-wrapper {
-	overflow: visible;
 }
 </style>

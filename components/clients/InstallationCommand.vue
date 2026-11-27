@@ -44,6 +44,7 @@
 			</div>
 			<InstallEditor
 				:code="windowsCode"
+				language="powershell"
 			/>
 		</section>
 	</div>
