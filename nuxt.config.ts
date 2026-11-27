@@ -24,7 +24,6 @@ export default defineNuxtConfig({
 		'@nuxtjs/tailwindcss',
 		'shadcn-nuxt',
 		'nuxt-snackbar',
-		'nuxt-headlessui',
 		'@nuxt/eslint',
 	],
 
@@ -44,10 +43,6 @@ export default defineNuxtConfig({
 	snackbar: {
 		bottom: true,
 		duration: 3000,
-	},
-
-	headlessui: {
-		prefix: 'Headless',
 	},
 
 	app: {
