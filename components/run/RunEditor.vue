@@ -20,7 +20,7 @@
 				<select
 					:id="`${uid}-kind`"
 					v-model="kindChoice"
-					class="h-8 shrink-0 cursor-pointer rounded-md border border-[#2E3947] bg-[#131B25] py-0 pl-2 pr-7 font-mono text-xs text-[#C2CAD6] focus:border-[#3A4656] focus:outline-none"
+					class="h-8 shrink-0 cursor-pointer rounded-md border border-[#2E3947] bg-[#131B25] py-0 pl-2 pr-7 font-mono text-xs text-[#C2CAD6] focus:border-[#3A4656] focus:outline-hidden"
 					title="How this runs on the device"
 				>
 					<option value="auto">

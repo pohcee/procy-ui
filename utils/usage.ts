@@ -193,11 +193,12 @@ export const dailyTransferSeries = (periods: UsagePeriod[] | null | undefined, m
 		if (Number.isNaN(t.getTime())) continue;
 		const i = index.get(t.toISOString().slice(0, 10));
 		if (i === undefined) continue;
-		toUser[i] += p.tunnel_bytes_to_user ?? 0;
-		toDevice[i] += p.tunnel_bytes_to_device ?? 0;
-		uploads[i] += p.upload_bytes_to_devices ?? 0;
+		// i comes from `days`, and each series has one slot per day.
+		toUser[i]! += p.tunnel_bytes_to_user ?? 0;
+		toDevice[i]! += p.tunnel_bytes_to_device ?? 0;
+		uploads[i]! += p.upload_bytes_to_devices ?? 0;
 	}
-	const max = days.reduce((m, _, i) => Math.max(m, toUser[i] + toDevice[i] + uploads[i]), 0);
+	const max = days.reduce((m, _, i) => Math.max(m, toUser[i]! + toDevice[i]! + uploads[i]!), 0);
 	return { days, toUser, toDevice, uploads, max };
 };
 

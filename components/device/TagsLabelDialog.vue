@@ -170,7 +170,7 @@
 					<input
 						id="tld-label-key"
 						v-model="currentLabelKey"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 						type="text"
 						autocomplete="off"
 					>
@@ -186,7 +186,7 @@
 					<input
 						id="tld-tag-name"
 						v-model="currentTag"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 						type="text"
 						autocomplete="off"
 					>
@@ -202,7 +202,7 @@
 					<input
 						id="tld-label-value"
 						v-model="currentLabelValue"
-						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30"
+						class="h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30"
 						type="text"
 						autocomplete="off"
 					>

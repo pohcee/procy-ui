@@ -1,54 +1,27 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import tailwindcss from '@tailwindcss/vite';
 
 const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf-8'));
 
 export default defineNuxtConfig({
-	devtools: { enabled: true },
-
-	css: [
-		'~/assets/css/tailwind.css',
-		'~/assets/css/prism-tomorrow.css',
-	],
-
-	postcss: {
-		plugins: {
-			tailwindcss: {},
-			autoprefixer: {},
-		},
-	},
-
 	modules: [
 		'@nuxt/icon',
 		'@pinia/nuxt',
-		'@nuxtjs/tailwindcss',
 		'shadcn-nuxt',
 		'nuxt-snackbar',
-		'nuxt-headlessui',
 		'@nuxt/eslint',
 	],
 
-	eslint: {
-		config: {
-			stylistic: {
-				indent: 'tab',
-				semi: true,
-			},
-		},
-	},
+	ssr: false,
 
-	shadcn: {
-		componentDir: './components/ui',
+	imports: {
+		// nuxt-snackbar registers this auto-import in a late hook, after Nuxt
+		// has generated its auto-import type declarations, so declare it here
+		// as well to make it visible to TypeScript.
+		presets: [{ from: 'vue3-snackbar', imports: ['useSnackbar'] }],
 	},
-
-	snackbar: {
-		bottom: true,
-		duration: 3000,
-	},
-
-	headlessui: {
-		prefix: 'Headless',
-	},
+	devtools: { enabled: true },
 
 	app: {
 		head: {
@@ -76,30 +49,10 @@ export default defineNuxtConfig({
 		},
 	},
 
-	imports: {
-		// nuxt-snackbar registers this auto-import in a late hook, after Nuxt
-		// has generated its auto-import type declarations, so declare it here
-		// as well to make it visible to TypeScript.
-		presets: [{ from: 'vue3-snackbar', imports: ['useSnackbar'] }],
-	},
-
-	plugins: [
-		// { src: '~/node_modules/@tabler/core/dist/js/tabler.min.js', mode: 'client' }
+	css: [
+		'~/assets/css/tailwind.css',
+		'~/assets/css/prism-tomorrow.css',
 	],
-
-	alias: {
-		assets: '/<rootDir>/assets',
-	},
-
-	routeRules: {
-		// "/" is the public home page (signed-in users are sent on to /dashboard by middleware/auth.global.ts).
-		'/login': { redirect: '/auth' },
-		'/scripts': { redirect: '/execute' },
-		'/commands': { redirect: '/execute' },
-		// Inventory was folded into the device list.
-		'/inventory': { redirect: '/dashboard' },
-		'/Inventory': { redirect: '/dashboard' },
-	},
 
 	router: {
 		options: {
@@ -116,6 +69,20 @@ export default defineNuxtConfig({
 		},
 	},
 
+	alias: {
+		assets: '/<rootDir>/assets',
+	},
+
+	routeRules: {
+		// "/" is the public home page (signed-in users are sent on to /dashboard by middleware/auth.global.ts).
+		'/login': { redirect: '/auth' },
+		'/scripts': { redirect: '/execute' },
+		'/commands': { redirect: '/execute' },
+		// Inventory was folded into the device list.
+		'/inventory': { redirect: '/dashboard' },
+	},
+	compatibilityDate: '2025-03-25',
+
 	// Static builds (`nuxi generate`) are served by rportd from its doc_root. Page files
 	// are capitalised (pages/Execute.vue → /Execute/), but the app links to lowercase
 	// URLs, and rportd serves files case-sensitively and only falls back to index.html
@@ -124,6 +91,11 @@ export default defineNuxtConfig({
 	// as small redirect pages so old links keep working.
 	nitro: {
 		prerender: {
+			// Nuxt 4 adds /index.html (the SPA shell) for client-only apps, and the prerendered home page (/)
+			// writes the same file: the two writes race and leave the tail of one after the other's </html>,
+			// which rportd then serves for every deep link. Let / be the only writer. Upstream: nuxt/nuxt#37266
+			// (fix in nuxt/nuxt#37279); drop this once a Nuxt release has it. A RegExp, as strings are prefixes.
+			ignore: [/^\/index\.html$/],
 			routes: [
 				// The public home page, and /login (a redirect to the sign-in page).
 				'/', '/login',
@@ -148,6 +120,28 @@ export default defineNuxtConfig({
 		},
 	},
 
-	ssr: false,
-	compatibilityDate: '2025-03-25',
+	vite: {
+		// Tailwind 4: CSS-first config in assets/css/tailwind.css (no tailwind.config.js, no PostCSS step).
+		plugins: [tailwindcss()],
+	},
+
+	eslint: {
+		config: {
+			stylistic: {
+				indent: 'tab',
+				semi: true,
+			},
+		},
+	},
+
+	shadcn: {
+		// shadcn-nuxt 2 defaults to a 'Ui' prefix (<UiDropdownMenu>); the app uses the bare names.
+		prefix: '',
+		componentDir: './components/ui',
+	},
+
+	snackbar: {
+		bottom: true,
+		duration: 3000,
+	},
 });

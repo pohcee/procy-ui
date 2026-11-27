@@ -2,7 +2,7 @@
 	<OpDialog
 		v-model="isOpen"
 		:title="title"
-		:description="readonly ? 'Built-in entries can’t be changed. Duplicate it to make your own copy.' : 'Saved entries can be inserted on the Execute page and on devices. Each OS has its own code.'"
+		:description="isBuiltin ? 'Built-in entries can’t be changed. Duplicate it to make your own copy.' : 'Saved entries can be inserted on the Execute page and on devices. Each OS has its own code.'"
 		size="xl"
 		as-form
 		@submit="save"
@@ -16,7 +16,7 @@
 					id="libEntryName"
 					v-model="name"
 					placeholder="e.g. Restart nginx"
-					:readonly="readonly"
+					:readonly="isBuiltin"
 				/>
 			</OpField>
 			<OpField
@@ -27,11 +27,11 @@
 				<OpInput
 					id="libEntryDescription"
 					v-model="description"
-					:readonly="readonly"
+					:readonly="isBuiltin"
 				/>
 			</OpField>
 			<div
-				v-if="readonly"
+				v-if="isBuiltin"
 				class="flex flex-wrap gap-1"
 			>
 				<span
@@ -63,7 +63,7 @@
 						:aria-controls="`libPanel-${os}`"
 						:tabindex="activeOs === os ? 0 : -1"
 						:class="[
-							'-mb-px inline-flex min-h-[44px] items-center gap-1.5 border-b-2 px-3 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40',
+							'-mb-px inline-flex min-h-[44px] items-center gap-1.5 border-b-2 px-3 text-sm font-medium focus:outline-hidden focus-visible:ring-2 focus-visible:ring-app-accent/40',
 							activeOs === os ? 'border-app-accent text-app-text' : 'border-transparent text-app-text-3 hover:text-app-text',
 						]"
 						@click="activeOs = os"
@@ -91,7 +91,7 @@
 					<EntryOsTab
 						v-model="drafts[os]"
 						:label="LIBRARY_OS_LABELS[os]"
-						:readonly="readonly"
+						:readonly="isBuiltin"
 						@insert="openInsert"
 						@remove="drafts[os] = blankDraft()"
 					/>
@@ -125,7 +125,7 @@
 			</section>
 
 			<OpField
-				v-if="!readonly"
+				v-if="!isBuiltin"
 				label="What changed"
 				hint="(optional)"
 				for-id="libEntryMessage"
@@ -165,7 +165,7 @@
 				variant="secondary"
 				@click="close"
 			>
-				{{ readonly ? 'Close' : 'Cancel' }}
+				{{ isBuiltin ? 'Close' : 'Cancel' }}
 			</AppButton>
 			<AppButton
 				v-if="editing"
@@ -175,7 +175,7 @@
 				History
 			</AppButton>
 			<AppButton
-				v-if="readonly"
+				v-if="isBuiltin"
 				class="ml-auto"
 				@click="duplicate"
 			>
@@ -228,9 +228,9 @@ const drafts = ref<OsDrafts>(blankDrafts());
 /** Schedules that run the entry being edited. */
 const usedBy = ref<EntryUsedBy[]>([]);
 
-const readonly = computed(() => !!editing.value?.builtinKey);
+const isBuiltin = computed(() => !!editing.value?.builtinKey);
 const title = computed(() => {
-	if (readonly.value) return 'Built-in library entry';
+	if (isBuiltin.value) return 'Built-in library entry';
 	return editing.value ? 'Edit library entry' : 'New library entry';
 });
 
@@ -295,6 +295,7 @@ const close = () => {
 
 const moveTab = (step: number) => {
 	const next = LIBRARY_OS_ORDER[(LIBRARY_OS_ORDER.indexOf(activeOs.value) + step + LIBRARY_OS_ORDER.length) % LIBRARY_OS_ORDER.length];
+	if (!next) return;
 	activeOs.value = next;
 	nextTick(() => document.getElementById(`libTab-${next}`)?.focus());
 };
@@ -392,7 +393,7 @@ const historyOpen = ref(false);
 
 /** Resolves true when the entry was restored and the editor reloaded; a 409 goes through the save conflict handling. */
 const restoreVersion = async (version: number): Promise<boolean> => {
-	if (!editing.value || readonly.value) return false;
+	if (!editing.value || isBuiltin.value) return false;
 	try {
 		const restored = await library.restore(editing.value.id, version, editing.value.activeVersion);
 		fill(restored);
@@ -411,7 +412,7 @@ const restoreVersion = async (version: number): Promise<boolean> => {
 };
 
 const save = async () => {
-	if (!canSave.value || readonly.value) return;
+	if (!canSave.value || isBuiltin.value) return;
 	isSaving.value = true;
 	try {
 		await library.saveContent({

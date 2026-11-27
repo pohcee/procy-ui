@@ -1,8 +1,124 @@
-@import "rport.css";
+/*
+ * Tailwind 4, CSS-first configuration (replaces tailwind.config.js).
+ *
+ * rport.css (legacy element-level form styles) goes in the base layer ahead of Tailwind's preflight,
+ * which is where it sat in the Tailwind 3 build: preflight wins ties with it, and every utility wins
+ * over it. Unlayered, it would override utilities.
+ */
+@layer theme, base, components, utilities;
+@import "./rport.css" layer(base);
+@import "tailwindcss";
+@import "tw-animate-css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Dark mode follows the .dark class useTheme() sets on <html> (System / Light / Dark). */
+@custom-variant dark (&:where(.dark, .dark *));
+@source inline("dark");
+
+@theme {
+	--font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+	/* Cool-slate neutral scale of the OpenRPort2 design tokens (backs the legacy gray-* utilities). */
+	--color-gray-50: #F5F6F8;
+	--color-gray-100: #EEF1F5;
+	--color-gray-200: #E3E6EB;
+	--color-gray-300: #C2CAD6;
+	--color-gray-400: #8E99A8;
+	--color-gray-500: #6B7380;
+	--color-gray-600: #3B4452;
+	--color-gray-700: #2E3947;
+	--color-gray-800: #1A222D;
+	--color-gray-900: #121821;
+	--color-gray-950: #0B0F14;
+
+	--radius-xl: calc(var(--radius) + 4px);
+	--radius-lg: var(--radius);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 4px);
+
+	/* The few default-palette colours in use, pinned to their Tailwind 3 values (v4's oklch palette shifts them slightly). */
+	--color-green-500: #22c55e;
+	--color-red-500: #ef4444;
+	--color-slate-600: #475569;
+	--color-sky-700: #0369a1;
+
+	/* Tailwind 3's ring defaults: a bare ring-* without a colour was blue-500 at 50%. */
+	--default-ring-color: rgb(59 130 246 / 0.5);
+}
+
+/*
+ * Colours that read the light/dark CSS variables. `inline` writes the var() into each utility
+ * (e.g. bg-app-surface → rgb(var(--app-surface))), so it follows a .dark class on any ancestor.
+ */
+@theme inline {
+	/* OpenRPort2 design tokens (see :root / .dark below), e.g. bg-app-surface, text-app-text-3. */
+	--color-app-bg: rgb(var(--app-bg));
+	--color-app-surface: rgb(var(--app-surface));
+	--color-app-surface-2: rgb(var(--app-surface-2));
+	--color-app-muted: rgb(var(--app-muted));
+	--color-app-chip: rgb(var(--app-chip));
+	--color-app-hover: rgb(var(--app-hover));
+	--color-app-raised: rgb(var(--app-raised));
+	--color-app-border: rgb(var(--app-border));
+	--color-app-border-subtle: rgb(var(--app-border-subtle));
+	--color-app-border-strong: rgb(var(--app-border-strong));
+	--color-app-text: rgb(var(--app-text));
+	--color-app-text-2: rgb(var(--app-text-2));
+	--color-app-text-3: rgb(var(--app-text-3));
+	--color-app-text-4: rgb(var(--app-text-4));
+	--color-app-link: rgb(var(--app-link));
+	--color-app-ok: rgb(var(--app-ok));
+	--color-app-ok-bg: rgb(var(--app-ok-bg));
+	--color-app-warn: rgb(var(--app-warn));
+	--color-app-warn-bg: rgb(var(--app-warn-bg));
+	--color-app-warn-row: rgb(var(--app-warn-row));
+	--color-app-danger: rgb(var(--app-danger));
+	--color-app-danger-bg: rgb(var(--app-danger-bg));
+	--color-app-blue: rgb(var(--app-blue));
+	--color-app-blue-bg: rgb(var(--app-blue-bg));
+	--color-app-purple: rgb(var(--app-purple));
+	--color-app-purple-bg: rgb(var(--app-purple-bg));
+	--color-app-accent: rgb(var(--app-accent));
+	--color-app-accent-hover: rgb(var(--app-accent-hover));
+	--color-app-nav: rgb(var(--app-nav));
+	--color-app-nav-hover: rgb(var(--app-nav-hover));
+	--color-app-nav-active: rgb(var(--app-nav-active));
+
+	/* shadcn tokens */
+	--color-border: hsl(var(--border));
+	--color-input: hsl(var(--input));
+	--color-ring: hsl(var(--ring));
+	--color-background: hsl(var(--background));
+	--color-foreground: hsl(var(--foreground));
+	--color-secondary: hsl(var(--secondary));
+	--color-secondary-foreground: hsl(var(--secondary-foreground));
+	--color-destructive: hsl(var(--destructive));
+	--color-destructive-foreground: hsl(var(--destructive-foreground));
+	--color-muted: hsl(var(--muted));
+	--color-muted-foreground: hsl(var(--muted-foreground));
+	--color-accent: hsl(var(--accent));
+	--color-accent-foreground: hsl(var(--accent-foreground));
+	--color-popover: hsl(var(--popover));
+	--color-popover-foreground: hsl(var(--popover-foreground));
+	--color-card: hsl(var(--card));
+	--color-card-foreground: hsl(var(--card-foreground));
+}
+
+@layer base {
+	/* Tailwind 3's preflight gave pseudo-elements a gray-200 border colour; Tailwind 4 uses currentColor. */
+	::before,
+	::after,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
+
+	/* Tailwind 3 gave buttons a pointer cursor; Tailwind 4 leaves the browser default. */
+	button:not(:disabled),
+	[role="button"]:not(:disabled) {
+		cursor: pointer;
+	}
+}
 
 @layer base {
     /* OpenRPort2 design tokens (RGB channels so Tailwind alpha modifiers work).
@@ -111,30 +227,6 @@
         --ring: 221 83% 53%;
 
         --radius: 0.5rem;
-
-        --color-gray-50: 249 250 251;
-        --color-gray-100: 243 244 246;
-        --color-gray-200: 229 231 235;
-        --color-gray-300: 209 213 219;
-        --color-gray-400: 156 163 175;
-        --color-gray-500: 107 114 128;
-        --color-gray-600: 75 85 99;
-        --color-gray-700: 55 65 81;
-        --color-gray-800: 31 41 55;
-        --color-gray-900: 17 24 39;
-
-        --color-error: 239 68 68;
-
-        --color-vtd-primary-50: 240 249 255;
-        --color-vtd-primary-100: 224 242 254;
-        --color-vtd-primary-200: 186 230 253;
-        --color-vtd-primary-300: 125 211 252;
-        --color-vtd-primary-400: 56 189 248;
-        --color-vtd-primary-500: 0 82 141;
-        --color-vtd-primary-600: 2 132 199;
-        --color-vtd-primary-700: 3 105 161;
-        --color-vtd-primary-800: 7 89 133;
-        --color-vtd-primary-900: 12 74 110;
         --chart-1: 12 76% 61%;
         --chart-2: 173 58% 39%;
         --chart-3: 197 37% 24%;

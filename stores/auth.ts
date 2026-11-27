@@ -71,8 +71,9 @@ export const useTokenStore = defineStore('token', {
 					this.errors = [];
 				}
 				else if (apiErrors) {
-					if (apiErrors.length > 0) {
-						const errorMessage = apiErrors[0].detail || apiErrors[0].title;
+					const [first] = apiErrors;
+					if (first) {
+						const errorMessage = first.detail || first.title;
 						this.errors = [errorMessage];
 					}
 				}

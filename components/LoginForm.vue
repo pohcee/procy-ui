@@ -1,6 +1,6 @@
 <template>
 	<form
-		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-sm sm:p-8"
+		class="flex w-full flex-col gap-6 rounded-2xl border border-app-border bg-app-surface p-6 shadow-xs sm:p-8"
 		novalidate
 		@submit.prevent="login"
 	>
@@ -204,7 +204,7 @@ const rememberMeOptions = [
 	{ value: String(3600 * 24 * 14), label: '14 days' },
 	{ value: String(3600 * 24 * 30), label: '30 days' },
 ];
-const inputClass = 'h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 text-[15px] text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/25 sm:text-sm';
+const inputClass = 'h-11 w-full rounded-[10px] border border-app-border-strong bg-app-surface-2 px-3 text-[15px] text-app-text placeholder:text-app-text-4 focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/25 sm:text-sm';
 
 // Servers with self-service signup ([signup] enabled) get a link to it; others answer 404 and nothing changes.
 const signupOpen = ref(false);

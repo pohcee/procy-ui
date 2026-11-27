@@ -1,8 +1,8 @@
+<!--
+	The end of a Google sign-in: the server's callback sends the browser here with a one-time sign-in code
+	(#code=…&return_to=…) or the reason it failed (#error=…&error_description=…).
+-->
 <template>
-	<!--
-		The end of a Google sign-in: the server's callback sends the browser here with a one-time sign-in code
-		(#code=…&return_to=…) or the reason it failed (#error=…&error_description=…).
-	-->
 	<LoginOrgPicker
 		v-if="orgChoices"
 		:organizations="orgChoices"

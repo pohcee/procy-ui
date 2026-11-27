@@ -60,10 +60,10 @@ export const oidcLoginHref = (apiBase: URL | string, loginUrl: string, returnTo:
 
 // ---- The callback's fragment (/auth/oidc#…) ----
 
-export type OidcFragment =
-	| { kind: 'code'; code: string; returnTo: string }
-	| { kind: 'error'; reason: string; description: string }
-	| { kind: 'none' };
+export type OidcFragment
+	= | { kind: 'code'; code: string; returnTo: string }
+		| { kind: 'error'; reason: string; description: string }
+		| { kind: 'none' };
 
 /** Reads `#code=…&return_to=…` or `#error=…&error_description=…` (the leading "#" optional). */
 export const parseOidcFragment = (hash: string): OidcFragment => {
@@ -106,11 +106,11 @@ export const googleSignupHref = (apiBase: URL | string, signupUrl: string, organ
 	return url.toString();
 };
 
-export type GoogleSignupFragment =
-	| { kind: 'awaiting_approval'; organizationName: string; email: string }
-	| { kind: 'completed'; organization: string; organizationName: string; email: string }
-	| { kind: 'error'; reason: string; description: string }
-	| { kind: 'none' };
+export type GoogleSignupFragment
+	= | { kind: 'awaiting_approval'; organizationName: string; email: string }
+		| { kind: 'completed'; organization: string; organizationName: string; email: string }
+		| { kind: 'error'; reason: string; description: string }
+		| { kind: 'none' };
 
 /**
  * Reads the fragment the server's callback sends a Google signup to: `status=awaiting_approval&organization_name=&email=`,
@@ -148,10 +148,10 @@ export const googleSignupErrorMessage = (reason: string, _description = ''): str
 
 // ---- Exchanging the sign-in code (POST /oidc/token) ----
 
-export type OidcTokenOutcome =
-	| { kind: 'signed-in'; token: string }
-	| { kind: 'choose-org'; organizations: OrgRef[] }
-	| { kind: 'failed'; message: string };
+export type OidcTokenOutcome
+	= | { kind: 'signed-in'; token: string }
+		| { kind: 'choose-org'; organizations: OrgRef[] }
+		| { kind: 'failed'; message: string };
 
 /**
  * What a POST /oidc/token answer means; it answers like POST /login ({ data: { token, organizations? } }). An

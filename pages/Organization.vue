@@ -59,7 +59,7 @@
 						@click="toggleRequireOidc"
 					>
 						<span
-							:class="['inline-block h-5 w-5 rounded-full bg-white shadow transition-transform', signIn.requireOidc ? 'translate-x-[22px]' : 'translate-x-0.5']"
+							:class="['inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform', signIn.requireOidc ? 'translate-x-[22px]' : 'translate-x-0.5']"
 							aria-hidden="true"
 						/>
 					</button>

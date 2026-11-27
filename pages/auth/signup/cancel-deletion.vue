@@ -1,5 +1,5 @@
+<!-- The link mailed to administrators when their organization's deletion was requested. -->
 <template>
-	<!-- The link mailed to administrators when their organization's deletion was requested. -->
 	<SignupLinkResult
 		:state="state"
 		:title="state === 'error' ? 'This link didn’t work' : 'Deletion canceled'"

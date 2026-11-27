@@ -465,9 +465,8 @@ const extractErrorMessage = (error: unknown, fallback: string): string => {
 	// ofetch exposes the parsed error body as `error.data` / `error.response._data`
 	const err = error as FetchErrorLike | null | undefined;
 	const apiErrors = err?.data?.errors ?? err?.response?._data?.errors;
-	if (apiErrors && apiErrors.length > 0) {
-		return apiErrors[0].detail || apiErrors[0].title || fallback;
-	}
+	const first = apiErrors?.[0];
+	if (first) return first.detail || first.title || fallback;
 	return fallback;
 };
 

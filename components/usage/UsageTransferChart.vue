@@ -77,7 +77,7 @@
 								{{ formatBytes(series.uploads[i]) }}
 							</td>
 							<td class="border-b border-app-border-subtle px-3 py-1.5 font-medium text-app-text">
-								{{ formatBytes(series.toUser[i] + series.toDevice[i] + series.uploads[i]) }}
+								{{ formatBytes((series.toUser[i] ?? 0) + (series.toDevice[i] ?? 0) + (series.uploads[i] ?? 0)) }}
 							</td>
 						</tr>
 					</tbody>
@@ -145,9 +145,9 @@ const chartData = computed(() => {
 	return {
 		labels: props.series.days.map(dayLabel),
 		datasets: [
-			dataset('To users', props.series.toUser, palette.value[0]),
-			dataset('To devices', props.series.toDevice, palette.value[1]),
-			dataset('Uploads to devices', props.series.uploads, palette.value[2], true),
+			dataset('To users', props.series.toUser, palette.value[0]!),
+			dataset('To devices', props.series.toDevice, palette.value[1]!),
+			dataset('Uploads to devices', props.series.uploads, palette.value[2]!, true),
 		],
 	};
 });

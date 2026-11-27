@@ -160,16 +160,16 @@ describe('mergeSocketMessages', () => {
 			{ jid: 'j2', client_id: 'c2', status: 'failed', error: 'exit status 2' },
 		]);
 		assert.equal(merged.length, 2);
-		assert.equal(merged[0].result?.stdout, 'Reading lists…\n');
-		assert.equal(merged[0].status, undefined);
+		assert.equal(merged[0]!.result?.stdout, 'Reading lists…\n');
+		assert.equal(merged[0]!.status, undefined);
 		const final = mergeSocketMessages([
 			{ jid: 'j1', client_id: 'c1', result: { stdout: 'partial' } },
 			{ jid: 'j1', client_id: 'c1', status: 'successful', result: { stdout: 'full output' } },
 			{ jid: 'j1', client_id: 'c1', result: { stdout: 'late chunk' } },
 		]);
 		assert.equal(final.length, 1);
-		assert.equal(final[0].status, 'successful');
-		assert.equal(final[0].result?.stdout, 'full output');
+		assert.equal(final[0]!.status, 'successful');
+		assert.equal(final[0]!.result?.stdout, 'full output');
 	});
 });
 
@@ -190,11 +190,11 @@ describe('mergeRunJobs', () => {
 	it('keeps live output while the server says running, and the server state once it finished', () => {
 		const live: JobLike[] = [{ jid: 'j1', client_id: 'c1', result: { stdout: 'chunk' } }];
 		const running = mergeRunJobs<JobLike>(live, [{ jid: 'j1', client_id: 'c1', status: 'running', started_at: iso(T0) }]);
-		assert.equal(running[0].status, 'running');
-		assert.equal(running[0].result?.stdout, 'chunk');
+		assert.equal(running[0]!.status, 'running');
+		assert.equal(running[0]!.result?.stdout, 'chunk');
 		const finished = mergeRunJobs<JobLike>(live, [{ jid: 'j1', client_id: 'c1', status: 'failed', error: 'exit status 1', result: { stdout: 'all' } }]);
-		assert.equal(finished[0].status, 'failed');
-		assert.equal(finished[0].result?.stdout, 'all');
+		assert.equal(finished[0]!.status, 'failed');
+		assert.equal(finished[0]!.result?.stdout, 'all');
 	});
 });
 

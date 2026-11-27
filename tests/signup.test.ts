@@ -189,7 +189,7 @@ describe('export and deletion', () => {
 	it('reads signups and what an operator can do with them', () => {
 		const list = parseSignups({ data: [{ id: 's1', email: 'a@b.test', organization_name: 'A', status: 'awaiting_approval', organization_id: null }, { email: 'no-id' }] });
 		assert.equal(list.length, 1);
-		assert.equal(list[0].organizationId, '');
+		assert.equal(list[0]!.organizationId, '');
 		assert.deepEqual(signupStatusInfo('awaiting_approval'), { label: 'Awaiting approval', tone: 'warn', approve: true, deny: true });
 		assert.equal(signupStatusInfo('pending').approve, false);
 		assert.equal(signupStatusInfo('pending').deny, true);
@@ -201,6 +201,7 @@ describe('signup queue facts', () => {
 	const now = new Date('2026-11-25T12:00:00Z');
 	it('defaults the new fields for older servers', () => {
 		const [r] = parseSignups({ data: [{ id: 's1', email: 'a@b.test', status: 'awaiting_approval' }] });
+		assert.ok(r);
 		assert.equal(r.method, 'email');
 		assert.equal(r.mxFound, null);
 		assert.equal(r.freeMail, false);
@@ -210,10 +211,11 @@ describe('signup queue facts', () => {
 	});
 	it('reads the new fields', () => {
 		const [r] = parseSignups([{ id: 's1', email: 'a@gmail.com', method: 'google', mx_found: false, free_mail: true, domain_customers: 2, email_denied_before: 1, domain_denied_before: 3 }]);
+		assert.ok(r);
 		assert.deepEqual([r.method, r.mxFound, r.freeMail, r.domainCustomers, r.emailDeniedBefore, r.domainDeniedBefore], ['google', false, true, 2, 1, 3]);
-		assert.equal(parseSignups([{ id: 'x', method: 'carrier-pigeon', mx_found: 'yes', domain_customers: -1 }])[0].method, 'email');
-		assert.equal(parseSignups([{ id: 'x', mx_found: 'yes' }])[0].mxFound, null);
-		assert.equal(parseSignups([{ id: 'x', domain_customers: -1 }])[0].domainCustomers, 0);
+		assert.equal(parseSignups([{ id: 'x', method: 'carrier-pigeon', mx_found: 'yes', domain_customers: -1 }])[0]!.method, 'email');
+		assert.equal(parseSignups([{ id: 'x', mx_found: 'yes' }])[0]!.mxFound, null);
+		assert.equal(parseSignups([{ id: 'x', domain_customers: -1 }])[0]!.domainCustomers, 0);
 	});
 	it('formats how long a confirmed signup has waited', () => {
 		assert.equal(formatWaiting('2026-11-25T11:59:40Z', now), 'waiting under a minute');
@@ -226,6 +228,7 @@ describe('signup queue facts', () => {
 	});
 	it('lists the facts an operator decides on', () => {
 		const [r] = parseSignups([{ id: 's1', email: 'ann@acme.test', domain: 'acme.test', status: 'awaiting_approval', verified_at: '2026-11-25T09:00:00Z', method: 'google', mx_found: true, domain_customers: 2, email_denied_before: 1, domain_denied_before: 0 }]);
+		assert.ok(r);
 		assert.deepEqual(signupFacts(r, now), [
 			{ text: 'acme.test', tone: 'neutral' },
 			{ text: 'MX ✓', tone: 'ok', title: 'The domain has mail servers' },
@@ -237,6 +240,7 @@ describe('signup queue facts', () => {
 	});
 	it('marks free mail and unknown or missing MX, and waits only while awaiting approval', () => {
 		const [r] = parseSignups([{ id: 's1', email: 'bob@gmail.com', status: 'completed', verified_at: '2026-11-25T09:00:00Z', free_mail: true, mx_found: null, domain_denied_before: 4 }]);
+		assert.ok(r);
 		assert.deepEqual(signupFacts(r, now), [
 			{ text: 'gmail.com', tone: 'neutral' },
 			{ text: 'free mail', tone: 'info' },
@@ -244,6 +248,7 @@ describe('signup queue facts', () => {
 			{ text: 'domain rejected before (4)', tone: 'danger' },
 		]);
 		const [n] = parseSignups([{ id: 's2', email: 'c@nomx.test', mx_found: false }]);
+		assert.ok(n);
 		assert.deepEqual(signupFacts(n, now)[1], { text: 'MX ✗', tone: 'danger', title: 'The domain has no mail servers' });
 	});
 });

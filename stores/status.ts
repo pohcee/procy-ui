@@ -24,9 +24,12 @@ export const useStatusStore = defineStore('status', {
 		async loadStatus() {
 			try {
 				const { $api } = useNuxtApp();
-				const { data: response } = await $api.status.show();
-				if (response.value) {
-					this.$state.status = response.value.data as unknown as ServerStatus;
+				// A plain request, not useAsyncData: outside a component Nuxt 4 keeps async data under its key and
+				// hands the cached result to the next call, so after signing out and in as another user the status
+				// (and with it the operator redirect) would be the previous user's.
+				const response = await $api.status.get();
+				if (response?.data) {
+					this.$state.status = response.data as unknown as ServerStatus;
 				}
 			}
 			catch (e) {

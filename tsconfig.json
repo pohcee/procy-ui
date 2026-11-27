@@ -1,9 +1,13 @@
 {
-    // https://nuxt.com/docs/guide/concepts/typescript
-    "extends": "./.nuxt/tsconfig.json",
-    "compilerOptions": {
-        // Unit tests run directly under `node --test --experimental-strip-types`, which
-        // needs explicit .ts extensions in relative imports.
-        "allowImportingTsExtensions": true
-    }
+	// https://nuxt.com/docs/guide/concepts/typescript
+	// Nuxt 4 generates separate projects for app, server, shared and build-time (node) code.
+	// The app project enables allowImportingTsExtensions, which the unit tests need: they run
+	// directly under `node --test --experimental-strip-types` with explicit .ts imports.
+	"files": [],
+	"references": [
+		{ "path": "./.nuxt/tsconfig.app.json" },
+		{ "path": "./.nuxt/tsconfig.server.json" },
+		{ "path": "./.nuxt/tsconfig.shared.json" },
+		{ "path": "./.nuxt/tsconfig.node.json" }
+	]
 }

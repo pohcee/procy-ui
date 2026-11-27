@@ -1,8 +1,8 @@
+<!--
+	The link of an email-confirmation mail (<public_url>/auth/confirm-email?token=...): the link proves the mailbox,
+	the session the account, so it needs a sign-in as the account that asked for it.
+-->
 <template>
-	<!--
-		The link of an email-confirmation mail (<public_url>/auth/confirm-email?token=...): the link proves the mailbox,
-		the session the account, so it needs a sign-in as the account that asked for it.
-	-->
 	<SignupLinkResult
 		:state="state"
 		:title="title"

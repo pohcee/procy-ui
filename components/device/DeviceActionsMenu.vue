@@ -1,56 +1,43 @@
 <template>
-	<HeadlessMenu
-		as="div"
-		class="relative"
-	>
-		<HeadlessMenuButton
-			:aria-label="`More actions for ${device?.name || 'this device'}`"
-			:class="[
-				'inline-flex items-center justify-center text-app-text-2 hover:bg-app-hover hover:text-app-text',
-				bordered ? 'h-11 w-11 rounded-[10px] border border-app-border-strong bg-app-surface' : small ? 'h-9 w-9 rounded-lg' : 'h-11 w-11 rounded-[10px]',
-			]"
-		>
-			<MoreHorizontal
-				class="h-4 w-4"
-				aria-hidden="true"
-			/>
-		</HeadlessMenuButton>
-		<transition
-			enter-active-class="transition duration-100 ease-out"
-			enter-from-class="scale-95 opacity-0"
-			enter-to-class="scale-100 opacity-100"
-			leave-active-class="transition duration-75 ease-in"
-			leave-from-class="scale-100 opacity-100"
-			leave-to-class="scale-95 opacity-0"
-		>
-			<HeadlessMenuItems
-				class="absolute right-0 z-40 mt-2 w-max min-w-[14rem] max-w-[calc(100vw-2rem)] origin-top-right rounded-xl border border-app-border bg-app-surface p-1.5 text-left shadow-lg focus:outline-none"
+	<DropdownMenu>
+		<DropdownMenuTrigger as-child>
+			<button
+				type="button"
+				:aria-label="`More actions for ${device?.name || 'this device'}`"
+				:class="[
+					'inline-flex items-center justify-center text-app-text-2 hover:bg-app-hover hover:text-app-text',
+					bordered ? 'h-11 w-11 rounded-[10px] border border-app-border-strong bg-app-surface' : small ? 'h-9 w-9 rounded-lg' : 'h-11 w-11 rounded-[10px]',
+				]"
 			>
-				<HeadlessMenuItem
-					v-for="item in items"
-					:key="item.id"
-					v-slot="{ active }"
-				>
-					<button
-						type="button"
-						:class="[
-							'flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm',
-							item.danger ? 'text-app-danger' : 'text-app-text',
-							active ? 'bg-app-hover' : '',
-						]"
-						@click="emit('action', item.id)"
-					>
-						<component
-							:is="item.icon"
-							:class="['h-4 w-4 shrink-0', item.danger ? 'text-app-danger' : 'text-app-text-3']"
-							aria-hidden="true"
-						/>
-						{{ item.label }}
-					</button>
-				</HeadlessMenuItem>
-			</HeadlessMenuItems>
-		</transition>
-	</HeadlessMenu>
+				<MoreHorizontal
+					class="h-4 w-4"
+					aria-hidden="true"
+				/>
+			</button>
+		</DropdownMenuTrigger>
+		<DropdownMenuContent
+			align="end"
+			:side-offset="8"
+			class="z-40 w-max min-w-[14rem] max-w-[calc(100vw-2rem)] rounded-xl border border-app-border bg-app-surface p-1.5 text-left text-app-text shadow-lg"
+		>
+			<DropdownMenuItem
+				v-for="item in items"
+				:key="item.id"
+				:class="[
+					'flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm focus:bg-app-hover data-[highlighted]:bg-app-hover',
+					item.danger ? 'text-app-danger focus:text-app-danger' : 'text-app-text focus:text-app-text',
+				]"
+				@select="emit('action', item.id)"
+			>
+				<component
+					:is="item.icon"
+					:class="['h-4 w-4 shrink-0', item.danger ? 'text-app-danger' : 'text-app-text-3']"
+					aria-hidden="true"
+				/>
+				{{ item.label }}
+			</DropdownMenuItem>
+		</DropdownMenuContent>
+	</DropdownMenu>
 </template>
 
 <script setup lang="ts">

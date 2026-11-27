@@ -159,8 +159,8 @@ describe('parseOverview', () => {
 		assert.equal(o.signupsAwaiting, 2);
 		assert.equal(o.invitationsPending, 4);
 		assert.equal(o.attention.length, 3);
-		assert.equal(o.attention[0].kind, 'device_limit');
-		assert.equal(o.attention[2].organization, null);
+		assert.equal(o.attention[0]!.kind, 'device_limit');
+		assert.equal(o.attention[2]!.organization, null);
 		assert.equal(o.series?.length, 1);
 	});
 	it('without metering or signup: nulls', () => {
@@ -255,11 +255,11 @@ describe('organization list', () => {
 
 	it('parses rows and tolerates missing stats/billing', () => {
 		assert.equal(rows.length, 3);
-		assert.equal(rows[0].stats?.lastActivityAt, '2026-11-24T00:00:00Z');
-		assert.equal(rows[1].billing, null);
-		assert.equal(rows[2].stats, null);
-		assert.equal(rows[2].name, 'c');
-		assert.equal(rows[2].device_limit, null);
+		assert.equal(rows[0]!.stats?.lastActivityAt, '2026-11-24T00:00:00Z');
+		assert.equal(rows[1]!.billing, null);
+		assert.equal(rows[2]!.stats, null);
+		assert.equal(rows[2]!.name, 'c');
+		assert.equal(rows[2]!.device_limit, null);
 	});
 	it('sorts by text and numbers, missing values last either way', () => {
 		assert.deepEqual(sortOrgs(rows, 'name', 'asc').map(r => r.id), ['a', 'b', 'c']);
@@ -316,9 +316,9 @@ describe('parseOrgDevices', () => {
 			devices: [{ id: 'd1', name: 'One', online: true, node_id: 'n1', version: '0.15.0', os: 'Ubuntu 24.04', last_seen_at: 'x' }, { id: 'd2' }],
 			by_version: [{ value: '0.14.0', count: 1 }, { value: '0.15.0', count: 3 }], by_os: [] } });
 		assert.equal(d.total, 2);
-		assert.equal(d.devices[1].name, 'd2');
-		assert.equal(d.devices[1].online, false);
-		assert.equal(d.byVersion[0].value, '0.15.0');
+		assert.equal(d.devices[1]!.name, 'd2');
+		assert.equal(d.devices[1]!.online, false);
+		assert.equal(d.byVersion[0]!.value, '0.15.0');
 		assert.deepEqual(d.byOs, []);
 	});
 	it('counts itself when aggregates are missing', () => {
@@ -340,9 +340,9 @@ describe('members and sign-in', () => {
 			{ groups: [] },
 		] });
 		assert.deepEqual(list.map(m => m.username), ['amy', 'zed']);
-		assert.equal(list[0].hasPassword, null);
-		assert.equal(list[0].organizations, 1);
-		assert.equal(list[1].twoFa, true);
+		assert.equal(list[0]!.hasPassword, null);
+		assert.equal(list[0]!.organizations, 1);
+		assert.equal(list[1]!.twoFa, true);
 	});
 	const m = (signIn: string, hasPassword: boolean | null, oidcLinked: boolean | null) => ({ signIn, hasPassword, oidcLinked });
 	it('labels the sign-in method', () => {
@@ -366,7 +366,7 @@ describe('invitations', () => {
 			{ organization: 'c' },
 		] });
 		assert.deepEqual(list.map(i => i.username), ['y', 'x']);
-		assert.equal(list[0].organizationName, 'b');
+		assert.equal(list[0]!.organizationName, 'b');
 	});
 	it('labels the inviter', () => {
 		assert.equal(invitedByLabel('operator:op'), 'op (operator)');
@@ -380,10 +380,10 @@ describe('parseActivity', () => {
 	it('reads { data, next }', () => {
 		const p = parseActivity({ data: [entry, { id: 1 }], next: 'c1' });
 		assert.equal(p.entries.length, 1);
-		assert.equal(p.entries[0].id, '7');
-		assert.equal(p.entries[0].remoteIp, '192.0.2.1');
+		assert.equal(p.entries[0]!.id, '7');
+		assert.equal(p.entries[0]!.remoteIp, '192.0.2.1');
 		assert.equal(p.next, 'c1');
-		assert.equal(isFailedSignIn(p.entries[0]), true);
+		assert.equal(isFailedSignIn(p.entries[0]!), true);
 	});
 	it('reads nested and meta cursors', () => {
 		assert.equal(parseActivity({ data: { entries: [entry], next: 'n' } }).next, 'n');

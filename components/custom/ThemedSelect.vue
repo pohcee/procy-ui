@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends string | number">
 import { computed } from 'vue';
+import type { AcceptableValue } from 'reka-ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 
 interface SelectOption<T> {
@@ -33,7 +34,8 @@ const stringValue = computed(() => props.modelValue === undefined || props.model
 	? undefined
 	: String(props.modelValue));
 
-function handleUpdate(next: string) {
+function handleUpdate(raw: AcceptableValue) {
+	const next = String(raw);
 	const match = props.options.find(option => String(option.value) === next);
 	emit('update:modelValue', (match ? match.value : next) as T);
 }

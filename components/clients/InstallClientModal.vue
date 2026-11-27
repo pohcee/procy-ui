@@ -150,8 +150,9 @@ const open = async (clientAccess: Partial<ClientAuth> | undefined, statusServer:
 	isOpen.value = true;
 	client.value = clientAccess ?? null;
 	status.value = statusServer;
-	if (statusServer.connect_url?.length > 0) {
-		selectedConnectUrl.value = statusServer.connect_url[0];
+	const [firstUrl] = statusServer.connect_url ?? [];
+	if (firstUrl) {
+		selectedConnectUrl.value = firstUrl;
 		await updateInstaller();
 	}
 };

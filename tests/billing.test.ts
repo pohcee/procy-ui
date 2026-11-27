@@ -286,38 +286,44 @@ describe('billingBanners', () => {
 	it('shows read-only first, with the portal for administrators', () => {
 		const b = billingBanners({ account: acct({ transfer_state: 'capped' }), payment: { access: 'read_only', dunning: { state: 'read_only' } }, isAdmin: true, now: NOW });
 		assert.deepEqual(b.map(x => x.id), ['read-only', 'capped']);
-		assert.equal(b[0].action?.kind, 'portal');
-		assert.equal(b[0].dismissible, false);
+		assert.equal(b[0]!.action?.kind, 'portal');
+		assert.equal(b[0]!.dismissible, false);
 	});
 	it('shows read-only to members from a refusal, without an action', () => {
 		const [b] = billingBanners({ isAdmin: false, sawReadOnly: true, now: NOW });
+		assert.ok(b);
 		assert.equal(b.id, 'read-only');
 		assert.equal(b.action, undefined);
 		assert.match(b.text, /Ask an administrator/);
 	});
 	it('shows a failed payment with the days until read-only', () => {
 		const [b] = billingBanners({ account: acct(), payment: { access: 'full', dunning: { state: 'past_due' }, read_only_from: '2026-12-01T00:00:00Z' }, isAdmin: true, now: NOW });
+		assert.ok(b);
 		assert.equal(b.id, 'past-due');
 		assert.match(b.text, /in 7 days \(Dec 1, 2026\)/);
 	});
 	it('shows the hard cap with the day it ends, and that devices stay connected', () => {
 		const [b] = billingBanners({ account: acct({ plan_details: free, transfer_state: 'capped' }), isAdmin: true, now: NOW });
+		assert.ok(b);
 		assert.equal(b.id, 'capped');
 		assert.equal(b.title, 'Transfer limit reached');
 		assert.match(b.text, /paused until Dec 1, 2026/);
 		assert.match(b.text, /Devices stay connected/);
 		const [s] = billingBanners({ account: acct({ transfer_state: 'capped', spending_limit_cents: 5000 }), isAdmin: true, now: NOW });
+		assert.ok(s);
 		assert.equal(s.title, 'Spending limit reached');
 		assert.deepEqual(ids({ isAdmin: false, sawTransferLimit: true }), ['capped']);
 	});
 	it('warns at the soft cap and past the allowance (administrators only)', () => {
 		const soft = acct({ plan_details: free, transfer_state: 'soft', soft_cap_reached: true, policy: { allowance_bytes: 10 * GiB, used_bytes: 8.5 * GiB } });
 		const [b] = billingBanners({ account: soft, isAdmin: true, now: NOW });
+		assert.ok(b);
 		assert.equal(b.id, 'soft-cap');
 		assert.equal(b.title, '85% of this month’s transfer used');
 		assert.equal(b.dismissible, true);
 		assert.deepEqual(ids({ account: soft, isAdmin: false }), []);
 		const [o] = billingBanners({ account: acct({ transfer_state: 'over', policy: { overage_cents: 340 } }), isAdmin: true, now: NOW });
+		assert.ok(o);
 		assert.equal(o.id, 'over');
 		assert.match(o.text, /\$0\.20 per GiB \(about \$3\.40 so far\)/);
 	});
@@ -325,10 +331,12 @@ describe('billingBanners', () => {
 		const trial = (end: string, pm = false) => acct({ status: 'trial', trial_ends_at: end, has_payment_method: pm });
 		assert.deepEqual(ids({ account: trial('2026-12-20T00:00:00Z'), isAdmin: true }), []);
 		const [b] = billingBanners({ account: trial('2026-12-04T00:00:00Z'), isAdmin: true, hasProvider: true, now: NOW });
+		assert.ok(b);
 		assert.equal(b.title, 'Your trial ends in 10 days');
 		assert.equal(b.action?.kind, 'checkout');
 		assert.equal(b.tone, 'info');
 		const [c] = billingBanners({ account: trial('2026-11-26T00:00:00Z', true), isAdmin: true, hasProvider: true, now: NOW });
+		assert.ok(c);
 		assert.equal(c.action, undefined);
 		assert.equal(c.tone, 'warn');
 		assert.match(c.text, /payment method on file/);
@@ -339,6 +347,7 @@ describe('billingBanners', () => {
 	});
 	it('has no payment actions without a provider', () => {
 		const [b] = billingBanners({ account: acct(), payment: null, isAdmin: true, sawReadOnly: true, hasProvider: false, now: NOW });
+		assert.ok(b);
 		assert.equal(b.action, undefined);
 	});
 });

@@ -1,8 +1,8 @@
+<!--
+	The end of a Google signup: the server's callback sends the browser here with #status=awaiting_approval|completed
+	(and the organization's name and the email) or #error=…&error_description=….
+-->
 <template>
-	<!--
-		The end of a Google signup: the server's callback sends the browser here with #status=awaiting_approval|completed
-		(and the organization's name and the email) or #error=…&error_description=….
-	-->
 	<div class="flex w-full flex-col gap-4">
 		<PreviewNotice
 			v-if="outcome.kind === 'awaiting_approval'"

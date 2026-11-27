@@ -103,7 +103,7 @@
 								v-model="filters.q"
 								type="search"
 								placeholder="Search name, ID, IP, tag…"
-								class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-none placeholder:text-app-text-4 focus:ring-0"
+								class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] text-app-text outline-hidden placeholder:text-app-text-4 focus:ring-0"
 							>
 						</div>
 						<DeviceGroupPicker
@@ -155,45 +155,44 @@
 									aria-hidden="true"
 								/>
 							</button>
-							<HeadlessMenu
-								as="div"
-								class="relative"
-							>
-								<HeadlessMenuButton
-									aria-label="Device list settings"
-									title="Device list settings"
-									class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover"
+							<DropdownMenu>
+								<DropdownMenuTrigger as-child>
+									<button
+										type="button"
+										aria-label="Device list settings"
+										title="Device list settings"
+										class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-app-border-strong bg-app-surface text-app-text-2 hover:bg-app-hover"
+									>
+										<Settings2
+											class="h-4 w-4"
+											aria-hidden="true"
+										/>
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									align="end"
+									:side-offset="8"
+									class="z-40 w-60 rounded-xl border border-app-border bg-app-surface p-1.5 text-app-text shadow-lg"
 								>
-									<Settings2
-										class="h-4 w-4"
-										aria-hidden="true"
-									/>
-								</HeadlessMenuButton>
-								<HeadlessMenuItems class="absolute right-0 z-40 mt-2 w-60 rounded-xl border border-app-border bg-app-surface p-1.5 shadow-lg focus:outline-none">
 									<div class="px-2.5 pb-1 pt-1.5 text-xs font-semibold uppercase tracking-[0.04em] text-app-text-3">
 										Row density
 									</div>
-									<HeadlessMenuItem
+									<DropdownMenuItem
 										v-for="option in densityOptions"
 										:key="option.id"
-										v-slot="{ active }"
+										role="menuitemradio"
+										:aria-checked="density === option.id"
+										class="flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm text-app-text focus:bg-app-hover focus:text-app-text data-[highlighted]:bg-app-hover"
+										@select="density = option.id"
 									>
-										<button
-											type="button"
-											role="menuitemradio"
-											:aria-checked="density === option.id"
-											:class="['flex h-10 w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 text-left text-sm text-app-text', active ? 'bg-app-hover' : '']"
-											@click="density = option.id"
-										>
-											<Check
-												:class="['h-4 w-4', density === option.id ? 'text-app-accent' : 'invisible']"
-												aria-hidden="true"
-											/>
-											{{ option.label }}
-										</button>
-									</HeadlessMenuItem>
-								</HeadlessMenuItems>
-							</HeadlessMenu>
+										<Check
+											:class="['h-4 w-4', density === option.id ? 'text-app-accent' : 'invisible']"
+											aria-hidden="true"
+										/>
+										{{ option.label }}
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 					</div>
 

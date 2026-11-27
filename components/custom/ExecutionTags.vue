@@ -24,7 +24,7 @@
 			<TagsInputInput
 				:id="inputId"
 				ref="inputRef"
-				class="h-8 min-w-[120px] flex-1 border-none bg-transparent px-1.5 text-sm text-app-text placeholder:text-app-text-4 outline-none"
+				class="h-8 min-w-[120px] flex-1 border-none bg-transparent px-1.5 text-sm text-app-text placeholder:text-app-text-4 outline-hidden"
 				:placeholder="modelValue.length ? 'Add another…' : placeholder"
 				@input="handleInput"
 				@focus="isFocused = true"

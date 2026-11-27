@@ -36,7 +36,7 @@
 						type="button"
 						:aria-pressed="selected === v.version"
 						:class="[
-							'flex min-h-[44px] w-full flex-col gap-0.5 rounded-lg border px-3 py-2 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40',
+							'flex min-h-[44px] w-full flex-col gap-0.5 rounded-lg border px-3 py-2 text-left text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-app-accent/40',
 							selected === v.version ? 'border-app-accent bg-app-hover' : 'border-app-border hover:bg-app-hover',
 						]"
 						@click="select(v.version)"
@@ -73,7 +73,7 @@
 					<select
 						id="libHistoryBase"
 						v-model="base"
-						class="min-h-[40px] rounded-lg border border-app-border bg-app-surface px-2 text-sm text-app-text focus:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40"
+						class="min-h-[40px] rounded-lg border border-app-border bg-app-surface px-2 text-sm text-app-text focus:outline-hidden focus-visible:ring-2 focus-visible:ring-app-accent/40"
 					>
 						<option :value="0">
 							Nothing (empty)
@@ -330,7 +330,8 @@ const load = async () => {
 	try {
 		const { data } = await $api.library.listVersions(props.entry.id);
 		versions.value = [...(data ?? [])].sort((a, b) => b.version - a.version);
-		if (versions.value.length) select(versions.value[0].version);
+		const [latest] = versions.value;
+		if (latest) select(latest.version);
 	}
 	catch (e) {
 		loadError.value = `Couldn’t load the history: ${apiErrorMessage(e)}`;

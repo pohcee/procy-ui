@@ -322,7 +322,7 @@
 <script lang="ts" setup>
 import type { PropType } from 'vue';
 import { storeToRefs } from 'pinia';
-import { formatTimeAgo, useNow } from '@vueuse/core';
+import { formatTimeAgo, useIntervalFn, useNow } from '@vueuse/core';
 import { ArrowLeftRight, Check, Copy, RefreshCw, TriangleAlert } from 'lucide-vue-next';
 import OpEmpty from '~/components/operate/OpEmpty.vue';
 import TunnelActions, { type TunnelRow } from '~/components/tunnels/TunnelActions.vue';
@@ -364,7 +364,8 @@ onMounted(async () => {
 		profileStore.ip ? Promise.resolve() : profileStore.loadServerIp(),
 	]);
 	clients.value = clientsResponse.data;
-	if (!newTunnelDeviceId.value && clients.value.length === 1) newTunnelDeviceId.value = clients.value[0].id;
+	const [only] = clients.value;
+	if (!newTunnelDeviceId.value && only && clients.value.length === 1) newTunnelDeviceId.value = only.id;
 });
 let leaving = false;
 onBeforeUnmount(() => {
@@ -428,7 +429,8 @@ const closesInfo = (tunnel: Tunnel) => {
 	return parts.length ? { label: parts.join(' · '), never: false } : { label: 'Never', never: true };
 };
 
-const now = useNow({ interval: 30_000 });
+// VueUse 15 dropped useNow's interval option; without a scheduler it ticks every animation frame.
+const now = useNow({ scheduler: cb => useIntervalFn(cb, 30_000) });
 const rows = computed<TunnelRow[]>(() => (fetchedTunnels.value ?? []).map((tunnel) => {
 	const client = clientNames.value.find(c => c.id === tunnel.client_id);
 	const scheme = (tunnel.scheme || '').toLowerCase();

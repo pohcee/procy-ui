@@ -23,16 +23,16 @@ jobs:
           node-version: '22'
 
       - name: Install Dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
-#      - name: Lint Ui
-#        run: yarn run lint
-#      - name: Check for Changes After Format
-#        run: git diff --exit-code
+      - name: Lint Ui
+        run: yarn lint
+
+      - name: Typecheck Ui
+        run: yarn typecheck
 
       - name: Test Ui
         run: yarn test
 
       - name: Build Ui
         run: yarn generate
-# trigger workflow registration

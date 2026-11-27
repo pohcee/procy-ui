@@ -131,8 +131,8 @@ describe('fillDays', () => {
 	it('zero-fills the period ending on the server\'s last day', () => {
 		const rows = fillDays([{ day: '2026-11-25', in: 5, out: 6, connects: 1, disconnects: 0 }], 3, NOW);
 		assert.deepEqual(rows.map(r => r.day), ['2026-11-23', '2026-11-24', '2026-11-25']);
-		assert.equal(rows[2].in, 5);
-		assert.equal(rows[0].in, 0);
+		assert.equal(rows[2]!.in, 5);
+		assert.equal(rows[0]!.in, 0);
 	});
 	it('uses this clock when the server sent no days', () => {
 		assert.deepEqual(fillDays([], 2, NOW).map(r => r.day), ['2026-11-25', '2026-11-26']);
@@ -162,10 +162,10 @@ describe('parseServerDetail', () => {
 		assert.equal(d.node?.id, 'usc1-1');
 		assert.equal(d.days, 7);
 		assert.equal(d.daily.length, 7);
-		assert.equal(d.daily[6].out, 12);
+		assert.equal(d.daily[6]!.out, 12);
 		assert.deepEqual(d.organizations, [{ id: 'b', name: 'b', onlineDevices: 5 }, { id: 'a', name: 'Alpha', onlineDevices: 1 }]);
 		assert.deepEqual(d.events.map(e => e.clientId), ['c2', 'c1']);
-		assert.equal(d.events[0].deviceName, 'c2');
+		assert.equal(d.events[0]!.deviceName, 'c2');
 	});
 	it('survives an empty response', () => {
 		const d = parseServerDetail({}, 7, NOW);
@@ -184,8 +184,8 @@ describe('parseServerDevices', () => {
 	});
 	it('reads { devices, total } and defaults names', () => {
 		const p = parseServerDevices({ data: { devices: [{ id: 'c1', organization: 'acme' }], total: 3 } });
-		assert.equal(p.devices[0].name, 'c1');
-		assert.equal(p.devices[0].organizationName, 'acme');
+		assert.equal(p.devices[0]!.name, 'c1');
+		assert.equal(p.devices[0]!.organizationName, 'acme');
 		assert.equal(p.count, 3);
 	});
 	it('counts the rows when the server sends no count', () => {

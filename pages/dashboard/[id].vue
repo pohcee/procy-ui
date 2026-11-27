@@ -231,10 +231,11 @@ function onTabKeydown(event: KeyboardEvent) {
 	else if (event.key === 'ArrowLeft') next = (index - 1 + tabIds.value.length) % tabIds.value.length;
 	else if (event.key === 'Home') next = 0;
 	else if (event.key === 'End') next = tabIds.value.length - 1;
-	if (next < 0) return;
+	const id = tabIds.value[next];
+	if (!id) return;
 	event.preventDefault();
-	selectTab(tabIds.value[next]);
-	nextTick(() => tablistEl.value?.querySelector<HTMLElement>(`#device-tab-${tabIds.value[next]}`)?.focus());
+	selectTab(id);
+	nextTick(() => tablistEl.value?.querySelector<HTMLElement>(`#device-tab-${id}`)?.focus());
 }
 
 async function onAction(action: string) {

@@ -1,5 +1,5 @@
+<!-- The operator console (/operator/...): platform operators only. -->
 <template>
-	<!-- The operator console (/operator/...): platform operators only. -->
 	<div>
 		<OperatorShell>
 			<slot />

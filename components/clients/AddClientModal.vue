@@ -17,7 +17,7 @@
 				<input
 					id="add-client-id"
 					v-model="client.id"
-					:class="['h-11 w-full rounded-[10px] border bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30', errors.id ? 'border-app-danger' : 'border-app-border-strong']"
+					:class="['h-11 w-full rounded-[10px] border bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30', errors.id ? 'border-app-danger' : 'border-app-border-strong']"
 					type="text"
 					autocomplete="off"
 					:aria-invalid="!!errors.id"
@@ -57,7 +57,7 @@
 				<input
 					id="add-client-password"
 					v-model="client.password"
-					:class="['h-11 w-full rounded-[10px] border bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent/30', errors.password ? 'border-app-danger' : 'border-app-border-strong']"
+					:class="['h-11 w-full rounded-[10px] border bg-app-surface px-3 font-mono text-[13px] text-app-text focus:border-app-accent focus:outline-hidden focus:ring-2 focus:ring-app-accent/30', errors.password ? 'border-app-danger' : 'border-app-border-strong']"
 					type="text"
 					autocomplete="off"
 					:aria-invalid="!!errors.password"
